@@ -1,0 +1,91 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Suivi PEA — .gitignore
+# ════════════════════════════════════════════════════════════════════════════
+
+# ─── DONNEES PRIVEES (CRITIQUE — ne jamais committer) ──────────────────────
+# Données réelles utilisateur (positions, transactions, etc.)
+pea_data*.json
+pea_data_arthur.json
+
+# Dossier de données complet (utilisateur)
+Donnees/
+**/Donnees/
+
+# Fichier PIN hashé
+pin.hash
+**/pin.hash
+
+# Logs de debug et crash
+crash.log
+save_debug.log
+startup_audit.log
+**/crash.log
+**/save_debug.log
+**/startup_audit.log
+
+# Backups quotidiens
+backups/
+**/backups/
+
+# Configuration multi-profils
+profiles.json
+**/profiles.json
+
+
+# ─── BUILD ARTIFACTS PYTHON / PYINSTALLER ──────────────────────────────────
+# Dossier de build PyInstaller (TOUS les sous-dossiers de build/ sont des
+# artefacts generes — on garde uniquement les fichiers .spec / .iss / .bat).
+build/*/
+build/build/
+build/__pycache__/
+
+# Sortie compilée (l'exe et le Setup.exe vont dans GitHub Releases, pas dans git)
+dist/Suivi_PEA.exe
+dist/Suivi_PEA_Setup.exe
+dist/*.exe
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.Python
+.pytest_cache/
+
+# Environnements virtuels
+venv/
+env/
+.venv/
+ENV/
+
+
+# ─── ICONES TEMPORAIRES (les apercus peuvent etre regeneres) ──────────────
+assets/icon_strip.png
+assets/icon_512.png
+# On garde icon.ico (utilise par PyInstaller)
+
+
+# ─── EDITEURS / OS ─────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+
+# ─── NODE / NPM (si jamais on en ajoute plus tard) ─────────────────────────
+node_modules/
+package-lock.json
+
+
+# ─── DIVERS ────────────────────────────────────────────────────────────────
+*.log
+*.bak
+*.tmp
+.env
+.env.local
+secrets.json
