@@ -413,15 +413,183 @@ def get_keystats(tickers):
 
 # ─── Recherche / autocomplete ticker Yahoo ───────────────────────────────────
 
-def fetch_yahoo_search(query: str, limit: int = 8):
-    """Yahoo finance search autocomplete (pas besoin de crumb pour cet endpoint)."""
+# Mini-index local des ETF PEA populaires souvent mal classes par Yahoo.
+# Format : {tag de recherche en minuscule: [(symbol, shortname), ...]}
+# Plus le tag est specifique, plus le boost est fort.
+PEA_ETF_BOOST = {
+    "msci world":  [("WPEA.PA",  "Amundi PEA MSCI World UCITS ETF"),
+                    ("CW8.PA",   "Amundi MSCI World UCITS ETF"),
+                    ("EWLD.PA",  "Lyxor MSCI World UCITS ETF")],
+    "world":       [("WPEA.PA",  "Amundi PEA MSCI World UCITS ETF"),
+                    ("CW8.PA",   "Amundi MSCI World UCITS ETF"),
+                    ("EWLD.PA",  "Lyxor MSCI World UCITS ETF")],
+    "s&p 500":     [("ESE.PA",   "Amundi S&P 500 UCITS ETF"),
+                    ("PE500.PA", "BNP Paribas Easy S&P 500 UCITS ETF"),
+                    ("PSP5.PA",  "Amundi PEA S&P 500 UCITS ETF")],
+    "s&p":         [("ESE.PA",   "Amundi S&P 500 UCITS ETF"),
+                    ("PE500.PA", "BNP Paribas Easy S&P 500 UCITS ETF"),
+                    ("PSP5.PA",  "Amundi PEA S&P 500 UCITS ETF")],
+    "sp500":       [("ESE.PA",   "Amundi S&P 500 UCITS ETF"),
+                    ("PSP5.PA",  "Amundi PEA S&P 500 UCITS ETF")],
+    "nasdaq":      [("PANX.PA",  "Amundi NASDAQ 100 UCITS ETF"),
+                    ("PUST.PA",  "BNP Paribas Easy NASDAQ 100 UCITS ETF")],
+    "cac 40":      [("CAC.PA",   "Lyxor CAC 40 UCITS ETF"),
+                    ("PCEH.PA",  "Amundi CAC 40 UCITS ETF")],
+    "cac":         [("CAC.PA",   "Lyxor CAC 40 UCITS ETF"),
+                    ("PCEH.PA",  "Amundi CAC 40 UCITS ETF")],
+    "stoxx":       [("ETZ.PA",   "Amundi STOXX Europe 600 UCITS ETF"),
+                    ("MFEC.PA",  "Lyxor STOXX Europe 600 UCITS ETF")],
+    "stoxx 600":   [("ETZ.PA",   "Amundi STOXX Europe 600 UCITS ETF")],
+    "europe 600":  [("ETZ.PA",   "Amundi STOXX Europe 600 UCITS ETF")],
+    "emerging":    [("PAEEM.PA", "Amundi MSCI Emerging Markets UCITS ETF"),
+                    ("PEMS.PA",  "BNP Paribas Easy MSCI Emerging UCITS ETF")],
+    "emergents":   [("PAEEM.PA", "Amundi MSCI Emerging Markets UCITS ETF")],
+}
+
+# Index des principales actions CAC 40 / SBF 120 (Yahoo ne renvoie pas toujours
+# la cotation Paris pour les recherches textuelles, donc on prend les devants).
+# Format : {mot-cle minuscule: (ticker.PA, nom complet)}
+PEA_STOCK_INDEX = {
+    # CAC 40
+    "airbus":                ("AIR.PA",  "Airbus SE"),
+    "air liquide":           ("AI.PA",   "Air Liquide"),
+    "arcelormittal":         ("MT.PA",   "ArcelorMittal"),
+    "axa":                   ("CS.PA",   "AXA"),
+    "bnp paribas":           ("BNP.PA",  "BNP Paribas"),
+    "bnp":                   ("BNP.PA",  "BNP Paribas"),
+    "bouygues":              ("EN.PA",   "Bouygues"),
+    "bureau veritas":        ("BVI.PA",  "Bureau Veritas"),
+    "capgemini":             ("CAP.PA",  "Capgemini"),
+    "carrefour":             ("CA.PA",   "Carrefour"),
+    "credit agricole":       ("ACA.PA",  "Crédit Agricole"),
+    "danone":                ("BN.PA",   "Danone"),
+    "dassault":              ("AM.PA",   "Dassault Aviation"),
+    "edenred":               ("EDEN.PA", "Edenred"),
+    "engie":                 ("ENGI.PA", "Engie"),
+    "essilor":               ("EL.PA",   "EssilorLuxottica"),
+    "eurofins":              ("ERF.PA",  "Eurofins Scientific"),
+    "hermès":                ("RMS.PA",  "Hermès International"),
+    "hermes":                ("RMS.PA",  "Hermès International"),
+    "kering":                ("KER.PA",  "Kering"),
+    "legrand":               ("LR.PA",   "Legrand"),
+    "loreal":                ("OR.PA",   "L'Oréal"),
+    "l'oréal":               ("OR.PA",   "L'Oréal"),
+    "lvmh":                  ("MC.PA",   "LVMH Moët Hennessy Louis Vuitton"),
+    "michelin":              ("ML.PA",   "Michelin"),
+    "orange":                ("ORA.PA",  "Orange"),
+    "pernod ricard":         ("RI.PA",   "Pernod Ricard"),
+    "publicis":              ("PUB.PA",  "Publicis Groupe"),
+    "renault":               ("RNO.PA",  "Renault"),
+    "safran":                ("SAF.PA",  "Safran"),
+    "saint-gobain":          ("SGO.PA",  "Saint-Gobain"),
+    "saint gobain":          ("SGO.PA",  "Saint-Gobain"),
+    "sanofi":                ("SAN.PA",  "Sanofi"),
+    "schneider":             ("SU.PA",   "Schneider Electric"),
+    "société générale":      ("GLE.PA",  "Société Générale"),
+    "societe generale":      ("GLE.PA",  "Société Générale"),
+    "stellantis":            ("STLAP.PA","Stellantis"),
+    "stmicro":               ("STMPA.PA","STMicroelectronics"),
+    "teleperformance":       ("TEP.PA",  "Teleperformance"),
+    "thales":                ("HO.PA",   "Thales"),
+    "totalenergies":         ("TTE.PA",  "TotalEnergies"),
+    "total":                 ("TTE.PA",  "TotalEnergies"),
+    "veolia":                ("VIE.PA",  "Veolia Environnement"),
+    "vinci":                 ("DG.PA",   "Vinci"),
+    "vivendi":               ("VIV.PA",  "Vivendi"),
+    # SBF 120 / Autres
+    "alstom":                ("ALO.PA",  "Alstom"),
+    "amundi":                ("AMUN.PA", "Amundi"),
+    "bic":                   ("BB.PA",   "Bic"),
+    "biomerieux":            ("BIM.PA",  "bioMérieux"),
+    "casino":                ("CO.PA",   "Casino Guichard"),
+    "covivio":               ("COV.PA",  "Covivio"),
+    "edf":                   ("EDF.PA",  "Électricité de France"),
+    "elis":                  ("ELIS.PA", "Elis"),
+    "eutelsat":              ("ETL.PA",  "Eutelsat Communications"),
+    "faurecia":              ("FRVIA.PA","Forvia"),
+    "forvia":                ("FRVIA.PA","Forvia"),
+    "getlink":               ("GET.PA",  "Getlink"),
+    "iliad":                 ("ILD.PA",  "Iliad"),
+    "ipsen":                 ("IPN.PA",  "Ipsen"),
+    "jc decaux":             ("DEC.PA",  "JCDecaux"),
+    "klepierre":             ("LI.PA",   "Klépierre"),
+    "lagardere":             ("MMB.PA",  "Lagardère"),
+    "natixis":               ("KN.PA",   "Natixis"),
+    "nexity":                ("NXI.PA",  "Nexity"),
+    "rexel":                 ("RXL.PA",  "Rexel"),
+    "scor":                  ("SCR.PA",  "SCOR"),
+    "soitec":                ("SOI.PA",  "Soitec"),
+    "spie":                  ("SPIE.PA", "Spie"),
+    "suez":                  ("SEV.PA",  "Suez"),
+    "ubisoft":               ("UBI.PA",  "Ubisoft Entertainment"),
+    "valneva":               ("VLA.PA",  "Valneva"),
+    "vallourec":             ("VK.PA",   "Vallourec"),
+    "veolia":                ("VIE.PA",  "Veolia"),
+    "verallia":              ("VRLA.PA", "Verallia"),
+    "worldline":             ("WLN.PA",  "Worldline"),
+}
+
+
+def _normalize_search(s: str) -> str:
+    """Lowercase + retire accents + retire apostrophes/tirets pour matcher
+    'L'Oreal' avec 'loreal', 'Saint-Gobain' avec 'saint gobain', etc."""
+    import unicodedata
+    s = unicodedata.normalize("NFD", s.lower())
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn")  # strip accents
+    s = s.replace("'", "").replace("'", "").replace("-", " ").strip()
+    return " ".join(s.split())  # collapse spaces
+
+
+def _boost_local_etf(query: str) -> list:
+    """Cherche dans l'index local ETF + actions CAC/SBF. Pre-classe en tete."""
+    q = _normalize_search(query)
+    if len(q) < 2:
+        return []
+    matches = []
+    seen = set()
+
+    # 1. ETF PEA matches (priorite 250)
+    for tag, items in PEA_ETF_BOOST.items():
+        ntag = _normalize_search(tag)
+        if ntag in q or q in ntag:
+            for sym, name in items:
+                if sym in seen: continue
+                seen.add(sym)
+                matches.append({
+                    "symbol":    sym, "shortname": name,
+                    "exchange":  "Paris", "type": "ETF",
+                    "peaScore":  250,
+                })
+
+    # 2. Actions CAC 40 / SBF 120 (priorite 200)
+    for tag, (sym, name) in PEA_STOCK_INDEX.items():
+        ntag = _normalize_search(tag)
+        if ntag in q or q in ntag:
+            if sym in seen: continue
+            seen.add(sym)
+            matches.append({
+                "symbol":    sym, "shortname": name,
+                "exchange":  "Paris", "type": "Action",
+                "peaScore":  200,
+            })
+
+    return matches
+
+
+def fetch_yahoo_search(query: str, limit: int = 6):
+    """
+    Recherche Yahoo orientee PEA : on demande beaucoup de resultats puis on
+    priorise les bourses eligibles PEA (Paris d'abord, Euronext puis EU).
+    On boost aussi les ETF PEA connus via un index local quand le terme matche.
+    Renvoie au max `limit` resultats (defaut 6).
+    """
     if not query or len(query) < 1:
         return []
     try:
         url = (
             "https://query2.finance.yahoo.com/v1/finance/search"
             "?q=" + urllib.parse.quote(query)
-            + f"&quotesCount={limit}&newsCount=0&lang=fr-FR&region=FR"
+            + "&quotesCount=25&newsCount=0&lang=fr-FR&region=FR"
         )
         req = urllib.request.Request(url, headers={
             "User-Agent": USER_AGENT,
@@ -429,18 +597,72 @@ def fetch_yahoo_search(query: str, limit: int = 8):
         })
         with urllib.request.urlopen(req, timeout=6) as resp:
             data = json.loads(resp.read().decode())
-        out = []
-        for q in data.get("quotes", [])[:limit]:
-            out.append({
-                "symbol":    q.get("symbol"),
-                "shortname": q.get("shortname") or q.get("longname"),
-                "exchange":  q.get("exchDisp") or q.get("exchange"),
-                "type":      q.get("typeDisp") or q.get("quoteType"),
-            })
-        return out
+
+        # Tableau de priorite par suffixe ticker (plus le score est haut, mieux c'est)
+        # PEA eligibles : Euronext (Paris/Amsterdam/Bruxelles/Lisbonne) + Frankfurt + autres EU
+        EXCHANGE_PRIORITY = {
+            ".PA":  100,  # Paris -- la priorite absolue pour un PEA
+            ".AS":   90,  # Amsterdam
+            ".BR":   85,  # Bruxelles
+            ".LS":   80,  # Lisbonne
+            ".DE":   70,  # Xetra (Francfort)
+            ".F":    60,  # Francfort
+            ".MI":   55,  # Milan
+            ".MC":   50,  # Madrid
+            ".IR":   45,  # Dublin
+            ".VI":   40,  # Vienne
+            ".SW":   30,  # Suisse (NON-PEA mais EU proche)
+            ".L":    20,  # Londres (NON-PEA depuis Brexit mais utile)
+        }
+        # Tout autre suffixe = score 0 (US, JP, HK, etc.)
+
+        def score(sym: str) -> int:
+            if not sym: return 0
+            for suffix, sc in EXCHANGE_PRIORITY.items():
+                if sym.endswith(suffix):
+                    return sc
+            # Pas de suffixe = tres probablement US
+            return 0
+
+        scored = []
+        seen_names = set()  # evite les doublons par nom
+        for q in data.get("quotes", []):
+            sym = q.get("symbol")
+            name = (q.get("shortname") or q.get("longname") or "").strip()
+            if not sym or not name:
+                continue
+            key = (name.lower())  # un nom = un seul resultat (le mieux place)
+            if key in seen_names:
+                continue
+            seen_names.add(key)
+
+            s = score(sym)
+            scored.append((s, {
+                "symbol":    sym,
+                "shortname": name,
+                "exchange":  q.get("exchDisp") or q.get("exchange") or "",
+                "type":      q.get("typeDisp") or q.get("quoteType") or "",
+                "peaScore":  s,  # pour affichage UI eventuel
+            }))
+
+        # Tri par score decroissant
+        scored.sort(key=lambda x: -x[0])
+        yahoo_results = [item for _, item in scored]
+
+        # Fusionne avec le boost local (ETF PEA connus en tete)
+        local = _boost_local_etf(query)
+        already_symbols = {r["symbol"] for r in local}
+        for r in yahoo_results:
+            if r["symbol"] in already_symbols:
+                continue
+            local.append(r)
+            already_symbols.add(r["symbol"])
+
+        return local[:limit]
     except Exception as e:
         print(f"[server] search {query}: {e}", flush=True)
-        return []
+        # Si Yahoo plante, on renvoie quand meme l'index local s'il matche
+        return _boost_local_etf(query)[:limit]
 
 
 def fetch_yahoo_analysts(yahoo_ticker: str):

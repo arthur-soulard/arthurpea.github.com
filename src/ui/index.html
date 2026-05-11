@@ -545,6 +545,21 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 .cours-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--g); box-shadow: 0 0 6px rgba(22,163,74,.5); }
 .cours-health.warn .cours-dot { background: var(--a); box-shadow: 0 0 6px rgba(217,119,6,.5); }
 .cours-health.err  .cours-dot { background: var(--r); box-shadow: 0 0 6px rgba(220,38,38,.5); }
+
+/* ── Banniere mise a jour ───────────────────────────── */
+#update-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+  background: var(--accent); color: #fff;
+  padding: 9px 20px;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  font-size: 13px; font-weight: 600;
+  box-shadow: 0 -2px 14px rgba(0,0,0,.18);
+}
+#update-bar a { color: #fff; text-decoration: underline; }
+#update-bar button {
+  background: rgba(255,255,255,.22); border: none; color: #fff;
+  border-radius: 6px; padding: 3px 10px; cursor: pointer; font-size: 13px;
+}
 </style>
 </head>
 <body>
@@ -654,6 +669,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
           <button class="btn btn-sm" id="prb-ytd" onclick="setPerfRange('YTD')">YTD</button>
           <button class="btn btn-sm btn-primary" id="prb-max" onclick="setPerfRange('MAX')">Max</button>
         </div>
+        <button class="btn btn-sm btn-ghost" onclick="resetPerf()" title="Réinitialiser les benchmarks + la plage" style="font-size:10px;margin-left:6px">↺ Effacer</button>
       </div>
     </div>
     <!-- Résumé P&L période -->
@@ -832,6 +848,9 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 
 <!-- ═══════════════════ SIMULATEURS ═══════════════════ -->
 <div class="pane" id="pane-sim">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+    <button type="button" class="btn btn-ghost btn-sm" onclick="resetSimulators()" style="font-size:11px">↺ Effacer mes simulations</button>
+  </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
 
     <!-- 1. Projection versements réguliers -->
@@ -947,7 +966,6 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       <div style="display:flex;gap:8px;align-items:center">
         <button type="button" class="btn btn-ghost btn-sm" data-theme-btn="light" style="font-size:11px">☀ Clair</button>
         <button type="button" class="btn btn-ghost btn-sm" data-theme-btn="dark"  style="font-size:11px">🌙 Sombre</button>
-        <button type="button" class="btn btn-ghost btn-sm" data-theme-btn="auto"  style="font-size:11px">🖥 Auto (Windows)</button>
       </div>
     </div>
     <div class="fg">
@@ -1077,8 +1095,14 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
     <input type="hidden" id="w-list">
     <input type="hidden" id="w-type">
     <div class="fg-row">
-      <div class="fg"><label>Ticker</label><input id="w-ticker" placeholder="AIR.PA"></div>
-      <div class="fg"><label>Nom</label><input id="w-name" placeholder="Airbus"></div>
+      <div class="fg" style="position:relative">
+        <label>Nom <span style="color:var(--txt3);font-weight:400">(tape pour rechercher)</span></label>
+        <input id="w-name" placeholder="ex : Airbus, MSCI World…" autocomplete="off">
+        <div id="w-name-suggest" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:10;
+          background:var(--bg2);border:1px solid var(--brd2);border-radius:var(--rad);box-shadow:var(--sh-md);
+          max-height:240px;overflow-y:auto"></div>
+      </div>
+      <div class="fg"><label>Ticker</label><input id="w-ticker" placeholder="EPA:AIR" autocomplete="off"></div>
     </div>
     <div class="fg"><label>Étoiles (1–5)</label><input id="w-stars" type="number" min="1" max="5" value="3"></div>
     <div class="mact">
@@ -2133,6 +2157,27 @@ function setPerfRange(range) {
     if (btn) btn.classList.toggle("btn-primary", r === range);
   });
   drawPerfChart();
+  // Sauvegarde la plage choisie dans uiPrefs
+  S.uiPrefs = S.uiPrefs || {};
+  S.uiPrefs.perfRange = range;
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.save_ui_prefs) {
+    window.pywebview.api.save_ui_prefs(S.uiPrefs).catch(()=>{});
+  }
+}
+
+/* Reset Performance : enleve les benchmarks coches + remet plage MAX */
+async function resetPerf() {
+  if (!confirm("Réinitialiser le graphique Performance (benchmarks + plage) ?")) return;
+  _benchEnabled = {cac40: false, sp500: false, world: false};
+  document.querySelectorAll('#perf-bench-toggles input[type="checkbox"]').forEach(cb => cb.checked = false);
+  S.uiPrefs = S.uiPrefs || {};
+  S.uiPrefs.benchEnabled = {..._benchEnabled};
+  S.uiPrefs.perfRange = "MAX";
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.save_ui_prefs) {
+    await window.pywebview.api.save_ui_prefs(S.uiPrefs);
+  }
+  setPerfRange("MAX");
+  showToastModern("✓ Graphique réinitialisé", "ok");
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -2391,6 +2436,11 @@ function drawPerfChart() {
 async function renderPerf() {
   // Restaure les prefs benchmarks et branche les checkboxes
   _initBenchmarkUi();
+  // Restaure la plage YTD/MAX sauvegardee
+  try {
+    const savedRange = (S.uiPrefs && S.uiPrefs.perfRange) || "MAX";
+    if (savedRange === "YTD" || savedRange === "MAX") _perfRange = savedRange;
+  } catch(e) {}
 
   const cutToday = todayISO();
   const txs = S.transactions.filter(t =>
@@ -3443,6 +3493,8 @@ function _renderCmpRangeButtons() {
 async function setCmpRange(k) {
   _cmpRange = k;
   _renderCmpRangeButtons();
+  // Sauvegarde la plage choisie
+  if (typeof _saveSimulators === "function") _saveSimulators();
   // Si on change de granularite Yahoo, on doit refetch
   const cfg = CMP_RANGES.find(r => r.key === k);
   if (cfg && cfg.yhRange !== _cmpHistRange) {
@@ -3628,19 +3680,84 @@ function _drawCmpChart() {
     `${validTickers.length} actifs sur ${sortedDates.length} jours · capital départ ${startCap.toLocaleString("fr-FR",{maximumFractionDigits:0})} €${alignNote}`;
 }
 
-/* Wire up : recalcule a chaque saisie */
-function _initSimulateurs() {
-  ["sim-dca-start","sim-dca-amt","sim-dca-years","sim-dca-rate"].forEach(id => {
-    const el = document.getElementById(id); if (el) el.oninput = runDcaSim;
+/* ── Sauvegarde / restauration des parametres simulateurs ──────────────── */
+const SIM_FIELDS = [
+  "sim-dca-start","sim-dca-amt","sim-dca-years","sim-dca-rate",
+  "sim-goal-start","sim-goal-amt","sim-goal-month","sim-goal-rate",
+  "sim-cmp-1","sim-cmp-2","sim-cmp-3","sim-cmp-4","sim-cmp-5","sim-cmp-start",
+];
+
+let _simSaveTimer = null;
+function _saveSimulators() {
+  if (_simSaveTimer) clearTimeout(_simSaveTimer);
+  _simSaveTimer = setTimeout(() => {
+    S.uiPrefs = S.uiPrefs || {};
+    const sim = {};
+    SIM_FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.value !== "") sim[id] = el.value;
+    });
+    sim._cmpRange = _cmpRange;
+    S.uiPrefs.simulators = sim;
+    persist();
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.save_ui_prefs) {
+      window.pywebview.api.save_ui_prefs(S.uiPrefs).catch(()=>{});
+    }
+  }, 600);
+}
+
+function _restoreSimulators() {
+  const sim = (S.uiPrefs && S.uiPrefs.simulators) || {};
+  SIM_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && sim[id] != null) el.value = sim[id];
   });
-  ["sim-goal-start","sim-goal-amt","sim-goal-month","sim-goal-rate"].forEach(id => {
-    const el = document.getElementById(id); if (el) el.oninput = runGoalSim;
+  if (sim._cmpRange && CMP_RANGES.some(r => r.key === sim._cmpRange)) {
+    _cmpRange = sim._cmpRange;
+  }
+}
+
+/* Reset : remet aux valeurs par defaut */
+function resetSimulators() {
+  if (!confirm("Réinitialiser tous les simulateurs ?")) return;
+  const defaults = {
+    "sim-dca-start": "0",     "sim-dca-amt": "200", "sim-dca-years": "20", "sim-dca-rate": "7",
+    "sim-goal-start": "0",    "sim-goal-amt": "100000", "sim-goal-month": "200", "sim-goal-rate": "7",
+    "sim-cmp-1": "EPA:CW8",   "sim-cmp-2": "EPA:CAC", "sim-cmp-3": "EPA:ESE",
+    "sim-cmp-4": "",          "sim-cmp-5": "",
+    "sim-cmp-start": "10000",
+  };
+  Object.entries(defaults).forEach(([id, v]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = v;
   });
-  // Capital depart du comparateur : redraw a chaque saisie (si donnees deja chargees)
-  const cs = document.getElementById("sim-cmp-start");
-  if (cs) cs.oninput = () => { if (_cmpChart || Object.keys(_cmpHist).length > 0) _drawCmpChart(); };
+  _cmpRange = "1mo";
+  _cmpHist = {}; _cmpHistRange = null;
+  if (_cmpChart) { _cmpChart.destroy(); _cmpChart = null; }
+  document.getElementById("sim-cmp-summary").innerHTML = "";
+  document.getElementById("sim-cmp-status").textContent = "";
   _renderCmpRangeButtons();
-  // Calcul initial
+  runDcaSim(); runGoalSim();
+  // Sauve les valeurs reset
+  if (S.uiPrefs) { delete S.uiPrefs.simulators; }
+  _saveSimulators();
+  showToastModern("✓ Simulateurs réinitialisés", "ok");
+}
+
+/* Wire up : recalcule + sauvegarde a chaque saisie */
+function _initSimulateurs() {
+  _restoreSimulators();
+  SIM_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.oninput = () => {
+      if (id.startsWith("sim-dca-"))  runDcaSim();
+      if (id.startsWith("sim-goal-")) runGoalSim();
+      if (id === "sim-cmp-start" && (_cmpChart || Object.keys(_cmpHist).length > 0)) _drawCmpChart();
+      _saveSimulators();
+    };
+  });
+  _renderCmpRangeButtons();
   setTimeout(() => { runDcaSim(); runGoalSim(); }, 50);
 }
 
@@ -3694,11 +3811,16 @@ function closeOv(id) {
 /* Modal Position — nouveau formulaire simplifié */
 /* ─── Auto-completion ticker (Yahoo search) ─── */
 let _searchTimer = null;
-function _wireTickerSearch() {
-  const nameEl = document.getElementById("f-name");
-  const tkEl   = document.getElementById("f-ticker");
-  const sug    = document.getElementById("f-name-suggest");
-  const typeEl = document.getElementById("f-type");
+function _wireTickerSearch(opts) {
+  opts = opts || {};
+  const nameElId = opts.nameId || "f-name";
+  const tkElId   = opts.tickerId || "f-ticker";
+  const sugId    = opts.suggestId || "f-name-suggest";
+  const typeElId = opts.typeId || "f-type";
+  const nameEl = document.getElementById(nameElId);
+  const tkEl   = document.getElementById(tkElId);
+  const sug    = document.getElementById(sugId);
+  const typeEl = typeElId ? document.getElementById(typeElId) : null;
   if (!nameEl || !sug) return;
 
   // Conversion symbole Yahoo -> notation Google (EPA:XXX)
@@ -3728,14 +3850,39 @@ function _wireTickerSearch() {
         const d = await r.json();
         const results = (d.results || []).filter(x => x.symbol && x.shortname);
         if (results.length === 0) { closeSuggest(); return; }
-        sug.innerHTML = results.map(r => `
+        // Humanise le type (Equity -> Action) et detecte ETF
+        const humanType = (t) => {
+          const x = (t || "").toLowerCase();
+          if (/etf|fund/.test(x))      return "ETF";
+          if (/equity|stock|action/.test(x)) return "Action";
+          if (/index/.test(x))         return "Indice";
+          if (/future/.test(x))        return "Future";
+          return "";  // pas d'affichage si inconnu
+        };
+        // Badge PEA si la cotation est Paris (.PA) ou Euronext + EU
+        const peaBadge = (sym, score) => {
+          if (!sym) return "";
+          if (sym.endsWith(".PA")) return '<span style="background:var(--g2);color:var(--g);font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px">PEA</span>';
+          if (score >= 70)         return '<span style="background:var(--b2);color:var(--b);font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px">EU</span>';
+          return '';
+        };
+        sug.innerHTML = results.map(r => {
+          const type = humanType(r.type);
+          const badge = peaBadge(r.symbol, r.peaScore);
+          const parts = [r.symbol];
+          if (r.exchange) parts.push(r.exchange);
+          if (type)       parts.push(type);
+          return `
           <div class="sg-item" data-sym="${r.symbol}" data-name="${(r.shortname||"").replace(/"/g,'&quot;')}" data-type="${(r.type||"").toLowerCase()}"
             style="padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--brd);font-size:12px">
-            <div style="font-weight:600">${r.shortname || r.symbol}</div>
-            <div style="font-size:10px;color:var(--txt2);font-family:var(--mono);margin-top:2px">
-              ${r.symbol} · ${r.exchange || "?"} · ${r.type || "?"}
+            <div style="font-weight:600;display:flex;align-items:center">
+              <span style="flex:1">${r.shortname || r.symbol}</span>${badge}
             </div>
-          </div>`).join("");
+            <div style="font-size:10px;color:var(--txt2);font-family:var(--mono);margin-top:2px">
+              ${parts.join(" · ")}
+            </div>
+          </div>`;
+        }).join("");
         sug.querySelectorAll(".sg-item").forEach(item => {
           item.onmouseenter = () => item.style.background = "var(--bg3)";
           item.onmouseleave = () => item.style.background = "";
@@ -3955,10 +4102,17 @@ function openAddWish(list, type) {
   document.getElementById("w-list").value = list;
   document.getElementById("w-type").value = type||"action";
   document.getElementById("w-modal-title").textContent = "Ajouter " + (type==="etf"?"un ETF":"une action") + " à la wishlist";
-  document.getElementById("w-ticker").placeholder = type==="etf"?"WPEA.PA":"AIR.PA";
-  document.getElementById("w-name").placeholder   = type==="etf"?"ETF World MSCI":"Airbus";
+  document.getElementById("w-ticker").placeholder = type==="etf"?"EPA:WPEA":"EPA:AIR";
+  document.getElementById("w-name").placeholder   = type==="etf"?"ex : ETF MSCI World":"ex : Airbus";
   ["w-ticker","w-name"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("w-stars").value=3;
+  // Auto-completion : meme systeme que pour les positions
+  _wireTickerSearch({
+    nameId:    "w-name",
+    tickerId:  "w-ticker",
+    suggestId: "w-name-suggest",
+    typeId:    null,   // pas de select type dans la wishlist (deja determine par le bouton +Action / +ETF)
+  });
   document.getElementById("ov-wish").classList.add("open");
 }
 function saveWish() {
@@ -4519,14 +4673,11 @@ async function _showWelcomeIfFirstRun() {
   });
 }
 
-/* ─── Theme clair / sombre / auto ─── */
+/* ─── Theme clair / sombre ─── */
 function applyTheme(t) {
-  // t = "light" | "dark" | "auto"
-  let actual = t;
-  if (t === "auto") {
-    actual = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
-  }
-  document.documentElement.setAttribute("data-theme", actual === "dark" ? "dark" : "light");
+  // t = "light" | "dark" (anciennes valeurs "auto" -> on map en "light")
+  const actual = (t === "dark") ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", actual);
 }
 
 function setThemePref(t) {
@@ -4564,54 +4715,94 @@ async function openDataFolder() {
   }
 }
 
-/* ─── Couleur d'accent (palette + application) ─── */
-const ACCENT_PALETTE = [
-  {key: "orange", color: "#d97706", dark: "#b45309", label: "Orange"},
-  {key: "blue",   color: "#2563eb", dark: "#1d4ed8", label: "Bleu"},
-  {key: "green",  color: "#16a34a", dark: "#15803d", label: "Vert"},
-  {key: "violet", color: "#7c3aed", dark: "#6d28d9", label: "Violet"},
-  {key: "rose",   color: "#e11d48", dark: "#be123c", label: "Rose"},
-  {key: "teal",   color: "#0d9488", dark: "#0f766e", label: "Sarcelle"},
-  {key: "slate",  color: "#475569", dark: "#334155", label: "Gris"},
+/* ─── Couleur d'accent : preset rapide + spectre complet ─── */
+const ACCENT_PRESETS = [
+  "#d97706", "#ea580c", "#dc2626", "#e11d48", "#db2777", "#c026d3",
+  "#9333ea", "#7c3aed", "#6366f1", "#2563eb", "#0284c7", "#0891b2",
+  "#0d9488", "#059669", "#16a34a", "#65a30d", "#ca8a04", "#a16207",
+  "#78716c", "#475569", "#1f2937",
 ];
-function applyAccent(key) {
-  const p = ACCENT_PALETTE.find(c => c.key === key) || ACCENT_PALETTE[0];
-  document.documentElement.style.setProperty("--accent", p.color);
-  document.documentElement.style.setProperty("--accent-dark", p.dark);
-  // Le bouton primaire utilise --accent. Pour le hover, on injecte une regle dynamique.
+
+/** Renvoie une version "dark" d'une couleur hex pour les hovers. */
+function _darken(hex, factor) {
+  factor = factor != null ? factor : 0.78;
+  const c = hex.replace("#","");
+  const r = Math.round(parseInt(c.slice(0,2),16) * factor);
+  const g = Math.round(parseInt(c.slice(2,4),16) * factor);
+  const b = Math.round(parseInt(c.slice(4,6),16) * factor);
+  return "#" + [r,g,b].map(x => x.toString(16).padStart(2,"0")).join("");
+}
+
+function applyAccent(color) {
+  // Compatibilite ancienne : si on recoit une cle ("orange", "blue"...), on la convertit
+  const LEGACY = {orange:"#d97706", blue:"#2563eb", green:"#16a34a", violet:"#7c3aed",
+                  rose:"#e11d48", teal:"#0d9488", slate:"#475569"};
+  if (LEGACY[color]) color = LEGACY[color];
+  if (!color || !/^#[0-9a-fA-F]{6}$/.test(color)) color = "#d97706";
+  const dark = _darken(color, 0.78);
+  document.documentElement.style.setProperty("--accent", color);
+  document.documentElement.style.setProperty("--accent-dark", dark);
   let style = document.getElementById("accent-style");
   if (!style) {
     style = document.createElement("style");
     style.id = "accent-style";
     document.head.appendChild(style);
   }
-  style.textContent = `.btn-primary       { background:${p.color}; border-color:${p.color}; color:#fff; }
-                       .btn-primary:hover { background:${p.dark};  border-color:${p.dark};  }
-                       .topbar-logo       { background:${p.color}; }
-                       .titlebar-logo     { background:${p.color}; }
-                       .sidebar-item.active { background:${p.color}; color:#fff; }`;
+  style.textContent = `.btn-primary       { background:${color}; border-color:${color}; color:#fff; }
+                       .btn-primary:hover { background:${dark};  border-color:${dark};  }
+                       .topbar-logo       { background:${color}; }
+                       .titlebar-logo     { background:${color}; }
+                       .sidebar-item.active { background:${color}; color:#fff; }`;
 }
+
 function _renderAccentPicker() {
   const row = document.getElementById("cfg-accent-row");
   if (!row) return;
-  const current = (S.uiPrefs && S.uiPrefs.accent) || "orange";
-  row.innerHTML = ACCENT_PALETTE.map(p => {
-    const sel = p.key === current ? "border-width:3px;border-color:#000" : "";
-    return `<button type="button" data-accent="${p.key}" title="${p.label}"
-      style="width:32px;height:32px;border-radius:50%;border:2px solid var(--brd2);
-             background:${p.color};cursor:pointer;${sel}"></button>`;
-  }).join("");
-  row.querySelectorAll("[data-accent]").forEach(btn => {
-    btn.onclick = () => {
-      row.querySelectorAll("[data-accent]").forEach(b => b.style.borderWidth = "2px");
-      row.querySelectorAll("[data-accent]").forEach(b => b.style.borderColor = "var(--brd2)");
-      btn.style.borderWidth = "3px";
-      btn.style.borderColor = "#000";
-      btn.dataset.selected = "1";
-      // Application instantanee (preview)
-      applyAccent(btn.dataset.accent);
-    };
+  const current = (S.uiPrefs && S.uiPrefs.accent) || "#d97706";
+  // Si l'accent est une vieille cle ("orange"), on l'affiche quand meme
+  const LEGACY = {orange:"#d97706", blue:"#2563eb", green:"#16a34a", violet:"#7c3aed",
+                  rose:"#e11d48", teal:"#0d9488", slate:"#475569"};
+  const curColor = LEGACY[current] || current;
+
+  row.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;width:100%">
+      ${ACCENT_PRESETS.map(c => {
+        const sel = c.toLowerCase() === curColor.toLowerCase() ? "border-width:3px;border-color:#000;transform:scale(1.1)" : "";
+        return `<button type="button" data-accent-color="${c}" title="${c}"
+          style="width:26px;height:26px;border-radius:50%;border:2px solid var(--brd2);
+                 background:${c};cursor:pointer;padding:0;transition:transform .12s;${sel}"></button>`;
+      }).join("")}
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:10px;width:100%">
+      <input type="color" id="cfg-accent-custom" value="${curColor}"
+        style="width:44px;height:32px;padding:0;border:1px solid var(--brd2);border-radius:6px;cursor:pointer;background:transparent">
+      <span style="font-size:11px;color:var(--txt2)">Ou choisis n'importe quelle couleur →</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--txt2)" id="cfg-accent-hex">${curColor.toUpperCase()}</span>
+    </div>`;
+
+  const updateSelection = (color) => {
+    row.querySelectorAll("[data-accent-color]").forEach(b => {
+      const isSel = b.dataset.accentColor.toLowerCase() === color.toLowerCase();
+      b.style.borderWidth = isSel ? "3px" : "2px";
+      b.style.borderColor = isSel ? "#000"  : "var(--brd2)";
+      b.style.transform   = isSel ? "scale(1.1)" : "scale(1)";
+    });
+    row.dataset.selected = color;
+    const hexEl = document.getElementById("cfg-accent-hex");
+    if (hexEl) hexEl.textContent = color.toUpperCase();
+    const pickEl = document.getElementById("cfg-accent-custom");
+    if (pickEl && pickEl.value.toLowerCase() !== color.toLowerCase()) pickEl.value = color;
+    applyAccent(color);
+  };
+
+  // Init: marque la couleur actuelle comme selectionnee
+  row.dataset.selected = curColor;
+
+  row.querySelectorAll("[data-accent-color]").forEach(btn => {
+    btn.onclick = () => updateSelection(btn.dataset.accentColor);
   });
+  const customPicker = document.getElementById("cfg-accent-custom");
+  if (customPicker) customPicker.oninput = () => updateSelection(customPicker.value);
 }
 
 /* ─── Config PEA ─── */
@@ -4654,9 +4845,11 @@ async function saveConfig() {
   S.banque    = document.getElementById("cfg-banque").value.trim() || "Ma banque";
   S.ouverture = document.getElementById("cfg-ouverture").value || null;
   S.uiPrefs   = S.uiPrefs || {};
-  // Couleur d'accent
-  const selected = document.querySelector("#cfg-accent-row [data-selected='1']");
-  if (selected) S.uiPrefs.accent = selected.dataset.accent;
+  // Couleur d'accent : stockee en hex maintenant (#RRGGBB)
+  const accentRow = document.getElementById("cfg-accent-row");
+  if (accentRow && accentRow.dataset.selected) {
+    S.uiPrefs.accent = accentRow.dataset.selected;
+  }
   persist();
   // Sauve uiPrefs (accent...) via API dediee
   if (window.pywebview && window.pywebview.api && window.pywebview.api.save_ui_prefs) {
@@ -5644,6 +5837,21 @@ async function _hydrateFromHttp() {
   }
 }
 
+async function _checkForUpdates() {
+  try {
+    if (!window.pywebview || !window.pywebview.api) return;
+    const r = await window.pywebview.api.check_update();
+    if (!r || !r.hasUpdate) return;
+    const bar = document.createElement("div");
+    bar.id = "update-bar";
+    bar.innerHTML =
+      `<span>Mise à jour disponible : v${r.version}</span>` +
+      `<a href="#" onclick="window.pywebview.api.open_url('${r.url}');return false">Télécharger</a>` +
+      `<button onclick="document.getElementById('update-bar').remove()">✕</button>`;
+    document.body.appendChild(bar);
+  } catch(e) {}
+}
+
 (async function boot() {
   try {
     // 1. Hydratation HTTP en parallele (rapide, pas besoin d'attendre pywebview)
@@ -5678,6 +5886,8 @@ async function _hydrateFromHttp() {
     // Premier lancement : welcome screen si aucune data
     try { if (typeof _showWelcomeIfFirstRun === "function") _showWelcomeIfFirstRun(); } catch(e) {}
     startGsRefresh();
+    // Verifie les mises a jour apres stabilisation de l'UI
+    if (window.pywebview) setTimeout(_checkForUpdates, 8000);
   } catch(e) {
     const box=document.getElementById("errbox");
     if (box) { box.style.display="block"; box.textContent="Erreur JS : "+e.message+" — Cliquez sur Reset."; }

@@ -28,7 +28,8 @@ import storage
 import notifications
 
 
-APP_NAME = "Suivi PEA"
+APP_NAME    = "Suivi PEA"
+APP_VERSION = "2.0.0"
 SINGLE_INSTANCE_PORT = 50317          # port arbitraire pour le verrou single-instance
 WINDOW_DEFAULT_SIZE  = (1280, 800)
 WINDOW_MIN_SIZE      = (960, 640)
@@ -379,10 +380,25 @@ class Api:
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
+    def check_update(self) -> dict:
+        try:
+            import updater
+            return {"ok": True, **updater.get_result()}
+        except Exception as e:
+            return {"ok": False, "error": str(e), "checked": True, "hasUpdate": False}
+
+    def open_url(self, url: str) -> dict:
+        try:
+            import webbrowser
+            webbrowser.open(url)
+            return {"ok": True}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
     def app_info(self) -> dict:
         return {
             "appName":  APP_NAME,
-            "version":  "1.0.0",
+            "version":  APP_VERSION,
             "appDir":   str(storage.get_app_dir()),
             "dataPath": str(storage.get_data_path()),
             "logPath":  str(storage.get_log_path()),
@@ -500,6 +516,13 @@ def main() -> int:
     install_crash_handler()
     # _startup_audit() retire — n'est plus necessaire
 
+    # Lance la verification de mise a jour en arriere-plan (silencieux)
+    try:
+        import updater
+        updater.start_check(APP_VERSION)
+    except Exception:
+        pass
+
     # Active la conscience DPI au plus tot (avant de creer la fenetre).
     # Ca evite les soucis de tailles sur ecran HiDPI (laptops 4K, etc.).
     if sys.platform == "win32":
@@ -523,7 +546,7 @@ def main() -> int:
     # Charge les preferences UI pour decider taille/position fenetre
     data = storage.load_data()
     ui_prefs = data.get("ui", {})
-    size = tuple(ui_prefs.get("windowSize") or WINDOW_DEFAULT_SIZE)
+    saved_size = ui_prefs.get("windowSize")
     pos  = ui_prefs.get("windowPos")  # [x, y] ou None
 
     # Recupere la work area du moniteur principal (ecran moins barre des taches)
@@ -532,7 +555,6 @@ def main() -> int:
         if sys.platform == "win32":
             import ctypes
             user32 = ctypes.windll.user32
-            # SystemParametersInfo SPI_GETWORKAREA = 0x0030
             class _RECT(ctypes.Structure):
                 _fields_ = [("left", ctypes.c_long), ("top", ctypes.c_long),
                             ("right", ctypes.c_long), ("bottom", ctypes.c_long)]
@@ -543,16 +565,23 @@ def main() -> int:
     except Exception:
         pass
 
-    # Validation taille : on prend le min entre la pref et la work area moins 40 px de marge
-    try:
-        w_, h_ = int(size[0]), int(size[1])
-    except Exception:
-        w_, h_ = WINDOW_DEFAULT_SIZE
-    if not (200 <= w_ <= 8000 and 200 <= h_ <= 8000):
-        w_, h_ = WINDOW_DEFAULT_SIZE
-    # Evite que la fenetre soit plus grande que l'ecran
-    w_ = min(w_, max(960, screen_w - 40))
-    h_ = min(h_, max(640, screen_h - 40))
+    # Strategie d'ouverture :
+    # - Si l'utilisateur a une taille sauvegardee → on la respecte (mais on clamp a la work area)
+    # - Sinon (1er lancement) → on ouvre en quasi-plein-ecran (work area - 20px de marge)
+    if saved_size and isinstance(saved_size, (list, tuple)) and len(saved_size) == 2:
+        try:
+            w_, h_ = int(saved_size[0]), int(saved_size[1])
+            if not (200 <= w_ <= 8000 and 200 <= h_ <= 8000):
+                w_, h_ = screen_w - 20, screen_h - 20
+        except Exception:
+            w_, h_ = screen_w - 20, screen_h - 20
+    else:
+        # Premier lancement : quasi-plein-ecran
+        w_, h_ = screen_w - 20, screen_h - 20
+
+    # Clamp final : ne depasse pas la work area
+    w_ = min(w_, max(960, screen_w - 20))
+    h_ = min(h_, max(640, screen_h - 20))
     size = (w_, h_)
 
     # Validation position : on rejette les valeurs aberrantes
