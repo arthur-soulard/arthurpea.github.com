@@ -122,6 +122,7 @@ def _do_install() -> None:
         )
         with urllib.request.urlopen(req, timeout=120) as r:
             total = int(r.headers.get("Content-Length", 0))
+            estimated = total or (25 * 1024 * 1024)  # fallback 25 Mo si pas de Content-Length
             downloaded = 0
             chunk_size = 65536  # 64 Ko
             with open(setup_path, "wb") as f:
@@ -131,9 +132,8 @@ def _do_install() -> None:
                         break
                     f.write(chunk)
                     downloaded += len(chunk)
-                    if total:
-                        pct = int(downloaded / total * 70)
-                        _set_progress("downloading", pct)
+                    pct = min(69, int(downloaded / estimated * 70))
+                    _set_progress("downloading", pct)
 
         # ── Étape 2 : Préparation batch (70 → 80%) ───────────────────────────
         _set_progress("installing", 75)
