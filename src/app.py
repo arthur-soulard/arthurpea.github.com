@@ -29,7 +29,7 @@ import notifications
 
 
 APP_NAME    = "Suivi PEA"
-APP_VERSION = "2.0.6"
+APP_VERSION = "2.0.7"
 SINGLE_INSTANCE_PORT = 50317          # port arbitraire pour le verrou single-instance
 WINDOW_DEFAULT_SIZE  = (1280, 800)
 WINDOW_MIN_SIZE      = (960, 640)
@@ -390,8 +390,15 @@ class Api:
     def start_update(self) -> dict:
         try:
             import updater
-            updater.start_install()   # telecharge, lance le batch, ferme l'app
+            updater.start_install_async()   # non-bloquant, progression via get_install_progress()
             return {"ok": True}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_install_progress(self) -> dict:
+        try:
+            import updater
+            return {"ok": True, **updater.get_progress()}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 

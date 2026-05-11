@@ -558,21 +558,24 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   padding: 2.2rem 2rem 1.8rem;
   max-width: 400px; width: 92%; text-align: center;
 }
-#update-modal .upd-icon {
-  font-size: 36px; margin-bottom: .6rem;
+#update-modal .upd-icon  { font-size: 36px; margin-bottom: .6rem; }
+#update-modal .upd-title { font-size: 17px; font-weight: 700; margin-bottom: .3rem; }
+#update-modal .upd-sub   { font-size: 12px; color: var(--txt2); font-family: var(--mono); margin-bottom: 1.4rem; }
+#update-modal .upd-btns  { display: flex; gap: 10px; justify-content: center; }
+#update-modal .upd-warn  { font-size: 11px; color: var(--txt3); margin-top: .8rem; display: none; }
+/* Barre de progression */
+#update-modal .upd-progress { display: none; margin-top: 1.2rem; }
+#update-modal .upd-bar-wrap {
+  background: var(--bg3); border-radius: 99px;
+  height: 8px; overflow: hidden; margin-bottom: .5rem;
 }
-#update-modal .upd-title {
-  font-size: 17px; font-weight: 700; margin-bottom: .3rem;
+#update-modal .upd-bar-fill {
+  height: 100%; background: var(--accent);
+  border-radius: 99px; width: 0%;
+  transition: width .4s ease;
 }
-#update-modal .upd-sub {
-  font-size: 12px; color: var(--txt2); font-family: var(--mono); margin-bottom: 1.4rem;
-}
-#update-modal .upd-btns {
-  display: flex; gap: 10px; justify-content: center;
-}
-#update-modal .upd-spinner {
-  display: none; font-size: 12px; color: var(--txt2); margin-top: .9rem;
-}
+#update-modal .upd-step { font-size: 12px; color: var(--txt2); font-family: var(--mono); }
+#update-modal .upd-pct  { font-size: 11px; color: var(--txt3); margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -5930,17 +5933,50 @@ async function _checkForUpdates() {
           <button class="btn btn-ghost btn-sm" id="upd-later">Plus tard</button>
           <button class="btn btn-primary" id="upd-install">Installer maintenant</button>
         </div>
-        <div class="upd-spinner" id="upd-spinner">⏳ Téléchargement en cours…</div>
+        <div class="upd-progress" id="upd-progress">
+          <div class="upd-bar-wrap"><div class="upd-bar-fill" id="upd-bar"></div></div>
+          <div class="upd-step" id="upd-step">Démarrage…</div>
+          <div class="upd-pct"  id="upd-pct">0%</div>
+        </div>
+        <div class="upd-warn" id="upd-warn">⚠ Ne rouvrez pas l'application pendant la mise à jour</div>
       </div>`;
     document.body.appendChild(overlay);
+
+    const STEPS = {
+      downloading: "⬇ Téléchargement en cours…",
+      installing:  "🔧 Installation en cours…",
+      launching:   "✅ Redémarrage… l'app va se rouvrir",
+      error:       "❌ Erreur",
+    };
+
+    function _startPolling() {
+      const poll = setInterval(async () => {
+        try {
+          const p = await window.pywebview.api.get_install_progress();
+          if (!p) return;
+          document.getElementById("upd-bar").style.width  = p.pct + "%";
+          document.getElementById("upd-pct").textContent  = p.pct + "%";
+          document.getElementById("upd-step").textContent = STEPS[p.step] || p.step;
+          if (p.step === "launching" || p.step === "error") {
+            clearInterval(poll);
+          }
+        } catch(e) {
+          // L'app s'est fermée — c'est normal
+          clearInterval(poll);
+          document.getElementById("upd-step").textContent = "✅ Redémarrage… l'app va se rouvrir";
+        }
+      }, 400);
+    }
 
     document.getElementById("upd-later").onclick = () => overlay.remove();
     document.getElementById("upd-install").onclick = async () => {
       document.getElementById("upd-install").disabled = true;
-      document.getElementById("upd-later").disabled = true;
-      document.getElementById("upd-spinner").style.display = "block";
-      document.getElementById("upd-install").textContent = "Installation…";
+      document.getElementById("upd-later").disabled  = true;
+      document.getElementById("upd-progress").style.display = "block";
+      document.getElementById("upd-warn").style.display     = "block";
+      document.getElementById("upd-btns").style.display     = "none";
       await window.pywebview.api.start_update();
+      _startPolling();
     };
   } catch(e) {}
 }

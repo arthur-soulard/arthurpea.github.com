@@ -5,7 +5,7 @@
 ; ============================================================
 
 #define AppName       "Suivi PEA"
-#define AppVersion    "2.0.6"
+#define AppVersion    "2.0.7"
 #define AppPublisher  "Arthur"
 #define AppExeName    "Suivi_PEA.exe"
 

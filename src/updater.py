@@ -1,14 +1,13 @@
 """
-updater.py — Verifieur et installateur de mise a jour silencieux.
+updater.py — Verifieur et installateur de mise a jour avec progression.
 
 Lance un thread daemon qui interroge l'API GitHub Releases au demarrage.
-Si une mise a jour est disponible, start_install() telecharge le Setup.exe,
-lance un script batch qui attend la fermeture de l'app, installe et relance.
+start_install_async() telecharge en rapportant la progression (0-100%)
+puis lance le batch et ferme l'app proprement.
 """
 from __future__ import annotations
 
 import json
-import os
 import subprocess
 import sys
 import tempfile
@@ -19,6 +18,7 @@ from pathlib import Path
 RELEASES_API = "https://api.github.com/repos/arthur-soulard/arthurpea.github.com/releases/latest"
 
 _lock = threading.Lock()
+
 _state: dict = {
     "checked": False,
     "hasUpdate": False,
@@ -27,6 +27,10 @@ _state: dict = {
     "downloadUrl": None,
 }
 
+_progress: dict = {"step": "idle", "pct": 0, "error": None}
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _parse_ver(v: str) -> tuple:
     try:
@@ -35,14 +39,18 @@ def _parse_ver(v: str) -> tuple:
         return (0, 0, 0)
 
 
+def _set_progress(step: str, pct: int, error: str | None = None) -> None:
+    with _lock:
+        _progress.update({"step": step, "pct": pct, "error": error})
+
+
+# ── Check update ──────────────────────────────────────────────────────────────
+
 def _fetch(current: str) -> None:
     try:
         req = urllib.request.Request(
             RELEASES_API,
-            headers={
-                "User-Agent": "Suivi-PEA-Updater/2",
-                "Accept": "application/vnd.github+json",
-            },
+            headers={"User-Agent": "Suivi-PEA-Updater/2", "Accept": "application/vnd.github+json"},
         )
         with urllib.request.urlopen(req, timeout=8) as r:
             data = json.loads(r.read())
@@ -52,7 +60,6 @@ def _fetch(current: str) -> None:
         html_url = data.get("html_url", "")
         has_update = bool(latest) and _parse_ver(latest) > _parse_ver(current)
 
-        # Trouve le Setup.exe dans les assets
         download_url = None
         for asset in data.get("assets", []):
             if asset.get("name", "").endswith("Setup.exe"):
@@ -81,59 +88,83 @@ def get_result() -> dict:
         return dict(_state)
 
 
-def start_install() -> None:
-    """
-    Telecharge le Setup.exe, cree un script batch qui :
-      1. attend 3s que l'app se ferme
-      2. lance l'installation silencieuse
-      3. relance l'app depuis le meme chemin
-    Puis ferme l'app.
-    """
+# ── Install with progress ─────────────────────────────────────────────────────
+
+def get_progress() -> dict:
     with _lock:
-        download_url = _state.get("downloadUrl")
+        return dict(_progress)
 
-    if not download_url:
-        raise RuntimeError("URL de telechargement introuvable")
 
-    # Chemin de l'exe courant (fonctionne en mode compile PyInstaller)
-    exe_path = sys.executable
+def start_install_async() -> None:
+    """Lance l'installation dans un thread — retourne immediatement."""
+    threading.Thread(target=_do_install, daemon=True).start()
 
-    # Dossier temporaire de mise a jour
-    tmp_dir = Path(tempfile.gettempdir()) / "suivi_pea_update"
-    tmp_dir.mkdir(exist_ok=True)
-    setup_path = tmp_dir / "Suivi_PEA_Setup.exe"
 
-    # Telechargement
-    req = urllib.request.Request(
-        download_url,
-        headers={"User-Agent": "Suivi-PEA-Updater/2"},
-    )
-    with urllib.request.urlopen(req, timeout=120) as r:
-        setup_path.write_bytes(r.read())
-
-    # Script batch : attend fermeture propre -> installe -> relance
-    bat_path = tmp_dir / "update.bat"
-    bat_path.write_text(
-        f'@echo off\n'
-        f':wait\n'
-        f'tasklist /FI "IMAGENAME eq Suivi_PEA.exe" 2>nul | find /I "Suivi_PEA.exe" > nul\n'
-        f'if not errorlevel 1 ( timeout /t 1 /nobreak > nul & goto wait )\n'
-        f'"{setup_path}" /VERYSILENT /NORESTART\n'
-        f'timeout /t 3 /nobreak > nul\n'
-        f'start "" "{exe_path}"\n'
-        f'(goto) 2>nul & del "%~f0"\n',
-        encoding="utf-8",
-    )
-
-    # Lance le batch en arriere-plan (fenetres cachees)
-    subprocess.Popen(
-        ["cmd.exe", "/c", str(bat_path)],
-        creationflags=subprocess.CREATE_NO_WINDOW,
-    )
-
-    # Ferme l'app
+def _do_install() -> None:
     try:
-        import webview
-        webview.windows[0].destroy()
-    except Exception:
-        pass
+        with _lock:
+            download_url = _state.get("downloadUrl")
+
+        if not download_url:
+            _set_progress("error", 0, "URL de téléchargement introuvable")
+            return
+
+        exe_path = sys.executable
+        tmp_dir = Path(tempfile.gettempdir()) / "suivi_pea_update"
+        tmp_dir.mkdir(exist_ok=True)
+        setup_path = tmp_dir / "Suivi_PEA_Setup.exe"
+
+        # ── Étape 1 : Téléchargement (0 → 70%) ──────────────────────────────
+        _set_progress("downloading", 0)
+        req = urllib.request.Request(
+            download_url,
+            headers={"User-Agent": "Suivi-PEA-Updater/2"},
+        )
+        with urllib.request.urlopen(req, timeout=120) as r:
+            total = int(r.headers.get("Content-Length", 0))
+            downloaded = 0
+            chunk_size = 65536  # 64 Ko
+            with open(setup_path, "wb") as f:
+                while True:
+                    chunk = r.read(chunk_size)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    downloaded += len(chunk)
+                    if total:
+                        pct = int(downloaded / total * 70)
+                        _set_progress("downloading", pct)
+
+        # ── Étape 2 : Préparation batch (70 → 80%) ───────────────────────────
+        _set_progress("installing", 75)
+        bat_path = tmp_dir / "update.bat"
+        bat_path.write_text(
+            f'@echo off\n'
+            f':wait\n'
+            f'tasklist /FI "IMAGENAME eq Suivi_PEA.exe" 2>nul | find /I "Suivi_PEA.exe" > nul\n'
+            f'if not errorlevel 1 ( timeout /t 1 /nobreak > nul & goto wait )\n'
+            f'"{setup_path}" /VERYSILENT /NORESTART\n'
+            f'timeout /t 3 /nobreak > nul\n'
+            f'start "" "{exe_path}"\n'
+            f'(goto) 2>nul & del "%~f0"\n',
+            encoding="utf-8",
+        )
+
+        # ── Étape 3 : Lancement batch + fermeture (80 → 100%) ───────────────
+        _set_progress("installing", 85)
+        subprocess.Popen(
+            ["cmd.exe", "/c", str(bat_path)],
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+
+        _set_progress("launching", 100)
+
+        # Ferme la fenetre proprement (le process s'arrete, PyInstaller nettoie)
+        try:
+            import webview
+            webview.windows[0].destroy()
+        except Exception:
+            pass
+
+    except Exception as e:
+        _set_progress("error", 0, str(e))
