@@ -1026,6 +1026,10 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       <button class="btn btn-primary" onclick="saveConfig()">Enregistrer</button>
     </div>
     <div id="cfg-version" style="text-align:center;font-size:10px;color:var(--txt3);font-family:var(--mono);margin-top:.9rem"></div>
+    <div style="text-align:center;margin-top:.5rem">
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-check-update" onclick="manualCheckUpdate()" style="font-size:11px">↻ Vérifier les mises à jour</button>
+    </div>
+    <div id="cfg-update-status" style="text-align:center;font-size:10px;color:var(--txt2);font-family:var(--mono);margin-top:.4rem"></div>
   </div>
 </div>
 
@@ -5862,6 +5866,37 @@ async function _hydrateFromHttp() {
   }
 }
 
+async function manualCheckUpdate() {
+  const status = document.getElementById("cfg-update-status");
+  if (!status) return;
+  status.textContent = "Vérification en cours…";
+  try {
+    if (!window.pywebview || !window.pywebview.api) {
+      status.textContent = "❌ pywebview indisponible";
+      return;
+    }
+    // Relance la vérif côté Python
+    if (window.pywebview.api.recheck_update) {
+      await window.pywebview.api.recheck_update();
+      // Attend un peu que le thread ait fini
+      await new Promise(r => setTimeout(r, 1500));
+    }
+    const r = await window.pywebview.api.check_update();
+    if (!r) { status.textContent = "❌ pas de réponse"; return; }
+    if (r.hasUpdate) {
+      status.textContent = `✓ Mise à jour disponible : v${r.version}`;
+      closeOv("ov-config");
+      setTimeout(_checkForUpdates, 200);
+    } else if (r.version) {
+      status.textContent = `✓ À jour (dernière : v${r.version})`;
+    } else {
+      status.textContent = "✓ À jour";
+    }
+  } catch(e) {
+    status.textContent = "❌ Erreur : " + (e.message || e);
+  }
+}
+
 async function _checkForUpdates() {
   try {
     if (!window.pywebview || !window.pywebview.api) return;
@@ -5885,46 +5920,112 @@ async function _checkForUpdates() {
           <div class="upd-pct"  id="upd-pct">0%</div>
         </div>
         <div class="upd-warn" id="upd-warn">⚠ Ne rouvrez pas l'application pendant la mise à jour</div>
+        <div class="upd-error" id="upd-error" style="display:none;margin-top:1rem">
+          <div style="background:var(--r2);color:var(--r);padding:.7rem .9rem;border-radius:var(--rad);font-size:12px;text-align:left;margin-bottom:.8rem" id="upd-error-msg"></div>
+          <button class="btn btn-primary btn-sm" id="upd-retry">Réessayer</button>
+        </div>
       </div>`;
     document.body.appendChild(overlay);
 
     const STEPS = {
+      idle:        "Préparation…",
       downloading: "⬇ Téléchargement en cours…",
       installing:  "🔧 Installation en cours…",
       launching:   "✅ Redémarrage… l'app va se rouvrir",
       error:       "❌ Erreur",
     };
 
+    // Helpers ultra-robustes pour ne JAMAIS crasher silencieusement
+    const $ = (id) => document.getElementById(id);
+    const setStep = (txt) => { try { const e = $("upd-step"); if (e) e.textContent = txt; } catch(_){} };
+    const setBar  = (pct) => {
+      try { const b = $("upd-bar"); if (b) b.style.width = pct + "%"; } catch(_){}
+      try { const p = $("upd-pct"); if (p) p.textContent = pct + "%"; } catch(_){}
+    };
+    const showError = (msg) => {
+      try {
+        const eDiv = $("upd-error"), eMsg = $("upd-error-msg");
+        if (eDiv && eMsg) { eMsg.textContent = msg; eDiv.style.display = "block"; }
+        $("upd-progress").style.display = "none";
+      } catch(_){}
+    };
+
+    let _pollHandle = null;
     function _startPolling() {
-      const poll = setInterval(async () => {
+      if (_pollHandle) clearInterval(_pollHandle);
+      _pollHandle = setInterval(async () => {
         try {
+          if (!window.pywebview || !window.pywebview.api) return;
           const p = await window.pywebview.api.get_install_progress();
           if (!p) return;
-          document.getElementById("upd-bar").style.width  = p.pct + "%";
-          document.getElementById("upd-pct").textContent  = p.pct + "%";
-          document.getElementById("upd-step").textContent = STEPS[p.step] || p.step;
-          if (p.step === "launching" || p.step === "error") {
-            clearInterval(poll);
+          setBar(p.pct || 0);
+          if (p.error) {
+            clearInterval(_pollHandle); _pollHandle = null;
+            showError(p.error);
+            return;
+          }
+          setStep(STEPS[p.step] || p.step || "…");
+          if (p.step === "launching") {
+            clearInterval(_pollHandle); _pollHandle = null;
           }
         } catch(e) {
-          // L'app s'est fermée — c'est normal
-          clearInterval(poll);
-          document.getElementById("upd-step").textContent = "✅ Redémarrage… l'app va se rouvrir";
+          // L'app se ferme — c'est attendu pendant l'install
+          clearInterval(_pollHandle); _pollHandle = null;
+          setStep("✅ Redémarrage… l'app va se rouvrir");
         }
       }, 400);
     }
 
-    document.getElementById("upd-later").onclick = () => overlay.remove();
-    document.getElementById("upd-install").onclick = async () => {
-      document.getElementById("upd-install").disabled = true;
-      document.getElementById("upd-later").disabled  = true;
-      document.getElementById("upd-progress").style.display = "block";
-      document.getElementById("upd-warn").style.display     = "block";
-      document.getElementById("upd-btns").style.display     = "none";
-      await window.pywebview.api.start_update();
-      _startPolling();
+    async function _doInstall() {
+      try {
+        // UI : cache les boutons, montre la progression
+        const installBtn = $("upd-install"), laterBtn = $("upd-later");
+        if (installBtn) installBtn.disabled = true;
+        if (laterBtn)   laterBtn.disabled   = true;
+
+        const progressDiv = $("upd-progress");
+        if (progressDiv) progressDiv.style.display = "block";
+        const warnDiv = $("upd-warn");
+        if (warnDiv) warnDiv.style.display = "block";
+        const errorDiv = $("upd-error");
+        if (errorDiv) errorDiv.style.display = "none";
+
+        const btnsDiv = document.querySelector("#update-modal .upd-btns");
+        if (btnsDiv) btnsDiv.style.display = "none";
+
+        // Démarre le polling AVANT d'appeler Python
+        _startPolling();
+
+        // Appel non-bloquant côté Python (lance un thread)
+        const result = await window.pywebview.api.start_update();
+        if (result && result.ok === false) {
+          if (_pollHandle) { clearInterval(_pollHandle); _pollHandle = null; }
+          showError(result.error || "Échec inconnu");
+        }
+      } catch(e) {
+        if (_pollHandle) { clearInterval(_pollHandle); _pollHandle = null; }
+        showError("Erreur JS : " + (e && e.message ? e.message : e));
+      }
+    }
+
+    // Branchements robustes
+    const laterEl = $("upd-later");
+    if (laterEl) laterEl.onclick = () => { try { overlay.remove(); } catch(_){} };
+
+    const installEl = $("upd-install");
+    if (installEl) installEl.onclick = _doInstall;
+
+    const retryEl = $("upd-retry");
+    if (retryEl) retryEl.onclick = () => {
+      // Reset UI puis relance
+      try { $("upd-error").style.display = "none"; } catch(_){}
+      try { $("upd-progress").style.display = "block"; } catch(_){}
+      setBar(0); setStep("Démarrage…");
+      _doInstall();
     };
-  } catch(e) {}
+  } catch(e) {
+    console.error("[updater] _checkForUpdates fatal:", e);
+  }
 }
 
 (async function boot() {
