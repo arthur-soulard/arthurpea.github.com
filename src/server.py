@@ -102,9 +102,14 @@ def fetch_yahoo(yahoo_ticker: str):
                 return None
 
             n  = len(closes)
-            # d1 : chartPreviousClose est la source fiable (close session précédente)
-            prev = meta.get("chartPreviousClose") or meta.get("previousClose")
-            d1 = pct(prev, prix) if prev else None
+            # d1 : on utilise regularMarketChangePercent (calcul natif Yahoo, gère
+            # les jours fériés et ajustements). Fallback sur chartPreviousClose si absent.
+            d1_raw = meta.get("regularMarketChangePercent")
+            if d1_raw is not None:
+                d1 = round(d1_raw, 2)
+            else:
+                prev = meta.get("chartPreviousClose") or meta.get("previousClose")
+                d1 = pct(prev, prix) if prev else None
             w1 = pct(closes[-6],  prix) if n >= 6  else None
             m1 = pct(closes[-22], prix) if n >= 22 else None
             y1 = None  # nécessite range=1y, calculé séparément via l'historique
@@ -217,6 +222,9 @@ def get_history(tickers, range_param: str = "max"):
 
 ANALYSTS_CACHE_TTL = 3600 * 6   # 6h, les analystes ne bougent pas tous les jours
 _analysts_cache = {}            # {yahoo_ticker: {data, ts}}
+
+SEARCH_CACHE_TTL = 300          # 5 min — les résultats de recherche ne changent pas souvent
+_search_cache = {}              # {query_normalisee: {results, ts}}
 
 # Session HTTP partagee : Yahoo exige un cookie + crumb depuis 2024
 _yahoo_opener = None
@@ -560,6 +568,9 @@ def _normalize_search(s: str) -> str:
     s = s.replace("'", "").replace("'", "").replace("-", " ").strip()
     return " ".join(s.split())  # collapse spaces
 
+# Alias utilisé pour la clé de cache de recherche
+_normalize_query = _normalize_search
+
 
 def _boost_local_etf(query: str) -> list:
     """Cherche dans l'index local ETF + actions CAC/SBF. Pre-classe en tete."""
@@ -603,9 +614,19 @@ def fetch_yahoo_search(query: str, limit: int = 6):
     priorise les bourses eligibles PEA (Paris d'abord, Euronext puis EU).
     On boost aussi les ETF PEA connus via un index local quand le terme matche.
     Renvoie au max `limit` resultats (defaut 6).
+    Les resultats sont caches 5 minutes pour accelerer les recherches repetees.
     """
     if not query or len(query) < 1:
         return []
+
+    # Cache de recherche (evite les appels Yahoo redondants)
+    cache_key = _normalize_query(query)
+    now = time.time()
+    with _lock:
+        cached = _search_cache.get(cache_key)
+        if cached and (now - cached["ts"]) < SEARCH_CACHE_TTL:
+            return cached["results"]
+
     try:
         url = (
             "https://query2.finance.yahoo.com/v1/finance/search"
@@ -679,11 +700,18 @@ def fetch_yahoo_search(query: str, limit: int = 6):
             local.append(r)
             already_symbols.add(r["symbol"])
 
-        return local[:limit]
+        results = local[:limit]
+        with _lock:
+            _search_cache[cache_key] = {"results": results, "ts": time.time()}
+        return results
     except Exception as e:
         print(f"[server] search {query}: {e}", flush=True)
         # Si Yahoo plante, on renvoie quand meme l'index local s'il matche
-        return _boost_local_etf(query)[:limit]
+        local_fallback = _boost_local_etf(query)[:limit]
+        if local_fallback:
+            with _lock:
+                _search_cache[cache_key] = {"results": local_fallback, "ts": time.time()}
+        return local_fallback
 
 
 def fetch_yahoo_analysts(yahoo_ticker: str):
@@ -859,6 +887,9 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             q = params.get("q", [""])[0].strip()
             if len(q) < 1:
                 return self._json(200, {"ok": True, "results": []})
+            # local=1 : renvoie uniquement l'index local (instantane, sans appel Yahoo)
+            if params.get("local", ["0"])[0] == "1":
+                return self._json(200, {"ok": True, "results": _boost_local_etf(q)[:6]})
             return self._json(200, {"ok": True, "results": fetch_yahoo_search(q)})
 
         if parsed.path == "/profiles":

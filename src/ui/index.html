@@ -4045,7 +4045,6 @@ function _wireTickerSearch(opts) {
   const typeEl = typeElId ? document.getElementById(typeElId) : null;
   if (!nameEl || !sug) return;
 
-  // Conversion symbole Yahoo -> notation Google (EPA:XXX)
   const yahooToGoogle = sym => {
     if (!sym) return "";
     if (sym.endsWith(".PA")) return "EPA:" + sym.slice(0, -3);
@@ -4055,70 +4054,88 @@ function _wireTickerSearch(opts) {
     return sym;
   };
 
+  const humanType = t => {
+    const x = (t || "").toLowerCase();
+    if (/etf|fund/.test(x))           return "ETF";
+    if (/equity|stock|action/.test(x)) return "Action";
+    if (/index/.test(x))              return "Indice";
+    if (/future/.test(x))             return "Future";
+    return "";
+  };
+
+  const peaBadge = (sym, score) => {
+    if (!sym) return "";
+    if (sym.endsWith(".PA")) return '<span style="background:var(--g2);color:var(--g);font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px">PEA</span>';
+    if (score >= 70)         return '<span style="background:var(--b2);color:var(--b);font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px">EU</span>';
+    return "";
+  };
+
   const closeSuggest = () => { sug.style.display = "none"; };
   document.addEventListener("click", e => {
     if (!nameEl.contains(e.target) && !sug.contains(e.target)) closeSuggest();
   }, true);
 
+  const renderResults = (results, loading) => {
+    if (results.length === 0 && !loading) { closeSuggest(); return; }
+    const rows = results.map(r => {
+      const type  = humanType(r.type);
+      const badge = peaBadge(r.symbol, r.peaScore);
+      const parts = [r.symbol];
+      if (r.exchange) parts.push(r.exchange);
+      if (type)       parts.push(type);
+      return `<div class="sg-item" data-sym="${r.symbol}" data-name="${(r.shortname||"").replace(/"/g,'&quot;')}" data-type="${(r.type||"").toLowerCase()}"
+          style="padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--brd);font-size:12px">
+          <div style="font-weight:600;display:flex;align-items:center">
+            <span style="flex:1">${r.shortname || r.symbol}</span>${badge}
+          </div>
+          <div style="font-size:10px;color:var(--txt2);font-family:var(--mono);margin-top:2px">${parts.join(" · ")}</div>
+        </div>`;
+    });
+    if (loading) rows.push('<div style="padding:6px 10px;font-size:10px;color:var(--txt3);font-style:italic">Recherche Yahoo…</div>');
+    sug.innerHTML = rows.join("");
+    sug.querySelectorAll(".sg-item").forEach(item => {
+      item.onmouseenter = () => item.style.background = "var(--bg3)";
+      item.onmouseleave = () => item.style.background = "";
+      item.onclick = () => {
+        nameEl.value = item.dataset.name;
+        tkEl.value   = yahooToGoogle(item.dataset.sym);
+        if (typeEl && /etf|fund/i.test(item.dataset.type)) typeEl.value = "etf";
+        closeSuggest();
+      };
+    });
+    sug.style.display = "block";
+  };
+
+  // Compteur de séquence pour ignorer les réponses obsolètes
+  let _seq = 0;
+
   nameEl.oninput = () => {
     const q = nameEl.value.trim();
     if (q.length < 2) { closeSuggest(); return; }
+    const seq = ++_seq;
+
+    // Passe 1 — résultats locaux immédiats (index ETF/actions, sans appel Yahoo)
+    (async () => {
+      try {
+        const r = await fetch(`http://127.0.0.1:${_PEA_PORT}/search?q=${encodeURIComponent(q)}&local=1`, {cache:"no-store"});
+        if (!r.ok || seq !== _seq) return;
+        const d = await r.json();
+        const results = (d.results || []).filter(x => x.symbol && x.shortname);
+        renderResults(results, true);   // affiche avec indicateur "Yahoo en cours…"
+      } catch(e) {}
+    })();
+
+    // Passe 2 — résultats Yahoo complets après 150 ms de debounce
     if (_searchTimer) clearTimeout(_searchTimer);
     _searchTimer = setTimeout(async () => {
       try {
-        const url = `http://127.0.0.1:${_PEA_PORT}/search?q=` + encodeURIComponent(q);
-        const r = await fetch(url, {cache: "no-store"});
-        if (!r.ok) return;
+        const r = await fetch(`http://127.0.0.1:${_PEA_PORT}/search?q=${encodeURIComponent(q)}`, {cache:"no-store"});
+        if (!r.ok || seq !== _seq) return;
         const d = await r.json();
         const results = (d.results || []).filter(x => x.symbol && x.shortname);
-        if (results.length === 0) { closeSuggest(); return; }
-        // Humanise le type (Equity -> Action) et detecte ETF
-        const humanType = (t) => {
-          const x = (t || "").toLowerCase();
-          if (/etf|fund/.test(x))      return "ETF";
-          if (/equity|stock|action/.test(x)) return "Action";
-          if (/index/.test(x))         return "Indice";
-          if (/future/.test(x))        return "Future";
-          return "";  // pas d'affichage si inconnu
-        };
-        // Badge PEA si la cotation est Paris (.PA) ou Euronext + EU
-        const peaBadge = (sym, score) => {
-          if (!sym) return "";
-          if (sym.endsWith(".PA")) return '<span style="background:var(--g2);color:var(--g);font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px">PEA</span>';
-          if (score >= 70)         return '<span style="background:var(--b2);color:var(--b);font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px">EU</span>';
-          return '';
-        };
-        sug.innerHTML = results.map(r => {
-          const type = humanType(r.type);
-          const badge = peaBadge(r.symbol, r.peaScore);
-          const parts = [r.symbol];
-          if (r.exchange) parts.push(r.exchange);
-          if (type)       parts.push(type);
-          return `
-          <div class="sg-item" data-sym="${r.symbol}" data-name="${(r.shortname||"").replace(/"/g,'&quot;')}" data-type="${(r.type||"").toLowerCase()}"
-            style="padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--brd);font-size:12px">
-            <div style="font-weight:600;display:flex;align-items:center">
-              <span style="flex:1">${r.shortname || r.symbol}</span>${badge}
-            </div>
-            <div style="font-size:10px;color:var(--txt2);font-family:var(--mono);margin-top:2px">
-              ${parts.join(" · ")}
-            </div>
-          </div>`;
-        }).join("");
-        sug.querySelectorAll(".sg-item").forEach(item => {
-          item.onmouseenter = () => item.style.background = "var(--bg3)";
-          item.onmouseleave = () => item.style.background = "";
-          item.onclick = () => {
-            nameEl.value = item.dataset.name;
-            tkEl.value   = yahooToGoogle(item.dataset.sym);
-            // Devine si ETF
-            if (typeEl && /etf|fund/i.test(item.dataset.type)) typeEl.value = "etf";
-            closeSuggest();
-          };
-        });
-        sug.style.display = "block";
+        renderResults(results, false);  // résultats finaux, sans indicateur
       } catch(e) {}
-    }, 250);
+    }, 150);
   };
 }
 
