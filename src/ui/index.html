@@ -618,6 +618,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   <button class="tab" onclick="goTab('wish')">Wishlist</button>
   <button class="tab" onclick="goTab('dep')">Dépôts</button>
   <button class="tab" onclick="goTab('strat')">Stratégie</button>
+  <button class="tab" onclick="goTab('test')">🧪 Test</button>
 </div>
 
 <!-- ═══════════════════ POSITIONS ═══════════════════ -->
@@ -914,6 +915,58 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
         <div id="sim-cmp-status" style="margin-top:.6rem;font-size:11px;color:var(--txt2)"></div>
         <div style="position:relative;height:340px;margin-top:.8rem"><canvas id="sim-cmp-chart"></canvas></div>
         <div id="sim-cmp-summary" style="margin-top:.6rem"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════ TEST ═══════════════════ -->
+<div class="pane" id="pane-test">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+    <span style="font-size:11px;color:var(--txt2);font-family:var(--mono)">Onglet temporaire — clone des simulateurs</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+    <!-- 1. Projection versements réguliers -->
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-h"><span class="card-t">📈 Projection : versements réguliers</span></div>
+      <div class="card-b">
+        <div class="fg-row">
+          <div class="fg"><label>Capital de départ (€)</label><input id="tst-dca-start" type="number" value="0" step="100"></div>
+          <div class="fg"><label>Versement / mois (€)</label><input id="tst-dca-amt" type="number" value="200" step="10"></div>
+          <div class="fg"><label>Durée (années)</label><input id="tst-dca-years" type="number" value="20" step="1"></div>
+          <div class="fg"><label>Rendement annuel attendu (%)</label><input id="tst-dca-rate" type="number" value="7" step="0.5"></div>
+        </div>
+        <div id="tst-dca-result" style="background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:1rem;margin-top:.6rem;font-size:13px"></div>
+        <div style="position:relative;height:220px;margin-top:.8rem"><canvas id="tst-dca-chart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- 2. Objectifs long terme -->
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-h"><span class="card-t">🎯 Objectifs long terme</span></div>
+      <div class="card-b">
+        <div class="fg-row">
+          <div class="fg"><label>Capital de départ (€)</label><input id="tst-goal-start" type="number" value="0" step="100"></div>
+          <div class="fg"><label>Mon objectif (€)</label><input id="tst-goal-amt" type="number" value="100000" step="1000"></div>
+          <div class="fg"><label>Versement / mois (€)</label><input id="tst-goal-month" type="number" value="200" step="10"></div>
+          <div class="fg"><label>Rendement annuel (%)</label><input id="tst-goal-rate" type="number" value="7" step="0.5"></div>
+        </div>
+        <div id="tst-goal-result" style="background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:1rem;margin-top:.5rem;font-size:13px"></div>
+      </div>
+    </div>
+
+    <!-- 3. Comparateur d'actifs -->
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-h"><span class="card-t">⚖ Comparateur d'actifs</span></div>
+      <div class="card-b">
+        <div class="fg-row">
+          <div class="fg"><label>Actif 1</label><input id="tst-cmp-1" placeholder="ex : EPA:CW8" value="EPA:CW8"></div>
+          <div class="fg"><label>Actif 2</label><input id="tst-cmp-2" placeholder="ex : EPA:CAC" value="EPA:CAC"></div>
+          <div class="fg"><label>Actif 3</label><input id="tst-cmp-3" placeholder="ex : EPA:ESE" value="EPA:ESE"></div>
+        </div>
+        <div style="position:relative;height:340px;margin-top:.8rem"><canvas id="tst-cmp-chart"></canvas></div>
       </div>
     </div>
 
@@ -5341,6 +5394,7 @@ const SIDEBAR_ITEMS = [
   { id: "dep",   icon: "⊕", label: "Dépôts"        },
   { id: "strat", icon: "≡", label: "Stratégie"     },
   { id: "sim",   icon: "ƒ", label: "Simulateurs"   },
+  { id: "test",  icon: "🧪", label: "Test"          },
 ];
 
 function _setActiveSidebar(id) {
