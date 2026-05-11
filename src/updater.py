@@ -144,8 +144,6 @@ def _do_install() -> None:
             f'tasklist /FI "IMAGENAME eq Suivi_PEA.exe" 2>nul | find /I "Suivi_PEA.exe" > nul\n'
             f'if not errorlevel 1 ( timeout /t 1 /nobreak > nul & goto wait )\n'
             f'"{setup_path}" /VERYSILENT /NORESTART\n'
-            f'timeout /t 3 /nobreak > nul\n'
-            f'start "" "{exe_path}"\n'
             f'(goto) 2>nul & del "%~f0"\n',
             encoding="utf-8",
         )
