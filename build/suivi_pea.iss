@@ -4,7 +4,7 @@
 ; ════════════════════════════════════════════════════════════════════════════
 
 #define MyAppName        "Suivi PEA"
-#define MyAppVersion     "1.0.0"
+#define MyAppVersion     "3.0.2"
 #define MyAppPublisher   "Arthur"
 #define MyAppExeName     "Suivi_PEA.exe"
 #define MyAppId          "{{A7C5D4E2-PEA-4B1A-9F3D-Suivi2026PEA}}"

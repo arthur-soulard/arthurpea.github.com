@@ -135,18 +135,18 @@ input, select { font-family: var(--mono); }
 .pea-fill-bar  { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--b), var(--p)); transition: width .7s; }
 
 /* ── Metrics ─────────────────────────────────────── */
-.mets { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 1.6rem; }
+.mets { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-bottom: 1.6rem; }
 .mc {
   background: var(--bg2); border: 1px solid var(--brd);
-  border-radius: var(--radxl); padding: 1.75rem 1.75rem 1.6rem;
+  border-radius: var(--radxl); padding: 1.5rem 1.5rem 1.4rem;
   position: relative; overflow: hidden; box-shadow: var(--sh-md);
 }
 .mc-accent { position: absolute; top: 0; left: 0; right: 0; height: 4px; }
-.mc-lbl    { font-size: 10.5px; font-weight: 700; color: var(--txt2); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 14px; }
+.mc-lbl    { font-size: 10.5px; font-weight: 700; color: var(--txt2); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 12px; }
 .mc-val    {
-  font-size: 28px; font-weight: 800; font-family: var(--mono);
-  letter-spacing: -1.5px; line-height: 1.1;
-  white-space: nowrap;          /* empeche le "€" tout seul sur la ligne suivante */
+  font-size: 22px; font-weight: 800; font-family: var(--mono);
+  letter-spacing: -1px; line-height: 1.1;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
