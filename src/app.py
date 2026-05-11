@@ -29,7 +29,7 @@ import notifications
 
 
 APP_NAME    = "Suivi PEA"
-APP_VERSION = "2.1.4"
+APP_VERSION = "1.0.0"
 SINGLE_INSTANCE_PORT = 50317          # port arbitraire pour le verrou single-instance
 WINDOW_DEFAULT_SIZE  = (1280, 800)
 WINDOW_MIN_SIZE      = (960, 640)

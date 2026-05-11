@@ -87,6 +87,22 @@ input, select { font-family: var(--mono); }
 .sdot { width: 6px; height: 6px; border-radius: 50%; background: var(--txt3); flex-shrink: 0; transition: background .4s, box-shadow .4s; }
 .sdot.live { background: var(--g); box-shadow: 0 0 7px rgba(22,163,74,.5); }
 
+/* ── Groupe "Dernière actualisation + bouton" ────── */
+.refresh-grp {
+  display: flex; align-items: center;
+  background: var(--bg3); border: 1px solid var(--brd);
+  border-radius: var(--rad); overflow: hidden;
+}
+.refresh-lbl {
+  font-size: 11px; font-family: var(--mono); color: var(--txt2);
+  padding: 5px 10px; white-space: nowrap;
+}
+.refresh-grp .btn {
+  border: none; border-left: 1px solid var(--brd);
+  border-radius: 0; box-shadow: none; background: transparent;
+}
+.refresh-grp .btn:hover { background: var(--bg4); border-color: var(--brd); }
+
 /* ── Buttons ─────────────────────────────────────── */
 .btn {
   display: inline-flex; align-items: center; gap: 5px;
@@ -592,11 +608,13 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
     </div>
   </div>
   <div class="topbar-right">
-    <div class="spill"><span class="sdot" id="sdot"></span><span id="stext">Chargement…</span></div>
+    <div class="refresh-grp">
+      <span class="refresh-lbl" id="stext">Dernière actualisation —</span>
+      <button class="btn btn-ghost btn-sm" onclick="manualRefresh()" title="Actualiser les cours Yahoo Finance (Ctrl+R)">↻ Actualiser</button>
+    </div>
     <button class="btn btn-ghost btn-sm" onclick="openConfig()" title="Paramètres du PEA">⚙ Paramètres</button>
     <button class="btn btn-ghost btn-sm" id="btn-undo" onclick="undoLast()" disabled title="Annuler la dernière action">↩ Retour</button>
     <button class="btn btn-ghost btn-sm" onclick="openCours()">✎ Cours manuels</button>
-    <button class="btn btn-ghost btn-sm" onclick="manualRefresh()" title="Actualiser les cours Yahoo Finance (Ctrl+R)">↻ Actualiser</button>
   </div>
 </div>
 
@@ -3363,11 +3381,8 @@ function toggleDebug() {
 
 /* ─── Status ─── */
 function updateStatus() {
-  const has = S.positions.some(p=>p.cours!=null);
-  document.getElementById("sdot").classList.toggle("live", has);
-  document.getElementById("stext").textContent = has
-    ? (S.lastUpdate || "Cours chargés")
-    : "En attente des cours (Yahoo Finance)";
+  // Le texte d'heure est géré par applyGsData / _setCoursHealth
+  // On ne touche plus à sdot (supprimé du HTML)
 }
 
 /* ─── Toast messages ─── */
@@ -5481,28 +5496,16 @@ function showToastModern(msg, kind) {
   }, 3500);
 }
 
-/* — Indicateur sante : on enrichit la pastille EXISTANTE (#sdot + #stext) — */
+/* — Indicateur actualisation (#stext dans .refresh-grp) — */
 function _setCoursHealth(state, label) {
   // state : 'ok' | 'warn' | 'err'
-  const dot   = document.getElementById("sdot");
-  const text  = document.getElementById("stext");
-  if (!dot || !text) return;
-  // Reset
-  dot.style.background = ""; dot.style.boxShadow = "";
-  if (state === "ok") {
-    dot.classList.add("live");
-    dot.style.background = "var(--g)";
-    dot.style.boxShadow  = "0 0 7px rgba(22,163,74,.5)";
-  } else if (state === "warn") {
-    dot.classList.remove("live");
-    dot.style.background = "var(--a)";
-    dot.style.boxShadow  = "0 0 7px rgba(217,119,6,.5)";
-  } else if (state === "err") {
-    dot.classList.remove("live");
-    dot.style.background = "var(--r)";
-    dot.style.boxShadow  = "0 0 7px rgba(220,38,38,.5)";
-  }
+  const text = document.getElementById("stext");
+  if (!text) return;
   if (label) text.textContent = label;
+  // Couleur du libellé selon l'état
+  if      (state === "ok")   text.style.color = "";            // couleur par défaut (var(--txt2))
+  else if (state === "warn") text.style.color = "var(--a)";
+  else if (state === "err")  text.style.color = "var(--r)";
 }
 
 /* — Hook sur applyGsData pour mettre a jour le pill et donner du feedback — */
@@ -5513,14 +5516,14 @@ applyGsData = async function(opts) {
   _refreshInFlight = true;
   const manual = !!(opts && opts.manual);
   if (manual) showToastModern("↻ Actualisation des cours…", "ok");
-  _setCoursHealth("warn", "Actualisation…");
+  _setCoursHealth("warn", "Actualisation en cours…");
   try {
     await _applyGsDataOrig.apply(this);
     const t = new Date().toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"});
-    _setCoursHealth("ok", "Yahoo · " + t);
+    _setCoursHealth("ok", "Dernière actualisation " + t);
     if (manual) showToastModern("✓ Cours actualisés à " + t, "ok");
   } catch(e) {
-    _setCoursHealth("err", "Yahoo KO");
+    _setCoursHealth("err", "Actualisation impossible");
     if (manual) showToastModern("✗ Yahoo injoignable", "err");
     if (window.pywebview && window.pywebview.api) {
       const prefs = (window.__peaPrefs && window.__peaPrefs.notifs) || {};
