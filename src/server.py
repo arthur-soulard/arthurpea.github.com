@@ -71,11 +71,11 @@ def to_yahoo(ticker: str) -> str:
 def fetch_yahoo(yahoo_ticker: str):
     for host in ("query1", "query2"):
         try:
-            # 1mo suffit pour prix + d1/w1/m1 — beaucoup moins de data que 1y
+            # range=1y pour pouvoir calculer w1 (5j), m1 (22j) ET y1 (252j)
             url = (
                 f"https://{host}.finance.yahoo.com/v8/finance/chart/"
                 + urllib.parse.quote(yahoo_ticker)
-                + "?interval=1d&range=1mo&events=history"
+                + "?interval=1d&range=1y&events=history"
             )
             req = urllib.request.Request(url, headers={
                 "User-Agent": USER_AGENT,
@@ -110,9 +110,9 @@ def fetch_yahoo(yahoo_ticker: str):
             else:
                 prev = meta.get("chartPreviousClose") or meta.get("previousClose")
                 d1 = pct(prev, prix) if prev else None
-            w1 = pct(closes[-6],  prix) if n >= 6  else None
-            m1 = pct(closes[-22], prix) if n >= 22 else None
-            y1 = None  # nécessite range=1y, calculé séparément via l'historique
+            w1 = pct(closes[-6],  prix) if n >= 6   else None
+            m1 = pct(closes[-22], prix) if n >= 22  else None
+            y1 = pct(closes[0],   prix) if n >= 200 else None
 
             return {"prix": round(prix, 4), "d1": d1, "w1": w1, "m1": m1, "y1": y1}
         except Exception as e:

@@ -213,7 +213,7 @@ input, select { font-family: var(--mono); }
 .tabs {
   display: flex; gap: 1px; background: var(--bg3);
   border: 1px solid var(--brd); border-radius: var(--rad);
-  padding: 3px; width: fit-content; margin-bottom: 1.5rem; flex-wrap: wrap;
+  padding: 3px; margin-bottom: 1.5rem; flex-wrap: nowrap; overflow-x: auto; max-width: 100%;
 }
 .tab {
   padding: 6px 16px; border-radius: 6px;
