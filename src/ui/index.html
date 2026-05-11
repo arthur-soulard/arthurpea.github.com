@@ -5919,7 +5919,7 @@ async function _checkForUpdates() {
           <div class="upd-step" id="upd-step">Démarrage…</div>
           <div class="upd-pct"  id="upd-pct">0%</div>
         </div>
-        <div class="upd-warn" id="upd-warn">⚠ Ne rouvrez pas l'application pendant la mise à jour</div>
+        <div class="upd-warn" id="upd-warn">⚠ L'application va se fermer automatiquement — relancez-la ensuite</div>
         <div class="upd-error" id="upd-error" style="display:none;margin-top:1rem">
           <div style="background:var(--r2);color:var(--r);padding:.7rem .9rem;border-radius:var(--rad);font-size:12px;text-align:left;margin-bottom:.8rem" id="upd-error-msg"></div>
           <button class="btn btn-primary btn-sm" id="upd-retry">Réessayer</button>
@@ -5931,7 +5931,7 @@ async function _checkForUpdates() {
       idle:        "Préparation…",
       downloading: "⬇ Téléchargement en cours…",
       installing:  "🔧 Installation en cours…",
-      launching:   "✅ Redémarrage… l'app va se rouvrir",
+      launching:   "✅ Mise à jour installée — l'application va se fermer",
       error:       "❌ Erreur",
     };
 
@@ -5971,7 +5971,7 @@ async function _checkForUpdates() {
         } catch(e) {
           // L'app se ferme — c'est attendu pendant l'install
           clearInterval(_pollHandle); _pollHandle = null;
-          setStep("✅ Redémarrage… l'app va se rouvrir");
+          setStep("✅ Mise à jour installée — relancez l'application !");
         }
       }, 400);
     }

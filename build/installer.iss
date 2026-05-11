@@ -5,7 +5,7 @@
 ; ============================================================
 
 #define AppName       "Suivi PEA"
-#define AppVersion    "2.1.3"
+#define AppVersion    "2.1.4"
 #define AppPublisher  "Arthur"
 #define AppExeName    "Suivi_PEA.exe"
 
@@ -51,8 +51,6 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#AppName}"; Filen
 [Run]
 ; Lancement normal apres installation manuelle (case a cocher)
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-; Relancement automatique apres mise a jour silencieuse (auto-update)
-Filename: "{app}\{#AppExeName}"; Flags: nowait shellexec; Check: WizardSilent
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"

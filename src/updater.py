@@ -212,9 +212,9 @@ def _do_install() -> None:
 
         _set_progress("launching", 100)
 
-        # Petite pause pour que le JS puisse voir l'état "launching"
+        # Pause pour que le JS puisse lire le message final avant fermeture
         import time as _time
-        _time.sleep(1.0)
+        _time.sleep(3.5)
 
         _log("INSTALL: closing window")
         try:
