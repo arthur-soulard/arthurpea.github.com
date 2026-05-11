@@ -2628,29 +2628,31 @@ function renderHeatmap() {
   const legend = document.getElementById("hm-legend");
   if (!wrap) return;
 
-  const positions = S.positions.filter(p => p.qty > 0 && p.cours > 0);
+  const positions = S.positions.filter(p => { const e = computePos(p); return e.qty > 0; });
   if (!positions.length) {
     wrap.innerHTML = '<div style="text-align:center;padding:40px;color:var(--txt3);font-size:12px">Aucune position active</div>';
     if (legend) legend.innerHTML = "";
     return;
   }
 
-  const totalVal = positions.reduce((s, p) => s + p.qty * p.cours, 0);
-  const items = positions.map(p => {
-    const val   = p.qty * p.cours;
-    const inv   = p.qty * (p.pru || 0);
+  const items0 = positions.map(p => {
+    const e    = computePos(p);
+    const val  = e.val !== null ? e.val : e.inv;
+    const inv  = e.inv;
     const pvEur = val - inv;
     let pct = null;
     if (_hmMode === "achat") {
-      pct = (p.pru && p.pru > 0) ? (p.cours - p.pru) / p.pru * 100 : null;
+      pct = (e.pru && e.pru > 0 && p.cours) ? (p.cours - e.pru) / e.pru * 100 : null;
     } else {
       const v = getVar(p.ticker);
-      pct = (v && v.d1 !== undefined) ? v.d1 : null;
+      pct = (v && v.d1 !== undefined && v.d1 !== null) ? v.d1 : null;
     }
     const ticker  = p.ticker.includes(":") ? p.ticker.split(":")[1] : p.ticker;
-    const portPct = totalVal > 0 ? val / totalVal * 100 : 0;
-    return { ticker, name: p.name || ticker, val, inv, pvEur, pct, portPct };
+    return { ticker, name: p.name || ticker, val, inv, pvEur, pct, qty: e.qty, pru: e.pru };
   }).filter(i => i.val > 0).sort((a, b) => b.val - a.val);
+
+  const totalVal = items0.reduce((s, i) => s + i.val, 0);
+  const items = items0.map(i => ({ ...i, portPct: totalVal > 0 ? i.val / totalVal * 100 : 0 }));
 
   const W = wrap.clientWidth || 700;
   const H = 280;
