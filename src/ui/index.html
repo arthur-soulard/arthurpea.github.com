@@ -152,6 +152,23 @@ input, select { font-family: var(--mono); }
 }
 .mc-sub    { font-size: 12px; color: var(--txt2); margin-top: 10px; font-family: var(--mono); }
 
+/* ── Heat map ─────────────────────────────────────── */
+.hm-wrap { position: relative; width: 100%; height: 280px; }
+.hm-cell {
+  position: absolute; border-radius: 5px; overflow: hidden;
+  box-sizing: border-box; transition: filter .15s; cursor: default;
+}
+.hm-cell:hover { filter: brightness(1.15); z-index: 10; }
+.hm-inner {
+  width: 100%; height: 100%; border-radius: 3px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 1px;
+  padding: 6px 4px; overflow: hidden;
+}
+.hm-tk  { font-weight: 800; font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; line-height: 1.2; }
+.hm-pct { font-family: var(--mono); font-weight: 700; white-space: nowrap; line-height: 1.2; }
+.hm-val { font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; line-height: 1.2; }
+
 /* ── Cartes "dashboard" supplementaires ─────────── */
 .dash-grid {
   display: grid; gap: 14px;
@@ -739,6 +756,21 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
     <div class="card">
       <div class="card-h"><span class="card-t">Répartition capital investi</span></div>
       <div class="card-b"><div style="position:relative;height:230px"><canvas id="c-piei"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- Carte thermique -->
+  <div class="card" id="card-heatmap">
+    <div class="card-h">
+      <span class="card-t">Carte thermique du portefeuille</span>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-sm btn-primary" id="hm-btn-achat" onclick="setHmMode('achat')">Depuis l'achat</button>
+        <button class="btn btn-sm" id="hm-btn-jour" onclick="setHmMode('jour')">Journalier</button>
+      </div>
+    </div>
+    <div class="card-b" style="padding:.75rem">
+      <div class="hm-wrap" id="hm-wrap"></div>
+      <div id="hm-legend" style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
     </div>
   </div>
 </div>
@@ -2515,6 +2547,156 @@ async function renderPerf() {
   const names = S.positions.map(p => p.name);
   makePie("c-piev", S.positions.map(p => { const e = computePos(p); return e.val || e.inv; }), names);
   makePie("c-piei", S.positions.map(p => computePos(p).inv), names);
+  renderHeatmap();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   HEAT MAP DU PORTEFEUILLE
+   Treemap squarified : taille ∝ valeur €, couleur ∝ perf (achat ou jour)
+═══════════════════════════════════════════════════════════════════════ */
+let _hmMode = "achat";
+
+function setHmMode(mode) {
+  _hmMode = mode;
+  document.getElementById("hm-btn-achat").className = "btn btn-sm" + (mode === "achat" ? " btn-primary" : "");
+  document.getElementById("hm-btn-jour").className  = "btn btn-sm" + (mode === "jour"  ? " btn-primary" : "");
+  renderHeatmap();
+}
+
+function _hmColor(pct) {
+  if (pct === null || pct === undefined) return { bg: "var(--bg4)", fg: "var(--txt2)" };
+  const v = Math.max(-20, Math.min(20, pct));
+  let r, g, b;
+  if (v >= 0) {
+    const t = Math.min(v / 12, 1);
+    r = Math.round(161 * (1-t) + 21  * t);
+    g = Math.round(161 * (1-t) + 128 * t);
+    b = Math.round(170 * (1-t) + 61  * t);
+  } else {
+    const t = Math.min(-v / 12, 1);
+    r = Math.round(161 * (1-t) + 185 * t);
+    g = Math.round(161 * (1-t) + 28  * t);
+    b = Math.round(170 * (1-t) + 28  * t);
+  }
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return { bg: `rgb(${r},${g},${b})`, fg: brightness > 130 ? "rgba(0,0,0,0.75)" : "#ffffff" };
+}
+
+function _layoutTreemap(items, x, y, w, h) {
+  if (!items.length) return [];
+  if (items.length === 1) return [{ ...items[0], x, y, w, h }];
+  const total = items.reduce((s, i) => s + i.val, 0);
+  if (!total) return items.map((i, k) => ({ ...i, x: x + k * w / items.length, y, w: w / items.length, h }));
+
+  const isHoriz = w >= h;
+  let best = { split: 1, worst: Infinity };
+  let runSum = 0;
+  for (let i = 0; i < items.length - 1; i++) {
+    runSum += items[i].val;
+    const frac = runSum / total;
+    const dim1 = isHoriz ? w * frac : h * frac;
+    const dim2 = isHoriz ? h : w;
+    let worst = 0;
+    for (let j = 0; j <= i; j++) {
+      const a = dim1, b = dim2 * (items[j].val / runSum);
+      worst = Math.max(worst, (a > 0 && b > 0) ? Math.max(a / b, b / a) : 999);
+    }
+    if (worst < best.worst) { best = { split: i + 1, worst }; } else break;
+  }
+
+  const row = items.slice(0, best.split);
+  const rest = items.slice(best.split);
+  const rowSum = row.reduce((s, i) => s + i.val, 0);
+  const frac = rowSum / total;
+  const rects = [];
+  let off = isHoriz ? y : x;
+  row.forEach(item => {
+    const f = item.val / rowSum;
+    if (isHoriz) { rects.push({ ...item, x, y: off, w: w * frac, h: h * f }); off += h * f; }
+    else         { rects.push({ ...item, x: off, y, w: w * f, h: h * frac }); off += w * f; }
+  });
+  if (rest.length) {
+    rects.push(...(isHoriz
+      ? _layoutTreemap(rest, x + w * frac, y, w * (1 - frac), h)
+      : _layoutTreemap(rest, x, y + h * frac, w, h * (1 - frac))));
+  }
+  return rects;
+}
+
+function renderHeatmap() {
+  const wrap   = document.getElementById("hm-wrap");
+  const legend = document.getElementById("hm-legend");
+  if (!wrap) return;
+
+  const positions = S.positions.filter(p => p.qty > 0 && p.cours > 0);
+  if (!positions.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:40px;color:var(--txt3);font-size:12px">Aucune position active</div>';
+    if (legend) legend.innerHTML = "";
+    return;
+  }
+
+  const totalVal = positions.reduce((s, p) => s + p.qty * p.cours, 0);
+  const items = positions.map(p => {
+    const val   = p.qty * p.cours;
+    const inv   = p.qty * (p.pru || 0);
+    const pvEur = val - inv;
+    let pct = null;
+    if (_hmMode === "achat") {
+      pct = (p.pru && p.pru > 0) ? (p.cours - p.pru) / p.pru * 100 : null;
+    } else {
+      const v = getVar(p.ticker);
+      pct = (v && v.d1 !== undefined) ? v.d1 : null;
+    }
+    const ticker  = p.ticker.includes(":") ? p.ticker.split(":")[1] : p.ticker;
+    const portPct = totalVal > 0 ? val / totalVal * 100 : 0;
+    return { ticker, name: p.name || ticker, val, inv, pvEur, pct, portPct };
+  }).filter(i => i.val > 0).sort((a, b) => b.val - a.val);
+
+  const W = wrap.clientWidth || 700;
+  const H = 280;
+  const GAP = 3;
+  const rects = _layoutTreemap(items, 0, 0, W, H);
+
+  wrap.style.height = H + "px";
+  wrap.innerHTML = rects.map(r => {
+    const { bg, fg } = _hmColor(r.pct);
+    const lx = r.x + GAP / 2, ly = r.y + GAP / 2;
+    const lw = Math.max(0, r.w - GAP), lh = Math.max(0, r.h - GAP);
+
+    const pctStr = r.pct !== null
+      ? (r.pct >= 0 ? "+" : "") + r.pct.toFixed(2) + " %"
+      : "—";
+    const valStr = r.val.toLocaleString("fr-FR", { maximumFractionDigits: 0 }) + " €";
+    const pvSign = r.pvEur >= 0 ? "+" : "−";
+    const pvStr  = pvSign + Math.abs(r.pvEur).toLocaleString("fr-FR", { maximumFractionDigits: 0 }) + " €";
+
+    const tkSize  = Math.min(15, Math.max(9,  lw / 5));
+    const pctSize = Math.min(13, Math.max(8,  lw / 6));
+    const valSize = Math.min(10, Math.max(7,  lw / 8));
+    const showPct = lh > 30;
+    const showVal = lh > 50 && lw > 65;
+
+    const tip = `${r.name} (${r.ticker}) · ${valStr} · ${r.portPct.toFixed(1)} % du portefeuille · PV: ${pvStr}`;
+    return `<div class="hm-cell" style="left:${lx}px;top:${ly}px;width:${lw}px;height:${lh}px;background:${bg}" title="${tip}">
+      <div class="hm-inner">
+        <span class="hm-tk"  style="font-size:${tkSize}px;color:${fg}">${r.ticker}</span>
+        ${showPct ? `<span class="hm-pct" style="font-size:${pctSize}px;color:${fg}">${pctStr}</span>` : ""}
+        ${showVal ? `<span class="hm-val" style="font-size:${valSize}px;color:${fg};opacity:.8">${valStr}</span>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+
+  if (legend) {
+    const steps = [-10, -5, -2, 0, 2, 5, 10];
+    const arrow = '<span style="color:var(--txt3);font-size:10px">→</span>';
+    legend.innerHTML = steps.map(v => {
+      const { bg } = _hmColor(v);
+      const lbl = (v > 0 ? "+" : "") + v + " %";
+      return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-family:var(--mono);color:var(--txt2)">
+        <span style="display:inline-block;width:22px;height:11px;border-radius:2px;background:${bg}"></span>${lbl}
+      </span>`;
+    }).join(arrow);
+  }
 }
 
 function makePie(cid, data, labels) {
@@ -3189,7 +3371,7 @@ async function fetchLocalCours() {
       else if (tk.startsWith("LON:")) dotKey = tk.replace("LON:", "") + ".L";
       prices[dotKey] = prix;
     }
-    const varEntry = { name: tk, cours: info.prix, w1: info.w1, m1: info.m1, y1: info.y1 };
+    const varEntry = { name: tk, cours: info.prix, d1: info.d1, w1: info.w1, m1: info.m1, y1: info.y1 };
     variations[tk] = varEntry;
     // also store with dotKey so getVar finds it regardless of format saved in wishlist
     let dotKey2 = tk;

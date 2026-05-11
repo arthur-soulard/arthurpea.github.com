@@ -100,11 +100,12 @@ def fetch_yahoo(yahoo_ticker: str):
                 return None
 
             n  = len(closes)
+            d1 = round(meta["regularMarketChangePercent"], 2) if meta.get("regularMarketChangePercent") is not None else None
             w1 = pct(closes[-6],  prix) if n >= 6  else None
             m1 = pct(closes[-22], prix) if n >= 22 else None
             y1 = pct(closes[0],   prix) if n >= 50 else None
 
-            return {"prix": round(prix, 4), "w1": w1, "m1": m1, "y1": y1}
+            return {"prix": round(prix, 4), "d1": d1, "w1": w1, "m1": m1, "y1": y1}
         except Exception as e:
             print(f"[server] Yahoo/{host} KO {yahoo_ticker}: {e}", flush=True)
             continue
