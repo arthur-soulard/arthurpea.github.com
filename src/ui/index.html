@@ -1075,6 +1075,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       <button class="btn btn-ghost" style="color:var(--r);border-color:var(--r)" onclick="resetFromConfig()">🗑 Réinitialiser</button>
       <button class="btn btn-primary" onclick="saveConfig()">Enregistrer</button>
     </div>
+    <div id="cfg-version" style="text-align:center;font-size:10px;color:var(--txt3);font-family:var(--mono);margin-top:.9rem"></div>
   </div>
 </div>
 
@@ -4895,6 +4896,14 @@ async function openConfig() {
   _renderAccentPicker();
   _wireThemeButtons();
   document.getElementById("cfg-ouverture").addEventListener("input", updateConfigRecap);
+  // Affiche la version de l'app
+  try {
+    const vEl = document.getElementById("cfg-version");
+    if (vEl && window.pywebview && window.pywebview.api) {
+      const info = await window.pywebview.api.app_info();
+      if (info) vEl.textContent = "Suivi PEA v" + info.version;
+    }
+  } catch(e) {}
   document.getElementById("ov-config").classList.add("open");
 }
 function updateConfigRecap() {
