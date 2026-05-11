@@ -2521,8 +2521,13 @@ async function renderPerf() {
     document.getElementById("perf-nodata").style.display = "block";
     makePie("c-piev", [], []);
     makePie("c-piei", [], []);
+    renderHeatmap();   // affiche la heat map même sans historique de transactions
     return;
   }
+
+  // Affiche la heat map immédiatement avec les données déjà disponibles
+  // (avant l'await ci-dessous qui peut prendre plusieurs secondes)
+  renderHeatmap();
 
   const loadEl  = document.getElementById("perf-loading");
   const loadTxt = document.getElementById("perf-loading-txt");
@@ -3425,6 +3430,12 @@ async function applyGsData() {
     renderWishlist();
     updateStatus();
     window._lastDebug = debugLines;
+
+    // Rafraîchit la heat map si le pane "perf" est actif
+    // (applyGsData met à jour _wsVar mais renderHeatmap n'était jamais appelée ici)
+    if (document.getElementById("pane-perf")?.classList.contains("active")) {
+      renderHeatmap();
+    }
 
   } catch(e) {
     console.warn("cours_server:", e.message);
