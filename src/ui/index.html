@@ -6537,7 +6537,7 @@ async function _checkForUpdates() {
     const r = await window.pywebview.api.check_update();
     if (!r) return;
     // Si la vérif GitHub n'est pas encore terminée, on réessaie dans 6s
-    if (!r.checked) { setTimeout(_checkForUpdates, 6000); return; }
+    if (!r.checked) { setTimeout(_checkForUpdates, 2000); return; }
     if (!r.hasUpdate) return;
 
     const overlay = document.createElement("div");
@@ -6700,7 +6700,7 @@ async function _checkForUpdates() {
     try { if (typeof _showWelcomeIfFirstRun === "function") _showWelcomeIfFirstRun(); } catch(e) {}
     startGsRefresh();
     // Verifie les mises a jour apres stabilisation de l'UI (15s = temps suffisant pour l'API GitHub)
-    if (window.pywebview) setTimeout(_checkForUpdates, 15000);
+    if (window.pywebview) setTimeout(_checkForUpdates, 5000);
   } catch(e) {
     const box=document.getElementById("errbox");
     if (box) { box.style.display="block"; box.textContent="Erreur JS : "+e.message+" — Cliquez sur Reset."; }
