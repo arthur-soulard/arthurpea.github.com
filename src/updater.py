@@ -148,6 +148,14 @@ def _do_install() -> None:
         setup_path = tmp_dir / "Suivi_PEA_Setup.exe"
         _log(f"INSTALL: setup_path={setup_path}")
 
+        # Supprime un résidu d'une tentative précédente pour éviter Permission denied
+        if setup_path.exists():
+            try:
+                setup_path.unlink()
+                _log("INSTALL: removed stale setup file")
+            except Exception as e:
+                _log(f"INSTALL: could not remove stale setup file: {e}")
+
         # ── Étape 1 : Téléchargement (0 → 70%) ──────────────────────────────
         _set_progress("downloading", 1)
         req = urllib.request.Request(
