@@ -546,19 +546,32 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 .cours-health.warn .cours-dot { background: var(--a); box-shadow: 0 0 6px rgba(217,119,6,.5); }
 .cours-health.err  .cours-dot { background: var(--r); box-shadow: 0 0 6px rgba(220,38,38,.5); }
 
-/* ── Banniere mise a jour ───────────────────────────── */
-#update-bar {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
-  background: var(--accent); color: #fff;
-  padding: 9px 20px;
-  display: flex; align-items: center; justify-content: center; gap: 14px;
-  font-size: 13px; font-weight: 600;
-  box-shadow: 0 -2px 14px rgba(0,0,0,.18);
+/* ── Modal mise a jour ──────────────────────────────── */
+#update-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
 }
-#update-bar a { color: #fff; text-decoration: underline; }
-#update-bar button {
-  background: rgba(255,255,255,.22); border: none; color: #fff;
-  border-radius: 6px; padding: 3px 10px; cursor: pointer; font-size: 13px;
+#update-modal {
+  background: var(--bg2); border-radius: var(--radxl);
+  box-shadow: 0 8px 40px rgba(0,0,0,.22);
+  padding: 2.2rem 2rem 1.8rem;
+  max-width: 400px; width: 92%; text-align: center;
+}
+#update-modal .upd-icon {
+  font-size: 36px; margin-bottom: .6rem;
+}
+#update-modal .upd-title {
+  font-size: 17px; font-weight: 700; margin-bottom: .3rem;
+}
+#update-modal .upd-sub {
+  font-size: 12px; color: var(--txt2); font-family: var(--mono); margin-bottom: 1.4rem;
+}
+#update-modal .upd-btns {
+  display: flex; gap: 10px; justify-content: center;
+}
+#update-modal .upd-spinner {
+  display: none; font-size: 12px; color: var(--txt2); margin-top: .9rem;
 }
 </style>
 </head>
@@ -5896,13 +5909,30 @@ async function _checkForUpdates() {
     if (!window.pywebview || !window.pywebview.api) return;
     const r = await window.pywebview.api.check_update();
     if (!r || !r.hasUpdate) return;
-    const bar = document.createElement("div");
-    bar.id = "update-bar";
-    bar.innerHTML =
-      `<span>Mise à jour disponible : v${r.version}</span>` +
-      `<a href="#" onclick="window.pywebview.api.open_url('${r.url}');return false">Télécharger</a>` +
-      `<button onclick="document.getElementById('update-bar').remove()">✕</button>`;
-    document.body.appendChild(bar);
+
+    const overlay = document.createElement("div");
+    overlay.id = "update-overlay";
+    overlay.innerHTML = `
+      <div id="update-modal">
+        <div class="upd-icon">🚀</div>
+        <div class="upd-title">Mise à jour disponible</div>
+        <div class="upd-sub">Version ${r.version} est prête à installer</div>
+        <div class="upd-btns">
+          <button class="btn btn-ghost btn-sm" id="upd-later">Plus tard</button>
+          <button class="btn btn-primary" id="upd-install">Installer maintenant</button>
+        </div>
+        <div class="upd-spinner" id="upd-spinner">⏳ Téléchargement en cours…</div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    document.getElementById("upd-later").onclick = () => overlay.remove();
+    document.getElementById("upd-install").onclick = async () => {
+      document.getElementById("upd-install").disabled = true;
+      document.getElementById("upd-later").disabled = true;
+      document.getElementById("upd-spinner").style.display = "block";
+      document.getElementById("upd-install").textContent = "Installation…";
+      await window.pywebview.api.start_update();
+    };
   } catch(e) {}
 }
 
