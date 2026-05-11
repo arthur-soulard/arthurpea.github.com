@@ -6344,11 +6344,16 @@ async function manualCheckUpdate() {
     // Relance la vérif côté Python
     if (window.pywebview.api.recheck_update) {
       await window.pywebview.api.recheck_update();
-      // Attend un peu que le thread ait fini
-      await new Promise(r => setTimeout(r, 1500));
     }
-    const r = await window.pywebview.api.check_update();
+    // Poll jusqu'à ce que le thread ait fini (max 12s, 1s par itération)
+    let r = null;
+    for (let i = 0; i < 12; i++) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      r = await window.pywebview.api.check_update();
+      if (r && r.checked) break;
+    }
     if (!r) { status.textContent = "❌ pas de réponse"; return; }
+    if (!r.checked) { status.textContent = "⚠ Délai dépassé — réessayez"; return; }
     if (r.hasUpdate) {
       status.textContent = `✓ Mise à jour disponible : v${r.version}`;
       closeOv("ov-config");
@@ -6367,7 +6372,10 @@ async function _checkForUpdates() {
   try {
     if (!window.pywebview || !window.pywebview.api) return;
     const r = await window.pywebview.api.check_update();
-    if (!r || !r.hasUpdate) return;
+    if (!r) return;
+    // Si la vérif GitHub n'est pas encore terminée, on réessaie dans 6s
+    if (!r.checked) { setTimeout(_checkForUpdates, 6000); return; }
+    if (!r.hasUpdate) return;
 
     const overlay = document.createElement("div");
     overlay.id = "update-overlay";
@@ -6528,8 +6536,8 @@ async function _checkForUpdates() {
     // Premier lancement : welcome screen si aucune data
     try { if (typeof _showWelcomeIfFirstRun === "function") _showWelcomeIfFirstRun(); } catch(e) {}
     startGsRefresh();
-    // Verifie les mises a jour apres stabilisation de l'UI
-    if (window.pywebview) setTimeout(_checkForUpdates, 8000);
+    // Verifie les mises a jour apres stabilisation de l'UI (15s = temps suffisant pour l'API GitHub)
+    if (window.pywebview) setTimeout(_checkForUpdates, 15000);
   } catch(e) {
     const box=document.getElementById("errbox");
     if (box) { box.style.display="block"; box.textContent="Erreur JS : "+e.message+" — Cliquez sur Reset."; }
