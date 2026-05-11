@@ -2568,18 +2568,20 @@ function _hmColor(pct) {
   const v = Math.max(-20, Math.min(20, pct));
   let r, g, b;
   if (v >= 0) {
+    // vert très clair (#dcfce7) → vert foncé (#15803d)
     const t = Math.min(v / 12, 1);
-    r = Math.round(161 * (1-t) + 21  * t);
-    g = Math.round(161 * (1-t) + 128 * t);
-    b = Math.round(170 * (1-t) + 61  * t);
+    r = Math.round(220 * (1-t) + 21  * t);
+    g = Math.round(252 * (1-t) + 128 * t);
+    b = Math.round(231 * (1-t) + 61  * t);
   } else {
+    // rouge très clair (#fee2e2) → rouge foncé (#b91c1c)
     const t = Math.min(-v / 12, 1);
-    r = Math.round(161 * (1-t) + 185 * t);
-    g = Math.round(161 * (1-t) + 28  * t);
-    b = Math.round(170 * (1-t) + 28  * t);
+    r = Math.round(254 * (1-t) + 185 * t);
+    g = Math.round(226 * (1-t) + 28  * t);
+    b = Math.round(226 * (1-t) + 28  * t);
   }
   const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return { bg: `rgb(${r},${g},${b})`, fg: brightness > 130 ? "rgba(0,0,0,0.75)" : "#ffffff" };
+  return { bg: `rgb(${r},${g},${b})`, fg: brightness > 160 ? "rgba(0,0,0,0.70)" : "#ffffff" };
 }
 
 function _layoutTreemap(items, x, y, w, h) {

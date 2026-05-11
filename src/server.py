@@ -24,6 +24,7 @@ import time
 import datetime
 import urllib.request
 import urllib.parse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 DEFAULT_PORT = 7438
@@ -114,6 +115,7 @@ def fetch_yahoo(yahoo_ticker: str):
 
 def get_prices(tickers):
     result, now = {}, time.time()
+    to_fetch = []
     for tk in tickers:
         ytk = to_yahoo(tk)
         with _lock:
@@ -121,12 +123,27 @@ def get_prices(tickers):
             if cached and (now - cached["ts"]) < CACHE_TTL:
                 result[tk] = cached
                 continue
+        to_fetch.append(tk)
+
+    if not to_fetch:
+        return result
+
+    def _fetch_one(tk):
+        ytk = to_yahoo(tk)
         data = fetch_yahoo(ytk)
         if data:
-            data["ts"] = now
+            data["ts"] = time.time()
             with _lock:
                 _cache[ytk] = data
-            result[tk] = data
+        return tk, data
+
+    with ThreadPoolExecutor(max_workers=min(len(to_fetch), 8)) as ex:
+        futures = {ex.submit(_fetch_one, tk): tk for tk in to_fetch}
+        for fut in as_completed(futures):
+            tk, data = fut.result()
+            if data:
+                result[tk] = data
+
     return result
 
 
