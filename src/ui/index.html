@@ -225,24 +225,23 @@ input, select { font-family: var(--mono); }
 .pane             { display: none; }
 .pane.active      { display: block; }
 
-/* ── Menu contextuel (clic droit sidebar) ─────────── */
-.ctx-menu {
-  position: fixed; z-index: 9999;
-  background: var(--bg2); border: 1px solid var(--brd2);
-  border-radius: var(--rad); box-shadow: var(--sh-md);
-  padding: 4px 0; min-width: 180px; user-select: none;
-  animation: ctxFadeIn .1s ease;
+/* ── Boutons œil (masquer sections / cartes) ─────── */
+.sb-eye-btn {
+  visibility: hidden; opacity: 0; margin-left: auto; flex-shrink: 0;
+  background: none; border: none; cursor: pointer;
+  color: var(--txt3); font-size: 13px; padding: 2px 4px;
+  border-radius: 4px; transition: opacity .15s, color .1s; line-height: 1;
 }
-.ctx-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 14px; cursor: pointer; color: var(--txt);
-  font-size: 12px; font-weight: 500; transition: background .1s;
+.sb-item:hover .sb-eye-btn { visibility: visible; opacity: 1; }
+.sb-eye-btn:hover { color: var(--r) !important; }
+.card-eye-btn {
+  opacity: 0; flex-shrink: 0; margin-left: auto;
+  background: none; border: none; cursor: pointer;
+  color: var(--txt3); font-size: 14px; padding: 0 4px;
+  border-radius: 4px; transition: opacity .15s, color .1s; line-height: 1;
 }
-.ctx-item:hover { background: var(--bg3); }
-.ctx-item.ctx-danger { color: var(--r); }
-.ctx-item.ctx-danger:hover { background: var(--r2); }
-.ctx-item-icon { font-size: 13px; opacity: .7; flex-shrink: 0; }
-@keyframes ctxFadeIn { from { opacity:0; transform:scale(.96) } to { opacity:1; transform:scale(1) } }
+.card:hover .card-eye-btn { opacity: 1; }
+.card-eye-btn:hover { color: var(--r) !important; }
 
 /* ── Card ────────────────────────────────────────── */
 .card {
@@ -743,7 +742,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 
 <!-- ═══════════════════ POSITIONS ═══════════════════ -->
 <div class="pane active" id="pane-pos">
-  <div class="card">
+  <div class="card" id="card-pos">
     <div class="card-h">
       <span class="card-t">Lignes en portefeuille</span>
       <button class="btn btn-sm btn-ghost" onclick="openAddPos()">+ Ajouter</button>
@@ -819,11 +818,11 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 
   <!-- Camemberts -->
   <div class="cgrid">
-    <div class="card">
+    <div class="card" id="card-pie-val">
       <div class="card-h"><span class="card-t">Répartition valeur</span></div>
       <div class="card-b"><div style="position:relative;height:230px"><canvas id="c-piev"></canvas></div></div>
     </div>
-    <div class="card">
+    <div class="card" id="card-pie-inv">
       <div class="card-h"><span class="card-t">Répartition capital investi</span></div>
       <div class="card-b"><div style="position:relative;height:230px"><canvas id="c-piei"></canvas></div></div>
     </div>
@@ -844,11 +843,11 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 
 <!-- ═══════════════════ DIVIDENDES ═══════════════════ -->
 <div class="pane" id="pane-div">
-  <div class="card">
+  <div class="card" id="card-div-chart">
     <div class="card-h"><span class="card-t">Croissance des dividendes</span></div>
     <div class="card-b"><div style="position:relative;height:200px"><canvas id="c-div"></canvas></div></div>
   </div>
-  <div class="card">
+  <div class="card" id="card-div-list">
     <div class="card-h">
       <span class="card-t">Dividendes reçus</span>
       <div style="display:flex;gap:8px;align-items:center">
@@ -873,7 +872,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 
 <!-- ═══════════════════ TRANSACTIONS ═══════════════════ -->
 <div class="pane" id="pane-tx">
-  <div class="card">
+  <div class="card" id="card-tx">
     <div class="card-h" style="flex-wrap:wrap;gap:.6rem">
       <span class="card-t">Historique des ordres</span>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:11px">
@@ -902,7 +901,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 
 <!-- ═══════════════════ WISHLIST ═══════════════════ -->
 <div class="pane" id="pane-wish">
-  <div class="card">
+  <div class="card" id="card-wish-action">
     <div class="card-h">
       <span class="card-t">Wishlist · Actions</span>
       <div style="display:flex;gap:8px;align-items:center">
@@ -927,7 +926,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       <tbody id="wl-pea-action"></tbody>
     </table></div>
   </div>
-  <div class="card">
+  <div class="card" id="card-wish-etf">
     <div class="card-h">
       <span class="card-t">Wishlist · ETF</span>
       <button class="btn btn-sm btn-ghost" onclick="openAddWish('pea','etf')">+ ETF</button>
@@ -951,7 +950,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 
 <!-- ═══════════════════ DÉPÔTS ═══════════════════ -->
 <div class="pane" id="pane-dep">
-  <div class="card">
+  <div class="card" id="card-dep">
     <div class="card-h">
       <span class="card-t">Dépôts PEA</span>
       <div style="display:flex;gap:8px;align-items:center">
@@ -968,7 +967,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 
 <!-- ═══════════════════ STRATÉGIE ═══════════════════ -->
 <div class="pane" id="pane-strat">
-  <div class="card">
+  <div class="card" id="card-strat">
     <div class="card-h">
       <span class="card-t">Règles de stratégie</span>
       <button class="btn btn-sm btn-primary" onclick="openAddRule()">+ Ajouter une règle</button>
@@ -1000,7 +999,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
 
     <!-- 1. Projection versements réguliers -->
-    <div class="card" style="grid-column:1/-1">
+    <div class="card" id="card-sim-dca" style="grid-column:1/-1">
       <div class="card-h"><span class="card-t">📈 Projection : versements réguliers</span></div>
       <div class="card-b">
         <div class="fg-row">
@@ -1018,7 +1017,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
     </div>
 
     <!-- 2. Objectifs long terme -->
-    <div class="card" style="grid-column:1/-1">
+    <div class="card" id="card-sim-goal" style="grid-column:1/-1">
       <div class="card-h"><span class="card-t">🎯 Objectifs long terme</span></div>
       <div class="card-b">
         <div class="fg-row">
@@ -1035,7 +1034,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
     </div>
 
     <!-- 3. Comparateur d'actifs -->
-    <div class="card" style="grid-column:1/-1">
+    <div class="card" id="card-sim-cmp" style="grid-column:1/-1">
       <div class="card-h" style="flex-wrap:wrap;gap:.6rem">
         <span class="card-t">⚖ Comparateur d'actifs</span>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
@@ -1136,8 +1135,12 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       </div>
     </div>
     <div class="fg" id="cfg-hidden-section">
-      <label>Sections masquées <span style="color:var(--txt3);font-weight:400">(clic droit sur la barre latérale pour masquer)</span></label>
+      <label>Onglets masqués <span style="color:var(--txt3);font-weight:400">(icône œil sur la barre latérale)</span></label>
       <div id="cfg-hidden-list" style="display:flex;flex-wrap:wrap;gap:6px;padding-top:4px;min-height:22px"></div>
+    </div>
+    <div class="fg" id="cfg-hidden-cards-section">
+      <label>Blocs masqués <span style="color:var(--txt3);font-weight:400">(icône œil sur les tableaux / graphiques)</span></label>
+      <div id="cfg-hidden-cards-list" style="display:flex;flex-wrap:wrap;gap:6px;padding-top:4px;min-height:22px"></div>
     </div>
     <div class="fg">
       <label>Profils PEA <span style="color:var(--txt3);font-weight:400">(plusieurs PEA dans la même app)</span></label>
@@ -5351,19 +5354,29 @@ async function openConfig() {
   _renderAccentPicker();
   _wireThemeButtons();
   document.getElementById("cfg-ouverture").addEventListener("input", updateConfigRecap);
-  // Sections masquées
+  // Onglets masqués
   const hiddenList = document.getElementById("cfg-hidden-list");
   if (hiddenList) {
     const hidden = (S.uiPrefs && S.uiPrefs.hiddenSidebar) || [];
-    if (hidden.length === 0) {
-      hiddenList.innerHTML = '<span style="font-size:11px;color:var(--txt3);font-family:var(--mono)">Aucune section masquée</span>';
-    } else {
-      hiddenList.innerHTML = hidden.map(id => {
-        const it = SIDEBAR_ITEMS.find(x => x.id === id);
-        const label = it ? it.label : id;
-        return `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--brd2);border-radius:99px;padding:4px 10px;font-size:11px;font-family:var(--mono)">${label}<button onclick="_showSidebarItem('${id}');openConfig()" style="background:none;border:none;cursor:pointer;color:var(--g);font-size:13px;padding:0;line-height:1" title="Restaurer">↩</button></span>`;
-      }).join("");
-    }
+    hiddenList.innerHTML = hidden.length === 0
+      ? '<span style="font-size:11px;color:var(--txt3);font-family:var(--mono)">Aucun onglet masqué</span>'
+      : hidden.map(id => {
+          const it = SIDEBAR_ITEMS.find(x => x.id === id);
+          const label = it ? it.label : id;
+          return `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--brd2);border-radius:99px;padding:4px 10px;font-size:11px;font-family:var(--mono)">${label}<button onclick="_showSidebarItem('${id}');openConfig()" style="background:none;border:none;cursor:pointer;color:var(--g);font-size:13px;padding:0;line-height:1" title="Restaurer">↩</button></span>`;
+        }).join("");
+  }
+  // Blocs masqués
+  const hiddenCardsList = document.getElementById("cfg-hidden-cards-list");
+  if (hiddenCardsList) {
+    const hidden = (S.uiPrefs && S.uiPrefs.hiddenCards) || [];
+    hiddenCardsList.innerHTML = hidden.length === 0
+      ? '<span style="font-size:11px;color:var(--txt3);font-family:var(--mono)">Aucun bloc masqué</span>'
+      : hidden.map(id => {
+          const it = CARD_ITEMS.find(x => x.id === id);
+          const label = it ? it.label : id;
+          return `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--brd2);border-radius:99px;padding:4px 10px;font-size:11px;font-family:var(--mono)">${label}<button onclick="_showCard('${id}');openConfig()" style="background:none;border:none;cursor:pointer;color:var(--g);font-size:13px;padding:0;line-height:1" title="Restaurer">↩</button></span>`;
+        }).join("");
   }
   // Affiche la version de l'app
   try {
@@ -5887,6 +5900,24 @@ const SIDEBAR_ITEMS = [
   { id: "sim",   icon: "ƒ", label: "Simulateurs"   },
 ];
 
+const CARD_ITEMS = [
+  { id: "card-pos",         label: "Positions · Tableau" },
+  { id: "card-twr",         label: "Performance · Évolution du capital" },
+  { id: "card-pie-val",     label: "Performance · Camembert valeur" },
+  { id: "card-pie-inv",     label: "Performance · Camembert investi" },
+  { id: "card-heatmap",     label: "Performance · Carte thermique" },
+  { id: "card-div-chart",   label: "Dividendes · Graphique" },
+  { id: "card-div-list",    label: "Dividendes · Tableau reçus" },
+  { id: "card-tx",          label: "Transactions · Tableau" },
+  { id: "card-wish-action", label: "Wishlist · Actions" },
+  { id: "card-wish-etf",    label: "Wishlist · ETF" },
+  { id: "card-dep",         label: "Dépôts · Tableau" },
+  { id: "card-strat",       label: "Stratégie · Règles" },
+  { id: "card-sim-dca",     label: "Simulateurs · Projection versements" },
+  { id: "card-sim-goal",    label: "Simulateurs · Objectifs" },
+  { id: "card-sim-cmp",     label: "Simulateurs · Comparateur d'actifs" },
+];
+
 function _setActiveSidebar(id) {
   document.querySelectorAll(".sb-item[data-tab]").forEach(el => {
     el.classList.toggle("active", el.dataset.tab === id);
@@ -5927,9 +5958,10 @@ function _injectSidebar() {
     <div class="sb-section-lbl">Suivi</div>`;
   SIDEBAR_ITEMS.forEach(it => {
     if (hidden.includes(it.id)) return;
-    html += `<button class="sb-item" data-tab="${it.id}" title="Clic droit pour masquer">
+    html += `<button class="sb-item" data-tab="${it.id}">
                <span class="sb-icon">${it.icon}</span>
                <span>${it.label}</span>
+               <span class="sb-eye-btn" data-hide="${it.id}" title="Masquer cette section">⊘</span>
              </button>`;
   });
   html += `
@@ -5945,59 +5977,20 @@ function _injectSidebar() {
   document.body.insertAdjacentHTML("afterbegin", html);
 
   document.querySelectorAll(".sb-item[data-tab]").forEach(el => {
-    el.onclick = () => {
+    el.onclick = e => {
+      if (e.target.closest(".sb-eye-btn")) {
+        _hideSidebarItem(el.dataset.tab);
+        return;
+      }
       goTab(el.dataset.tab);
       _setActiveSidebar(el.dataset.tab);
     };
-    el.addEventListener("contextmenu", e => {
-      e.preventDefault();
-      _showCtxMenu(e, el.dataset.tab);
-    });
   });
 
   // Theme toggle
   const themeBtn = document.getElementById("sb-theme");
   themeBtn.onclick = toggleTheme;
   _refreshThemeLabel();
-}
-
-/* ── Menu contextuel sidebar ── */
-let _ctxMenuEl = null;
-
-function _closeCtxMenu() {
-  if (_ctxMenuEl) { try { _ctxMenuEl.remove(); } catch(e) {} _ctxMenuEl = null; }
-}
-
-function _showCtxMenu(e, tabId) {
-  _closeCtxMenu();
-  const it = SIDEBAR_ITEMS.find(x => x.id === tabId);
-  if (!it) return;
-
-  const menu = document.createElement("div");
-  menu.className = "ctx-menu";
-  menu.innerHTML = `<div class="ctx-item ctx-danger" id="ctx-hide-item">
-    <span class="ctx-item-icon">⊗</span>Masquer « ${it.label} »
-  </div>`;
-
-  const x = Math.min(e.clientX + 4, window.innerWidth  - 200);
-  const y = Math.min(e.clientY + 4, window.innerHeight - 52);
-  menu.style.left = x + "px";
-  menu.style.top  = y + "px";
-  document.body.appendChild(menu);
-  _ctxMenuEl = menu;
-
-  menu.querySelector("#ctx-hide-item").onclick = () => {
-    _closeCtxMenu();
-    _hideSidebarItem(tabId);
-  };
-
-  setTimeout(() => {
-    document.addEventListener("click",       _closeCtxMenu, { once: true });
-    document.addEventListener("contextmenu", _closeCtxMenu, { once: true });
-    document.addEventListener("keydown", function _esc(ev) {
-      if (ev.key === "Escape") { _closeCtxMenu(); document.removeEventListener("keydown", _esc); }
-    });
-  }, 0);
 }
 
 function _hideSidebarItem(id) {
@@ -6028,13 +6021,62 @@ function _showSidebarItem(id) {
   if (window.pywebview && window.pywebview.api && window.pywebview.api.save_ui_prefs) {
     try { window.pywebview.api.save_ui_prefs(S.uiPrefs); } catch(e) {}
   }
-  // Recrée la sidebar entière pour réinsérer l'item au bon endroit
   const old = document.getElementById("pea-sidebar");
   if (old) old.remove();
   _injectSidebar();
-  // Restaure l'onglet actif
   const activePane = document.querySelector(".pane.active");
   if (activePane) _setActiveSidebar(activePane.id.replace("pane-", ""));
+}
+
+/* ── Boutons œil sur les cartes ── */
+function _injectCardEyeBtns() {
+  CARD_ITEMS.forEach(it => {
+    const card = document.getElementById(it.id);
+    if (!card) return;
+    const cardH = card.querySelector(".card-h");
+    if (!cardH || cardH.querySelector(".card-eye-btn")) return;
+    const btn = document.createElement("button");
+    btn.className = "card-eye-btn";
+    btn.title = "Masquer ce bloc";
+    btn.textContent = "⊘";
+    btn.onclick = () => _hideCard(it.id);
+    cardH.appendChild(btn);
+  });
+}
+
+function _applyHiddenCards() {
+  const hidden = (S.uiPrefs && S.uiPrefs.hiddenCards) || [];
+  CARD_ITEMS.forEach(it => {
+    const el = document.getElementById(it.id);
+    if (!el) return;
+    el.style.display = hidden.includes(it.id) ? "none" : "";
+  });
+}
+
+function _hideCard(id) {
+  S.uiPrefs = S.uiPrefs || {};
+  S.uiPrefs.hiddenCards = S.uiPrefs.hiddenCards || [];
+  if (!S.uiPrefs.hiddenCards.includes(id)) S.uiPrefs.hiddenCards.push(id);
+  persist(false);
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.save_ui_prefs) {
+    try { window.pywebview.api.save_ui_prefs(S.uiPrefs); } catch(e) {}
+  }
+  const el = document.getElementById(id);
+  if (el) el.style.display = "none";
+  const label = CARD_ITEMS.find(x => x.id === id)?.label || id;
+  if (typeof showToastModern === "function")
+    showToastModern(`« ${label} » masqué — restaurable dans ⚙ Paramètres`, "info");
+}
+
+function _showCard(id) {
+  S.uiPrefs = S.uiPrefs || {};
+  S.uiPrefs.hiddenCards = (S.uiPrefs.hiddenCards || []).filter(x => x !== id);
+  persist(false);
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.save_ui_prefs) {
+    try { window.pywebview.api.save_ui_prefs(S.uiPrefs); } catch(e) {}
+  }
+  const el = document.getElementById(id);
+  if (el) el.style.display = "";
 }
 
 function _refreshThemeLabel() {
@@ -6311,6 +6353,8 @@ function installShellEnhancements() {
   _injectDashboardPane();
   _injectSidebar();
   _setActiveSidebar("dash");
+  _applyHiddenCards();
+  _injectCardEyeBtns();
   _installShortcuts();
   // Pill profil PEA en bas de sidebar (cache si un seul profil)
   if (typeof _renderProfilePill === "function") _renderProfilePill();
