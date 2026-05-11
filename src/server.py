@@ -101,7 +101,15 @@ def fetch_yahoo(yahoo_ticker: str):
                 return None
 
             n  = len(closes)
-            d1 = round(meta["regularMarketChangePercent"], 2) if meta.get("regularMarketChangePercent") is not None else None
+            # Variation journalière : 3 sources par ordre de fiabilité
+            if meta.get("regularMarketChangePercent") is not None:
+                d1 = round(meta["regularMarketChangePercent"], 2)
+            elif meta.get("chartPreviousClose"):
+                d1 = pct(meta["chartPreviousClose"], prix)
+            elif n >= 2:
+                d1 = pct(closes[-2], prix)
+            else:
+                d1 = None
             w1 = pct(closes[-6],  prix) if n >= 6  else None
             m1 = pct(closes[-22], prix) if n >= 22 else None
             y1 = pct(closes[0],   prix) if n >= 50 else None
