@@ -609,6 +609,56 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 }
 #update-modal .upd-step { font-size: 12px; color: var(--txt2); font-family: var(--mono); }
 #update-modal .upd-pct  { font-size: 11px; color: var(--txt3); margin-top: 2px; }
+
+/* ── Onglet Recommandations ──────────────────────── */
+.reco-grid { display: flex; flex-direction: column; gap: 14px; }
+.reco-card {
+  background: var(--bg2); border: 1px solid var(--brd);
+  border-radius: var(--radl); box-shadow: var(--sh);
+  overflow: hidden; transition: box-shadow .15s;
+}
+.reco-card:hover { box-shadow: var(--sh-md); }
+.reco-top {
+  display: flex; align-items: center; gap: 10px;
+  padding: .85rem 1.1rem .7rem; flex-wrap: wrap;
+}
+.reco-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; padding: 3px 9px; border-radius: 99px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.reco-badge--opp  { background: var(--g2);  color: var(--g); }
+.reco-badge--int  { background: var(--b2);  color: var(--b); }
+.reco-badge--sur  { background: var(--bg4); color: var(--txt2); }
+.reco-badge--att  { background: var(--a2);  color: var(--a); }
+.reco-name { font-weight: 700; font-size: 14px; flex: 1; min-width: 0; }
+.reco-meta { font-size: 10px; color: var(--txt2); font-family: var(--mono); white-space: nowrap; }
+.reco-score { font-size: 11px; font-weight: 700; font-family: var(--mono); color: var(--txt3); white-space: nowrap; }
+.reco-body { padding: 0 1.1rem .9rem; }
+.reco-kpis {
+  display: flex; gap: 18px; flex-wrap: wrap;
+  font-size: 11px; font-family: var(--mono);
+  color: var(--txt2); margin-bottom: .6rem;
+}
+.reco-kpi-val { color: var(--txt); font-weight: 600; }
+.reco-signals { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: .65rem; }
+.sig {
+  font-size: 10px; font-weight: 600; padding: 2px 8px;
+  border-radius: 99px; white-space: nowrap;
+}
+.sig-pos { background: var(--g2); color: var(--g); }
+.sig-neg { background: var(--r2); color: var(--r); }
+.sig-neu { background: var(--bg4); color: var(--txt2); }
+.sig-ana { background: var(--b2); color: var(--b); }
+.reco-text {
+  font-size: 12px; color: var(--txt2); line-height: 1.6;
+  border-top: 1px dashed var(--brd); padding-top: .6rem;
+}
+.reco-empty { text-align: center; color: var(--txt3); padding: 48px 0; font-size: 13px; }
+.reco-header-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;
+}
 </style>
 </head>
 <body>
@@ -669,6 +719,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   <button class="tab" onclick="goTab('wish')">Wishlist</button>
   <button class="tab" onclick="goTab('dep')">Dépôts</button>
   <button class="tab" onclick="goTab('strat')">Stratégie</button>
+  <button class="tab" onclick="goTab('reco')">Recommandations</button>
 </div>
 
 <!-- ═══════════════════ POSITIONS ═══════════════════ -->
@@ -763,10 +814,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   <div class="card" id="card-heatmap">
     <div class="card-h">
       <span class="card-t">Carte thermique du portefeuille</span>
-      <div style="display:flex;gap:4px">
-        <button class="btn btn-sm btn-primary" id="hm-btn-achat" onclick="setHmMode('achat')">Depuis l'achat</button>
-        <button class="btn btn-sm" id="hm-btn-jour" onclick="setHmMode('jour')">Journalier</button>
-      </div>
+      <span style="font-size:10px;color:var(--txt3);font-family:var(--mono)">Perf. depuis l'achat</span>
     </div>
     <div class="card-b" style="padding:.75rem">
       <div class="hm-wrap" id="hm-wrap"></div>
@@ -908,6 +956,19 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
     </div>
     <div class="card-b" id="strat-list">
       <div style="text-align:center;color:var(--txt2);padding:1.5rem;font-size:12px">Aucune règle — cliquez sur "+ Ajouter une règle" pour commencer.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ RECOMMANDATIONS ═══════════════ -->
+<div class="pane" id="pane-reco">
+  <div class="card">
+    <div class="card-h">
+      <span class="card-t">Recommandations · Wishlist</span>
+      <span id="reco-update" style="font-size:10px;color:var(--txt2);font-family:var(--mono)"></span>
+    </div>
+    <div class="card-b" id="reco-body">
+      <div class="reco-empty">Chargement des données…</div>
     </div>
   </div>
 </div>
@@ -3449,10 +3510,12 @@ function startGsRefresh() {
   applyGsData();
   fetchSparklines();
   fetchKeystats();
+  fetchAnalysts();
   _gsTimer = setInterval(() => {
     applyGsData();
     fetchSparklines();
     fetchKeystats();
+    fetchAnalysts();
   }, 3 * 60 * 1000);
 }
 
@@ -3536,6 +3599,191 @@ async function fetchKeystats() {
     if (typeof renderWishlist  === "function") renderWishlist();
   } catch(e) { console.warn("keystats:", e.message); }
 }
+
+/* ─── Fetch avis analystes (objectifs de cours) — actions wishlist ─── */
+async function fetchAnalysts() {
+  const tickers = new Set();
+  (S.wishlist || []).forEach(w => { if (w.ticker && w.wtype === "action") tickers.add(w.ticker); });
+  if (tickers.size === 0) return;
+  try {
+    const url = `http://127.0.0.1:${_PEA_PORT}/analysts?tickers=` + encodeURIComponent([...tickers].join(",")) + "&t=" + Date.now();
+    const r = await fetch(url, {cache:"no-store"});
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d.ok) return;
+    Object.entries(d.analysts || {}).forEach(([tk, info]) => { _wsAnalysts[tk] = info; });
+    if (document.getElementById("pane-reco")?.classList.contains("active")) renderReco();
+  } catch(e) { console.warn("analysts:", e.message); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ONGLET RECOMMANDATIONS
+   Score 0-100 basé sur PER, dividende, 52W, momentum, analystes.
+   Badge + signaux chips + texte factuel en français.
+═══════════════════════════════════════════════════════════════════════ */
+function _recoScore(w) {
+  const v   = getVar(w.ticker);
+  const ks  = _wsKey[w.ticker];
+  const ana = _wsAnalysts[w.ticker];
+  const isEtf = (w.wtype === "etf");
+  let score = 50;
+  const signals = [];
+
+  if (!isEtf && ks) {
+    const per = ks.trailingPE;
+    if (per != null) {
+      if      (per < 10) { score += 20; signals.push({cls:"sig-pos", t:`PER très bas (${per.toFixed(1)})`}); }
+      else if (per < 15) { score += 12; signals.push({cls:"sig-pos", t:`PER attractif (${per.toFixed(1)})`}); }
+      else if (per < 22) { score +=  4; signals.push({cls:"sig-neu", t:`PER raisonnable (${per.toFixed(1)})`}); }
+      else if (per < 32) { score -=  6; signals.push({cls:"sig-neu", t:`PER modéré-élevé (${per.toFixed(1)})`}); }
+      else               { score -= 15; signals.push({cls:"sig-neg", t:`PER exigeant (${per.toFixed(1)})`}); }
+    }
+    const dy = ks.divYield;
+    if (dy != null && dy > 0) {
+      const dp = dy * 100;
+      if      (dp >= 5)   { score += 10; signals.push({cls:"sig-pos", t:`Dividende élevé (${dp.toFixed(1)} %)`}); }
+      else if (dp >= 3)   { score +=  6; signals.push({cls:"sig-pos", t:`Bon dividende (${dp.toFixed(1)} %)`}); }
+      else if (dp >= 1.5) { score +=  3; signals.push({cls:"sig-neu", t:`Dividende (${dp.toFixed(1)} %)`}); }
+      else                {              signals.push({cls:"sig-neu", t:`Dividende faible (${dp.toFixed(1)} %)`}); }
+    }
+    const hi = ks.fiftyTwoWeekHigh, lo = ks.fiftyTwoWeekLow;
+    if (hi && lo && v?.cours && hi !== lo) {
+      const pos = (v.cours - lo) / (hi - lo) * 100;
+      if      (pos < 15) { score += 15; signals.push({cls:"sig-pos", t:`Proche du plus bas 52s (${pos.toFixed(0)} %)`}); }
+      else if (pos < 35) { score +=  8; signals.push({cls:"sig-pos", t:`Zone basse 52s (${pos.toFixed(0)} %)`}); }
+      else if (pos > 90) { score -= 12; signals.push({cls:"sig-neg", t:`Proche du plus haut 52s (${pos.toFixed(0)} %)`}); }
+      else if (pos > 75) { score -=  5; signals.push({cls:"sig-neu", t:`Zone haute 52s (${pos.toFixed(0)} %)`}); }
+    }
+    if (ana) {
+      const recoMap = {strong_buy:"Achat fort", buy:"Achat", hold:"Conserver", underperform:"Sous-performer", sell:"Vendre"};
+      const recoFr  = recoMap[ana.recoKey] || ana.recoKey;
+      const cls = (ana.recoKey==="strong_buy"||ana.recoKey==="buy") ? "sig-ana"
+                : (ana.recoKey==="sell"||ana.recoKey==="underperform") ? "sig-neg" : "sig-neu";
+      if      (ana.recoKey==="strong_buy")   score += 15;
+      else if (ana.recoKey==="buy")          score += 10;
+      else if (ana.recoKey==="hold")         score +=  3;
+      else if (ana.recoKey==="underperform") score -=  8;
+      else if (ana.recoKey==="sell")         score -= 15;
+      if (recoFr) signals.push({cls, t:`Analystes : ${recoFr}${ana.numAnalysts?" ("+ana.numAnalysts+")":""}`});
+      if (ana.targetMean && v?.cours) {
+        const up = (ana.targetMean - v.cours) / v.cours * 100;
+        const s2 = up>=0?"+":"";
+        if      (up >  25) { score += 10; signals.push({cls:"sig-pos", t:`Objectif ${s2}${up.toFixed(0)} % (${ana.targetMean.toFixed(2)} €)`}); }
+        else if (up >  10) { score +=  5; signals.push({cls:"sig-pos", t:`Objectif ${s2}${up.toFixed(0)} % (${ana.targetMean.toFixed(2)} €)`}); }
+        else if (up >=  0) {              signals.push({cls:"sig-neu", t:`Objectif ${s2}${up.toFixed(0)} % (${ana.targetMean.toFixed(2)} €)`}); }
+        else               { score -=  8; signals.push({cls:"sig-neg", t:`Objectif ${s2}${up.toFixed(0)} % (${ana.targetMean.toFixed(2)} €)`}); }
+      }
+    }
+  }
+
+  if (v?.m1 != null) {
+    if      (v.m1 < -15) { score += 12; signals.push({cls:"sig-pos", t:`Fort repli 1M (${v.m1.toFixed(1)} %)`}); }
+    else if (v.m1 <  -8) { score +=  7; signals.push({cls:"sig-pos", t:`Repli 1M (${v.m1.toFixed(1)} %)`}); }
+    else if (v.m1 <  -3) { score +=  3; signals.push({cls:"sig-neu", t:`Léger repli 1M (${v.m1.toFixed(1)} %)`}); }
+    else if (v.m1 >  20) { score -= 10; signals.push({cls:"sig-neg", t:`Forte hausse 1M (+${v.m1.toFixed(1)} %)`}); }
+    else if (v.m1 >  10) { score -=  4; signals.push({cls:"sig-neu", t:`Hausse 1M (+${v.m1.toFixed(1)} %)`}); }
+  }
+  if (v?.y1 != null) {
+    if      (v.y1 >  30) { score +=  5; signals.push({cls:"sig-pos", t:`Tendance 1A solide (+${v.y1.toFixed(1)} %)`}); }
+    else if (v.y1 < -25) { score -=  5; signals.push({cls:"sig-neg", t:`Baisse 1A (${v.y1.toFixed(1)} %)`}); }
+  }
+  score += (w.stars - 3) * 2;
+  return { score: Math.max(0, Math.min(100, Math.round(score))), signals };
+}
+
+function _recoText(w, v, ks, ana) {
+  const isEtf = (w.wtype === "etf");
+  const parts = [];
+  if (!isEtf && ks) {
+    const per = ks.trailingPE;
+    if (per != null) {
+      if      (per < 12) parts.push(`Avec un PER de ${per.toFixed(1)}, la valorisation est basse et potentiellement attractive.`);
+      else if (per < 18) parts.push(`Le PER de ${per.toFixed(1)} indique une valorisation raisonnable.`);
+      else if (per < 28) parts.push(`Le PER de ${per.toFixed(1)} est modérément élevé — la croissance attendue devra le justifier.`);
+      else               parts.push(`PER de ${per.toFixed(1)} : valorisation exigeante, peu de marge d'erreur sur les résultats.`);
+    }
+    const hi = ks.fiftyTwoWeekHigh, lo = ks.fiftyTwoWeekLow;
+    if (hi && lo && v?.cours && hi !== lo) {
+      const pos = (v.cours - lo) / (hi - lo) * 100;
+      if      (pos < 20) parts.push(`Le cours se situe à ${pos.toFixed(0)} % de sa fourchette 52 semaines, proche du plancher — un niveau d'entrée potentiellement favorable.`);
+      else if (pos > 85) parts.push(`Le cours est proche de son plus haut annuel (${pos.toFixed(0)} % de la fourchette) — une consolidation est possible avant d'entrer.`);
+    }
+    const dy = ks.divYield;
+    if (dy != null && dy > 0.005) {
+      const dp = (dy * 100).toFixed(1);
+      if      (dy >= 0.04) parts.push(`Le dividende de ${dp} % constitue un rendement généreux qui contribue à la performance totale.`);
+      else if (dy >= 0.02) parts.push(`Le dividende offre un rendement de ${dp} %.`);
+    }
+  }
+  if (v?.m1 != null) {
+    if      (v.m1 < -10) parts.push(`Le repli de ${v.m1.toFixed(1)} % sur le mois peut représenter une opportunité d'entrée si les fondamentaux restent intacts.`);
+    else if (v.m1 >  15) parts.push(`La hausse de +${v.m1.toFixed(1)} % en un mois est significative — attendre une consolidation avant d'entrer.`);
+  }
+  if (v?.y1 != null) {
+    if      (v.y1 >  25) parts.push(`La performance à 1 an de +${v.y1.toFixed(1)} % témoigne d'une tendance haussière solide.`);
+    else if (v.y1 < -20) parts.push(`La baisse à 1 an de ${v.y1.toFixed(1)} % signale une tendance négative — surveiller les catalyseurs de rebond.`);
+  }
+  if (!isEtf && ana?.targetMean && v?.cours) {
+    const up  = (ana.targetMean - v.cours) / v.cours * 100;
+    const nb  = ana.numAnalysts ? `${ana.numAnalysts} analyste${ana.numAnalysts>1?"s":""}` : "Les analystes";
+    parts.push(`${nb} fixent un objectif moyen de ${ana.targetMean.toFixed(2)} € (potentiel ${up>=0?"+":""}${up.toFixed(0)} %).`);
+  }
+  if (!parts.length)
+    return isEtf
+      ? "Comparez la performance avec l'indice de référence avant d'investir."
+      : "Données insuffisantes pour un commentaire complet — actualisez les cours.";
+  return parts.join(" ");
+}
+
+function renderReco() {
+  const body = document.getElementById("reco-body");
+  if (!body) return;
+  const wishlist = (S.wishlist || []).filter(w => w.ticker);
+  if (!wishlist.length) {
+    body.innerHTML = '<div class="reco-empty">Votre wishlist est vide.<br><span style="font-size:12px">Ajoutez des valeurs depuis l\'onglet Wishlist.</span></div>';
+    return;
+  }
+  const items = wishlist.map(w => {
+    const { score, signals } = _recoScore(w);
+    return { w, score, signals };
+  }).sort((a, b) => b.score - a.score);
+
+  const badgeCls = s => s>=70?"reco-badge--opp":s>=55?"reco-badge--int":s>=40?"reco-badge--sur":"reco-badge--att";
+  const badgeLbl = s => s>=70?"Opportunité":s>=55?"Intéressant":s>=40?"À surveiller":"Attendre";
+  const stars    = n => "★".repeat(n)+"☆".repeat(5-n);
+  const fmtPct   = v => v!=null ? `<span class="${v>=0?"c-g":"c-r"}">${v>=0?"+":""}${v.toFixed(1)} %</span>` : '<span style="color:var(--txt3)">—</span>';
+
+  body.innerHTML = `<div class="reco-grid">${items.map(({w, score, signals}) => {
+    const v   = getVar(w.ticker);
+    const ks  = _wsKey[w.ticker];
+    const ana = _wsAnalysts[w.ticker];
+    const cours = v?.cours!=null ? `${v.cours.toFixed(2).replace(".",",")} €` : "—";
+    const kpis = [`<span>Cours <span class="reco-kpi-val">${cours}</span></span>`];
+    if (ks?.trailingPE != null) kpis.push(`<span>PER <span class="reco-kpi-val">${ks.trailingPE.toFixed(1)}</span></span>`);
+    if (ks?.divYield > 0)       kpis.push(`<span>Div. <span class="reco-kpi-val">${(ks.divYield*100).toFixed(1)} %</span></span>`);
+    if (ana?.targetMean)        kpis.push(`<span>Objectif <span class="reco-kpi-val">${ana.targetMean.toFixed(2)} €</span></span>`);
+    kpis.push(`<span>1M ${fmtPct(v?.m1)}</span>`);
+    kpis.push(`<span>1A ${fmtPct(v?.y1)}</span>`);
+    const text = _recoText(w, v, ks, ana);
+    return `<div class="reco-card">
+      <div class="reco-top">
+        <span class="reco-badge ${badgeCls(score)}">${badgeLbl(score)}</span>
+        <span class="reco-name">${w.name} <span style="color:var(--a);font-size:11px">${stars(w.stars||3)}</span></span>
+        <span class="reco-meta">${w.ticker} · ${w.wtype==="etf"?"ETF":"Action"}</span>
+        <span class="reco-score">${score} / 100</span>
+      </div>
+      <div class="reco-body">
+        <div class="reco-kpis">${kpis.join("")}</div>
+        ${signals.length?`<div class="reco-signals">${signals.map(s=>`<span class="sig ${s.cls}">${s.t}</span>`).join("")}</div>`:""}
+        <div class="reco-text">${text}</div>
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+
+  const el = document.getElementById("reco-update");
+  if (el) el.textContent = "Yahoo Finance · " + new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+}
+
 function stopGsRefresh() {
   if (_gsTimer) { clearInterval(_gsTimer); _gsTimer = null; }
 }
@@ -4003,6 +4251,7 @@ function goTab(n) {
   if (pane) pane.classList.add("active");
   if (n==="perf") renderPerf();
   if (n==="div") renderDividends();
+  if (n==="reco") { renderReco(); fetchAnalysts(); fetchKeystats(); }
   if (n==="sim" && typeof _initSimulateurs === "function") _initSimulateurs();
   // Memorise pour le prochain lancement
   try { document.body.dataset.activeTab = n; } catch(e) {}
