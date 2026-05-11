@@ -29,7 +29,7 @@ import notifications
 
 
 APP_NAME    = "Suivi PEA"
-APP_VERSION = "3.2.0"
+APP_VERSION = "3.3.0"
 SINGLE_INSTANCE_PORT = 50317          # port arbitraire pour le verrou single-instance
 WINDOW_DEFAULT_SIZE  = (1280, 800)
 WINDOW_MIN_SIZE      = (960, 640)
@@ -570,8 +570,9 @@ def main() -> int:
     # Charge les preferences UI pour decider taille/position fenetre
     data = storage.load_data()
     ui_prefs = data.get("ui", {})
-    saved_size = ui_prefs.get("windowSize")
-    pos  = ui_prefs.get("windowPos")  # [x, y] ou None
+    saved_size      = ui_prefs.get("windowSize")
+    saved_maximized = ui_prefs.get("windowMaximized", True)   # True = defaut = plein ecran
+    pos             = ui_prefs.get("windowPos")  # [x, y] ou None
 
     # Recupere la work area du moniteur principal (ecran moins barre des taches)
     screen_w, screen_h = 1280, 720  # fallback
@@ -590,35 +591,35 @@ def main() -> int:
         pass
 
     # Strategie d'ouverture :
-    # - Si l'utilisateur a une taille sauvegardee → on la respecte (mais on clamp a la work area)
-    # - Sinon (1er lancement) → on ouvre en quasi-plein-ecran (work area - 20px de marge)
-    if saved_size and isinstance(saved_size, (list, tuple)) and len(saved_size) == 2:
+    # - windowMaximized == True (defaut 1er lancement) → plein ecran work-area exacte
+    # - Sinon → taille sauvegardee (clampee)
+    if saved_maximized or not (saved_size and isinstance(saved_size, (list, tuple)) and len(saved_size) == 2):
+        w_, h_ = screen_w, screen_h
+        pos = None  # pas de position sauvegardee en mode plein ecran
+    else:
         try:
             w_, h_ = int(saved_size[0]), int(saved_size[1])
             if not (200 <= w_ <= 8000 and 200 <= h_ <= 8000):
-                w_, h_ = screen_w - 20, screen_h - 20
+                w_, h_ = screen_w, screen_h
         except Exception:
-            w_, h_ = screen_w - 20, screen_h - 20
-    else:
-        # Premier lancement : quasi-plein-ecran
-        w_, h_ = screen_w - 20, screen_h - 20
-
-    # Clamp final : ne depasse pas la work area
-    w_ = min(w_, max(960, screen_w - 20))
-    h_ = min(h_, max(640, screen_h - 20))
-    size = (w_, h_)
-
-    # Validation position : on rejette les valeurs aberrantes
-    if pos and isinstance(pos, (list, tuple)) and len(pos) == 2:
-        try:
-            x_, y_ = int(pos[0]), int(pos[1])
-            if not (-16000 < x_ < 16000 and -16000 < y_ < 16000):
+            w_, h_ = screen_w, screen_h
+        # Clamp final
+        w_ = min(w_, max(960, screen_w))
+        h_ = min(h_, max(640, screen_h))
+        # Validation position
+        if pos and isinstance(pos, (list, tuple)) and len(pos) == 2:
+            try:
+                x_, y_ = int(pos[0]), int(pos[1])
+                if not (-16000 < x_ < 16000 and -16000 < y_ < 16000):
+                    pos = None
+                elif x_ + w_ < 0 or y_ + h_ < 0 or x_ > screen_w or y_ > screen_h:
+                    pos = None
+            except Exception:
                 pos = None
-            # On verifie aussi que la position est sur un ecran (pas perdue hors-bornes)
-            elif x_ + w_ < 0 or y_ + h_ < 0 or x_ > screen_w or y_ > screen_h:
-                pos = None
-        except Exception:
+        else:
             pos = None
+
+    size = (w_, h_)
 
     api = Api()
     html_path = resource_path(os.path.join("ui", "index.html"))
@@ -666,23 +667,65 @@ def main() -> int:
         try:
             d = storage.load_data()
             d.setdefault("ui", {})
+
+            # Taille reelle via ctypes (gere le maximize ctypes qui bypass window.width)
+            actual_w = actual_h = actual_x = actual_y = None
             try:
-                w_, h_ = int(window.width), int(window.height)
-                # On refuse les tailles aberrantes (fenetre minimisee/cachee)
-                if 200 <= w_ <= 8000 and 200 <= h_ <= 8000:
-                    d["ui"]["windowSize"] = [w_, h_]
+                import ctypes as _ct
+                from ctypes import wintypes as _wt
+                _u32 = _ct.windll.user32
+                _hwnd = _u32.GetForegroundWindow()
+                class _R(_ct.Structure):
+                    _fields_ = [("left", _wt.LONG), ("top", _wt.LONG),
+                                ("right", _wt.LONG), ("bottom", _wt.LONG)]
+                _wr = _R()
+                if _u32.GetWindowRect(_hwnd, _ct.byref(_wr)):
+                    actual_w = _wr.right - _wr.left
+                    actual_h = _wr.bottom - _wr.top
+                    actual_x = _wr.left
+                    actual_y = _wr.top
             except Exception:
                 pass
+
+            # Fallback pywebview si ctypes echoue
+            if actual_w is None:
+                try:
+                    actual_w, actual_h = int(window.width), int(window.height)
+                    actual_x, actual_y = int(window.x), int(window.y)
+                except Exception:
+                    pass
+
+            # Detecte si la fenetre couvre >= 95 % de la work area → maximisee
+            maximized = False
             try:
-                x_, y_ = int(window.x), int(window.y)
-                # Valeurs Windows pour fenetre minimisee = -32000
-                # On refuse aussi les positions hors ecran raisonnable
-                if -16000 < x_ < 16000 and -16000 < y_ < 16000:
-                    d["ui"]["windowPos"] = [x_, y_]
+                import ctypes as _ct2
+                from ctypes import wintypes as _wt2
+                class _R2(_ct2.Structure):
+                    _fields_ = [("left", _wt2.LONG), ("top", _wt2.LONG),
+                                ("right", _wt2.LONG), ("bottom", _wt2.LONG)]
+                _wa = _R2()
+                if _ct2.windll.user32.SystemParametersInfoW(0x0030, 0, _ct2.byref(_wa), 0):
+                    wa_w = _wa.right - _wa.left
+                    wa_h = _wa.bottom - _wa.top
+                    if actual_w and actual_h and wa_w > 0 and wa_h > 0:
+                        maximized = (actual_w >= wa_w * 0.95 and actual_h >= wa_h * 0.95)
+            except Exception:
+                pass
+
+            d["ui"]["windowMaximized"] = maximized
+            if maximized:
+                d["ui"]["windowSize"] = None
+                d["ui"]["windowPos"]  = None
+            else:
+                if actual_w and 200 <= actual_w <= 8000 and \
+                   actual_h and 200 <= actual_h <= 8000:
+                    d["ui"]["windowSize"] = [actual_w, actual_h]
+                if actual_x is not None and -16000 < actual_x < 16000 and \
+                   actual_y is not None and -16000 < actual_y < 16000:
+                    d["ui"]["windowPos"] = [actual_x, actual_y]
                 else:
-                    d["ui"]["windowPos"] = None  # rouvrir centre la prochaine fois
-            except Exception:
-                pass
+                    d["ui"]["windowPos"] = None
+
             storage.save_data(d)
         except Exception as e:
             print(f"[app] Echec sauvegarde UI prefs : {e}", flush=True)

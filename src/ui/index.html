@@ -225,6 +225,25 @@ input, select { font-family: var(--mono); }
 .pane             { display: none; }
 .pane.active      { display: block; }
 
+/* ── Menu contextuel (clic droit sidebar) ─────────── */
+.ctx-menu {
+  position: fixed; z-index: 9999;
+  background: var(--bg2); border: 1px solid var(--brd2);
+  border-radius: var(--rad); box-shadow: var(--sh-md);
+  padding: 4px 0; min-width: 180px; user-select: none;
+  animation: ctxFadeIn .1s ease;
+}
+.ctx-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; cursor: pointer; color: var(--txt);
+  font-size: 12px; font-weight: 500; transition: background .1s;
+}
+.ctx-item:hover { background: var(--bg3); }
+.ctx-item.ctx-danger { color: var(--r); }
+.ctx-item.ctx-danger:hover { background: var(--r2); }
+.ctx-item-icon { font-size: 13px; opacity: .7; flex-shrink: 0; }
+@keyframes ctxFadeIn { from { opacity:0; transform:scale(.96) } to { opacity:1; transform:scale(1) } }
+
 /* ── Card ────────────────────────────────────────── */
 .card {
   background: var(--bg2); border: 1px solid var(--brd);
@@ -1115,6 +1134,10 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
         <button type="button" class="btn btn-ghost btn-sm" id="btn-disable-pin" style="font-size:11px;color:var(--r);display:none" onclick="disablePinNow()">Désactiver le PIN</button>
         <span id="cfg-pin-state" style="font-size:11px;color:var(--txt2)"></span>
       </div>
+    </div>
+    <div class="fg" id="cfg-hidden-section">
+      <label>Sections masquées <span style="color:var(--txt3);font-weight:400">(clic droit sur la barre latérale pour masquer)</span></label>
+      <div id="cfg-hidden-list" style="display:flex;flex-wrap:wrap;gap:6px;padding-top:4px;min-height:22px"></div>
     </div>
     <div class="fg">
       <label>Profils PEA <span style="color:var(--txt3);font-weight:400">(plusieurs PEA dans la même app)</span></label>
@@ -5328,6 +5351,20 @@ async function openConfig() {
   _renderAccentPicker();
   _wireThemeButtons();
   document.getElementById("cfg-ouverture").addEventListener("input", updateConfigRecap);
+  // Sections masquées
+  const hiddenList = document.getElementById("cfg-hidden-list");
+  if (hiddenList) {
+    const hidden = (S.uiPrefs && S.uiPrefs.hiddenSidebar) || [];
+    if (hidden.length === 0) {
+      hiddenList.innerHTML = '<span style="font-size:11px;color:var(--txt3);font-family:var(--mono)">Aucune section masquée</span>';
+    } else {
+      hiddenList.innerHTML = hidden.map(id => {
+        const it = SIDEBAR_ITEMS.find(x => x.id === id);
+        const label = it ? it.label : id;
+        return `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--brd2);border-radius:99px;padding:4px 10px;font-size:11px;font-family:var(--mono)">${label}<button onclick="_showSidebarItem('${id}');openConfig()" style="background:none;border:none;cursor:pointer;color:var(--g);font-size:13px;padding:0;line-height:1" title="Restaurer">↩</button></span>`;
+      }).join("");
+    }
+  }
   // Affiche la version de l'app
   try {
     const vEl = document.getElementById("cfg-version");
@@ -5885,10 +5922,12 @@ function _injectTitlebar() {
 }
 
 function _injectSidebar() {
+  const hidden = (S.uiPrefs && S.uiPrefs.hiddenSidebar) || [];
   let html = `<aside class="sidebar" id="pea-sidebar">
     <div class="sb-section-lbl">Suivi</div>`;
   SIDEBAR_ITEMS.forEach(it => {
-    html += `<button class="sb-item" data-tab="${it.id}">
+    if (hidden.includes(it.id)) return;
+    html += `<button class="sb-item" data-tab="${it.id}" title="Clic droit pour masquer">
                <span class="sb-icon">${it.icon}</span>
                <span>${it.label}</span>
              </button>`;
@@ -5910,12 +5949,92 @@ function _injectSidebar() {
       goTab(el.dataset.tab);
       _setActiveSidebar(el.dataset.tab);
     };
+    el.addEventListener("contextmenu", e => {
+      e.preventDefault();
+      _showCtxMenu(e, el.dataset.tab);
+    });
   });
 
   // Theme toggle
   const themeBtn = document.getElementById("sb-theme");
   themeBtn.onclick = toggleTheme;
   _refreshThemeLabel();
+}
+
+/* ── Menu contextuel sidebar ── */
+let _ctxMenuEl = null;
+
+function _closeCtxMenu() {
+  if (_ctxMenuEl) { try { _ctxMenuEl.remove(); } catch(e) {} _ctxMenuEl = null; }
+}
+
+function _showCtxMenu(e, tabId) {
+  _closeCtxMenu();
+  const it = SIDEBAR_ITEMS.find(x => x.id === tabId);
+  if (!it) return;
+
+  const menu = document.createElement("div");
+  menu.className = "ctx-menu";
+  menu.innerHTML = `<div class="ctx-item ctx-danger" id="ctx-hide-item">
+    <span class="ctx-item-icon">⊗</span>Masquer « ${it.label} »
+  </div>`;
+
+  const x = Math.min(e.clientX + 4, window.innerWidth  - 200);
+  const y = Math.min(e.clientY + 4, window.innerHeight - 52);
+  menu.style.left = x + "px";
+  menu.style.top  = y + "px";
+  document.body.appendChild(menu);
+  _ctxMenuEl = menu;
+
+  menu.querySelector("#ctx-hide-item").onclick = () => {
+    _closeCtxMenu();
+    _hideSidebarItem(tabId);
+  };
+
+  setTimeout(() => {
+    document.addEventListener("click",       _closeCtxMenu, { once: true });
+    document.addEventListener("contextmenu", _closeCtxMenu, { once: true });
+    document.addEventListener("keydown", function _esc(ev) {
+      if (ev.key === "Escape") { _closeCtxMenu(); document.removeEventListener("keydown", _esc); }
+    });
+  }, 0);
+}
+
+function _hideSidebarItem(id) {
+  S.uiPrefs = S.uiPrefs || {};
+  S.uiPrefs.hiddenSidebar = S.uiPrefs.hiddenSidebar || [];
+  if (!S.uiPrefs.hiddenSidebar.includes(id)) S.uiPrefs.hiddenSidebar.push(id);
+  persist(false);
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.save_ui_prefs) {
+    try { window.pywebview.api.save_ui_prefs(S.uiPrefs); } catch(e) {}
+  }
+  // Retire visuellement de la sidebar sans rechargement
+  const el = document.querySelector(`.sb-item[data-tab="${id}"]`);
+  if (el) el.remove();
+  // Si cet onglet était actif, basculer sur pos
+  const activePane = document.querySelector(".pane.active");
+  if (activePane && activePane.id === "pane-" + id) {
+    goTab("pos"); _setActiveSidebar("pos");
+  }
+  const label = SIDEBAR_ITEMS.find(x => x.id === id)?.label || id;
+  if (typeof showToastModern === "function")
+    showToastModern(`« ${label} » masqué — restaurable dans ⚙ Paramètres`, "info");
+}
+
+function _showSidebarItem(id) {
+  S.uiPrefs = S.uiPrefs || {};
+  S.uiPrefs.hiddenSidebar = (S.uiPrefs.hiddenSidebar || []).filter(x => x !== id);
+  persist(false);
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.save_ui_prefs) {
+    try { window.pywebview.api.save_ui_prefs(S.uiPrefs); } catch(e) {}
+  }
+  // Recrée la sidebar entière pour réinsérer l'item au bon endroit
+  const old = document.getElementById("pea-sidebar");
+  if (old) old.remove();
+  _injectSidebar();
+  // Restaure l'onglet actif
+  const activePane = document.querySelector(".pane.active");
+  if (activePane) _setActiveSidebar(activePane.id.replace("pane-", ""));
 }
 
 function _refreshThemeLabel() {
