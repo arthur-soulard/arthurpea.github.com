@@ -444,6 +444,24 @@ td:first-child { text-align: left; padding-left: 2px; font-family: var(--font); 
 .rule-title { font-weight: 700; font-size: 13px; line-height: 1.4; }
 .rule-text  { font-size: 12px; color: var(--txt2); margin-top: 3px; white-space: pre-wrap; line-height: 1.55; }
 .rule-actions { display: flex; gap: 4px; flex-shrink: 0; flex-wrap: wrap; align-items: center; }
+.strat-score-wrap {
+  background: var(--bg3); border: 1px solid var(--brd); border-radius: var(--radl);
+  padding: 1rem 1.1rem; margin-bottom: 1rem;
+}
+.strat-score-bar-track {
+  height: 10px; background: var(--bg4); border-radius: 5px; overflow: hidden; margin: 6px 0 4px;
+}
+.strat-score-bar-fill {
+  height: 100%; border-radius: 5px; transition: width .5s ease, background .5s ease;
+}
+.strat-validate-btn {
+  display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--brd2);
+  border-radius: var(--rad); padding: 3px 8px; font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: background .15s, border-color .15s, color .15s; background: var(--bg3);
+}
+.strat-validate-btn.ok  { background: var(--g2); border-color: var(--g); color: var(--g); }
+.strat-validate-btn.err { background: var(--r2); border-color: var(--r); color: var(--r); }
+.strat-validate-btn.neu { color: var(--txt2); }
 
 /* ══════════════════════════════════════════════════
    SUIVI PEA — surcharges desktop app (sidebar, titlebar, dark theme)
@@ -5446,9 +5464,13 @@ function renderAll() {
 ───────────────────────────────────────────────────────────────────────── */
 
 /* Templates de regles pre-faites. Champ "check" optionnel = fonction qui
-   retourne {state: 'ok'|'warn'|'err', msg: '...'} pour la verif auto. */
+   retourne {state: 'ok'|'warn'|'err', msg: '...'} pour la verif auto.
+   Champ "category" pour regrouper dans le picker. */
 const STRAT_TEMPLATES = [
+
+  /* ─── Allocation & Risque ─── */
   {
+    category: "Allocation & Risque",
     title: "Ne pas dépasser X% sur une seule ligne",
     text:  "Concentration maximale par position pour limiter le risque idiosyncratique.",
     param: {key: "max", label: "Seuil max (%)", default: 30},
@@ -5459,13 +5481,14 @@ const STRAT_TEMPLATES = [
       if (tv === 0) return null;
       const sorted = eps.filter(x => x.e.val != null).sort((a,b)=>b.e.val-a.e.val);
       const top = sorted[0];
-      const pct = (top.e.val/tv)*100;
-      if (pct <= max - 5)  return {state:"ok",   msg:`Plus grosse ligne ${top.p.name} : ${pct.toFixed(1)}%`};
-      if (pct <= max)      return {state:"warn", msg:`Plus grosse ligne ${top.p.name} : ${pct.toFixed(1)}% (proche du seuil)`};
-      return {state:"err", msg:`${top.p.name} dépasse le seuil : ${pct.toFixed(1)}% > ${max}%`};
+      const p = (top.e.val/tv)*100;
+      if (p <= max - 5)  return {state:"ok",   msg:`Plus grosse ligne ${top.p.name} : ${p.toFixed(1)}%`};
+      if (p <= max)      return {state:"warn", msg:`Plus grosse ligne ${top.p.name} : ${p.toFixed(1)}% (proche du seuil)`};
+      return {state:"err", msg:`${top.p.name} dépasse le seuil : ${p.toFixed(1)}% > ${max}%`};
     }
   },
   {
+    category: "Allocation & Risque",
     title: "Au moins X% en ETF (diversification passive)",
     text:  "Garde une base d'ETF pour ne pas trop faire de stock-picking.",
     param: {key: "min", label: "Seuil min (%)", default: 50},
@@ -5475,39 +5498,27 @@ const STRAT_TEMPLATES = [
       const tv  = eps.reduce((s,x) => x.e.val != null ? s + x.e.val : s, 0);
       if (tv === 0) return null;
       const etfV = eps.filter(x => x.p.type==="etf").reduce((s,x)=>s+(x.e.val||0),0);
-      const pct  = (etfV/tv)*100;
-      if (pct >= min + 5)  return {state:"ok",   msg:`ETF : ${pct.toFixed(1)}%`};
-      if (pct >= min)      return {state:"warn", msg:`ETF : ${pct.toFixed(1)}% (proche du seuil)`};
-      return {state:"err", msg:`ETF : ${pct.toFixed(1)}% < ${min}%`};
+      const p = (etfV/tv)*100;
+      if (p >= min + 5)  return {state:"ok",   msg:`ETF : ${p.toFixed(1)}%`};
+      if (p >= min)      return {state:"warn", msg:`ETF : ${p.toFixed(1)}% (proche du seuil)`};
+      return {state:"err", msg:`ETF : ${p.toFixed(1)}% < ${min}%`};
     }
   },
   {
-    title: "Verser au moins X €/mois (DCA)",
-    text:  "Rythme de versement régulier pour profiter de l'effet DCA.",
-    param: {key: "min", label: "Versement min/mois (€)", default: 100},
-    check: (params) => {
-      const min = parseFloat(params.min) || 100;
-      const cutoff = new Date(); cutoff.setDate(1); cutoff.setHours(0,0,0,0);
-      const total = (S.depots||[]).filter(d => d.date && new Date(d.date) >= cutoff).reduce((s,d)=>s+(d.amount||0),0);
-      const month = cutoff.toLocaleDateString("fr-FR",{month:"long"});
-      if (total >= min)            return {state:"ok",   msg:`Versé ${total.toFixed(0)} € en ${month}`};
-      if (total >= min * 0.5)      return {state:"warn", msg:`Versé ${total.toFixed(0)} € en ${month} (objectif ${min})`};
-      return {state:"err", msg:`Pas/peu versé en ${month} : ${total.toFixed(0)} € (objectif ${min})`};
-    }
-  },
-  {
+    category: "Allocation & Risque",
     title: "Au moins N positions différentes",
     text:  "Diversifier le risque sur plusieurs lignes.",
     param: {key: "min", label: "Nombre min de positions", default: 5},
     check: (params) => {
       const min = parseInt(params.min) || 5;
       const n = (S.positions||[]).length;
-      if (n >= min)        return {state:"ok",   msg:`${n} positions ouvertes`};
-      if (n >= min - 1)    return {state:"warn", msg:`${n} positions (objectif ${min})`};
+      if (n >= min)      return {state:"ok",   msg:`${n} positions ouvertes`};
+      if (n >= min - 1)  return {state:"warn", msg:`${n} positions (objectif ${min})`};
       return {state:"err", msg:`Seulement ${n} positions (objectif ${min})`};
     }
   },
   {
+    category: "Allocation & Risque",
     title: "Limiter le stock-picking à X%",
     text:  "Plafonner la part d'actions individuelles dans le portefeuille.",
     param: {key: "max", label: "Part actions max (%)", default: 30},
@@ -5517,97 +5528,14 @@ const STRAT_TEMPLATES = [
       const tv  = eps.reduce((s,x) => x.e.val != null ? s + x.e.val : s, 0);
       if (tv === 0) return null;
       const actV = eps.filter(x => x.p.type==="action").reduce((s,x)=>s+(x.e.val||0),0);
-      const pct  = (actV/tv)*100;
-      if (pct <= max - 5)  return {state:"ok",   msg:`Actions : ${pct.toFixed(1)}%`};
-      if (pct <= max)      return {state:"warn", msg:`Actions : ${pct.toFixed(1)}% (proche du seuil)`};
-      return {state:"err", msg:`Actions : ${pct.toFixed(1)}% > ${max}%`};
+      const p = (actV/tv)*100;
+      if (p <= max - 5)  return {state:"ok",   msg:`Actions : ${p.toFixed(1)}%`};
+      if (p <= max)      return {state:"warn", msg:`Actions : ${p.toFixed(1)}% (proche du seuil)`};
+      return {state:"err", msg:`Actions : ${p.toFixed(1)}% > ${max}%`};
     }
   },
   {
-    title: "Ne jamais vendre sur panique (-X% en une journée)",
-    text:  "Engagement comportemental — pas de check automatique.",
-    param: null,
-    check: null
-  },
-  {
-    title: "Réinvestir 100% des dividendes reçus",
-    text:  "Composition long-terme — pas de check automatique.",
-    param: null,
-    check: null
-  },
-  {
-    title: "Vérifier l'allocation chaque trimestre",
-    text:  "Rituel de pilotage — rappel manuel.",
-    param: null,
-    check: null
-  },
-  {
-    title: "Frais de courtage cumulés < X% du déposé",
-    text:  "Surveille que les frais ne grignotent pas le capital.",
-    param: {key: "max", label: "Seuil max (%)", default: 1.5},
-    check: (params) => {
-      const max = parseFloat(params.max) || 1.5;
-      const totalDep  = (S.depots||[]).reduce((s,d) => s + (d.amount||0), 0);
-      const totalFee  = (S.transactions||[]).reduce((s,t) => s + (t.frais||0), 0);
-      if (totalDep === 0) return null;
-      const pct = (totalFee/totalDep)*100;
-      if (pct <= max * 0.7) return {state:"ok",   msg:`Frais : ${totalFee.toFixed(2)} € (${pct.toFixed(2)}% du déposé)`};
-      if (pct <= max)       return {state:"warn", msg:`Frais : ${totalFee.toFixed(2)} € (${pct.toFixed(2)}%)`};
-      return {state:"err", msg:`Frais : ${pct.toFixed(2)}% — dépasse l'objectif ${max}%`};
-    }
-  },
-  {
-    title: "Réinvestir les dividendes dans les X jours",
-    text:  "Composer rapidement plutôt que de laisser dormir le cash.",
-    param: {key: "days", label: "Délai max (jours)", default: 30},
-    check: null  // necessiterait un suivi date par date, manuel
-  },
-  {
-    title: "Verser au moins X€ avant la fin de l'année",
-    text:  "Objectif annuel pour ne pas laisser passer les bonnes années.",
-    param: {key: "annual", label: "Objectif annuel (€)", default: 5000},
-    check: (params) => {
-      const goal = parseFloat(params.annual) || 5000;
-      const year = new Date().getFullYear().toString();
-      const total = (S.depots||[]).filter(d => (d.date||"").startsWith(year)).reduce((s,d) => s + (d.amount||0), 0);
-      const pct = goal > 0 ? (total/goal*100) : 0;
-      if (pct >= 100)       return {state:"ok",   msg:`✓ ${total.toFixed(0)} € versés en ${year} (objectif atteint)`};
-      if (pct >= 75)        return {state:"warn", msg:`${total.toFixed(0)} € / ${goal.toFixed(0)} € (${pct.toFixed(0)}%)`};
-      return {state:"err", msg:`${total.toFixed(0)} € / ${goal.toFixed(0)} € (${pct.toFixed(0)}%) — pousse !`};
-    }
-  },
-  {
-    title: "Ne pas avoir de cash dormant > X €",
-    text:  "Le cash non investi perd contre l'inflation.",
-    param: {key: "max", label: "Cash max (€)", default: 500},
-    check: (params) => {
-      const max = parseFloat(params.max) || 500;
-      const cash = S.cashSolde || 0;
-      if (cash <= max * 0.7) return {state:"ok",   msg:`Cash : ${cash.toFixed(2)} €`};
-      if (cash <= max)       return {state:"warn", msg:`Cash : ${cash.toFixed(2)} €`};
-      return {state:"err", msg:`Cash : ${cash.toFixed(2)} € — investis le surplus`};
-    }
-  },
-  {
-    title: "Limiter les ventes à X par an",
-    text:  "Réduire le trading court terme et favoriser le long terme.",
-    param: {key: "max", label: "Ventes max / an", default: 3},
-    check: (params) => {
-      const max = parseInt(params.max) || 3;
-      const year = new Date().getFullYear().toString();
-      const n = (S.transactions||[]).filter(t => t.type === "Vente" && (t.date||"").startsWith(year)).length;
-      if (n <= max - 1) return {state:"ok",   msg:`${n} vente${n>1?"s":""} en ${year}`};
-      if (n === max)    return {state:"warn", msg:`${n} ventes en ${year} (au seuil)`};
-      return {state:"err", msg:`${n} ventes en ${year} — au-delà de ${max}`};
-    }
-  },
-  {
-    title: "Conserver chaque ligne au moins X mois",
-    text:  "Engagement long terme pour éviter le trading impulsif.",
-    param: {key: "months", label: "Durée min (mois)", default: 6},
-    check: null  // calcul complexe (FIFO), manuel
-  },
-  {
+    category: "Allocation & Risque",
     title: "Au moins une position européenne (hors France)",
     text:  "Diversification géographique au sein du PEA.",
     param: null,
@@ -5620,15 +5548,387 @@ const STRAT_TEMPLATES = [
       if (nonFR.length > 0) return {state:"ok",   msg:`${nonFR.length} ligne(s) hors France : ${nonFR.map(p=>p.name).join(", ")}`};
       return {state:"warn", msg:"Aucune ligne européenne hors France"};
     }
-  }
+  },
+  {
+    category: "Allocation & Risque",
+    title: "Aucune ligne en moins-value latente > X%",
+    text:  "Détecte les positions en forte perte pour décider de couper ou de renforcer.",
+    param: {key: "max", label: "Perte latente max acceptable (%)", default: 25},
+    check: (params) => {
+      const max = parseFloat(params.max) || 25;
+      const bad = (S.positions||[]).map(p => {
+        const e = computePos(p);
+        const latentPct = e.inv > 0 ? (e.val - e.inv) / e.inv * 100 : null;
+        return {name: p.name, latentPct};
+      }).filter(x => x.latentPct != null && x.latentPct < -max);
+      if (!bad.length) return {state:"ok", msg:`Aucune ligne avec -${max}% ou plus`};
+      const list = bad.map(x => `${x.name} (${x.latentPct.toFixed(1)}%)`).join(", ");
+      return {state:"err", msg:`Lignes en forte moins-value : ${list}`};
+    }
+  },
+  {
+    category: "Allocation & Risque",
+    title: "Plus petite position ≥ X€ (pas de mini-lignes)",
+    text:  "Évite de diluer le portefeuille avec des positions négligeables.",
+    param: {key: "min", label: "Valeur min par ligne (€)", default: 200},
+    check: (params) => {
+      const min = parseFloat(params.min) || 200;
+      const small = (S.positions||[]).map(p => ({p, e: computePos(p)}))
+        .filter(x => x.e.val != null && x.e.val > 0 && x.e.val < min);
+      if (!small.length) return {state:"ok", msg:`Toutes les lignes ≥ ${min} €`};
+      const list = small.map(x => `${x.p.name} (${x.e.val.toFixed(0)} €)`).join(", ");
+      if (small.length === 1) return {state:"warn", msg:`Petite ligne : ${list}`};
+      return {state:"err", msg:`Mini-lignes : ${list}`};
+    }
+  },
+  {
+    category: "Allocation & Risque",
+    title: "Portefeuille rentable (perf globale > 0)",
+    text:  "Vérifie que la somme des plus/moins-values latentes et réalisées est positive.",
+    param: null,
+    check: () => {
+      const eps = (S.positions||[]).map(p => computePos(p));
+      const totalPv = eps.reduce((s,e) => s + (e.pv||0), 0);
+      const totalInv = eps.reduce((s,e) => s + (e.totalCost||0), 0);
+      if (totalInv === 0) return null;
+      const p = (totalPv / totalInv) * 100;
+      if (p >= 5)   return {state:"ok",   msg:`Performance globale : +${p.toFixed(1)}%`};
+      if (p >= 0)   return {state:"warn", msg:`Performance globale : +${p.toFixed(1)}% (légèrement positive)`};
+      return {state:"err", msg:`Performance globale : ${p.toFixed(1)}% — portefeuille en perte`};
+    }
+  },
+
+  /* ─── Versements & Objectifs ─── */
+  {
+    category: "Versements & Objectifs",
+    title: "Verser au moins X €/mois (DCA)",
+    text:  "Rythme de versement régulier pour profiter de l'effet DCA.",
+    param: {key: "min", label: "Versement min/mois (€)", default: 100},
+    check: (params) => {
+      const min = parseFloat(params.min) || 100;
+      const cutoff = new Date(); cutoff.setDate(1); cutoff.setHours(0,0,0,0);
+      const total = (S.depots||[]).filter(d => d.date && new Date(d.date) >= cutoff).reduce((s,d)=>s+(d.amount||0),0);
+      const month = cutoff.toLocaleDateString("fr-FR",{month:"long"});
+      if (total >= min)         return {state:"ok",   msg:`Versé ${total.toFixed(0)} € en ${month}`};
+      if (total >= min * 0.5)   return {state:"warn", msg:`Versé ${total.toFixed(0)} € en ${month} (objectif ${min})`};
+      return {state:"err", msg:`Pas/peu versé en ${month} : ${total.toFixed(0)} € (objectif ${min})`};
+    }
+  },
+  {
+    category: "Versements & Objectifs",
+    title: "Verser au moins X€ avant la fin de l'année",
+    text:  "Objectif annuel pour ne pas laisser passer les bonnes années.",
+    param: {key: "annual", label: "Objectif annuel (€)", default: 5000},
+    check: (params) => {
+      const goal = parseFloat(params.annual) || 5000;
+      const year = new Date().getFullYear().toString();
+      const total = (S.depots||[]).filter(d => (d.date||"").startsWith(year)).reduce((s,d) => s + (d.amount||0), 0);
+      const p = goal > 0 ? (total/goal*100) : 0;
+      if (p >= 100)  return {state:"ok",   msg:`${total.toFixed(0)} € versés en ${year} — objectif atteint`};
+      if (p >= 75)   return {state:"warn", msg:`${total.toFixed(0)} € / ${goal.toFixed(0)} € (${p.toFixed(0)}%)`};
+      return {state:"err", msg:`${total.toFixed(0)} € / ${goal.toFixed(0)} € (${p.toFixed(0)}%) — pousse !`};
+    }
+  },
+  {
+    category: "Versements & Objectifs",
+    title: "Versement moyen (3 derniers mois) ≥ X€",
+    text:  "Vérifie la régularité des versements sur le trimestre glissant.",
+    param: {key: "min", label: "Versement moyen min (€)", default: 200},
+    check: (params) => {
+      const min = parseFloat(params.min) || 200;
+      const now = new Date();
+      const months = [0,1,2].map(i => {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+      });
+      const totals = months.map(m => (S.depots||[]).filter(d=>(d.date||"").startsWith(m)).reduce((s,d)=>s+(d.amount||0),0));
+      const avg = totals.reduce((a,b)=>a+b,0) / 3;
+      if (avg >= min)         return {state:"ok",   msg:`Moy. 3 mois : ${avg.toFixed(0)} €/mois`};
+      if (avg >= min * 0.75)  return {state:"warn", msg:`Moy. 3 mois : ${avg.toFixed(0)} €/mois (objectif ${min})`};
+      return {state:"err", msg:`Moy. 3 mois : ${avg.toFixed(0)} €/mois — sous l'objectif ${min}`};
+    }
+  },
+  {
+    category: "Versements & Objectifs",
+    title: "Valeur portefeuille ≥ X€ (objectif capital)",
+    text:  "Suivi de l'objectif de valeur totale du portefeuille.",
+    param: {key: "target", label: "Objectif capital (€)", default: 10000},
+    check: (params) => {
+      const target = parseFloat(params.target) || 10000;
+      const tv = (S.positions||[]).map(p => computePos(p)).reduce((s,e) => s + (e.val||0), 0);
+      const p = target > 0 ? (tv/target*100) : 0;
+      if (p >= 100)  return {state:"ok",   msg:`Valeur : ${tv.toFixed(0)} € — objectif atteint`};
+      if (p >= 80)   return {state:"warn", msg:`${tv.toFixed(0)} € / ${target.toFixed(0)} € (${p.toFixed(0)}%)`};
+      return {state:"err", msg:`${tv.toFixed(0)} € / ${target.toFixed(0)} € (${p.toFixed(0)}%)`};
+    }
+  },
+  {
+    category: "Versements & Objectifs",
+    title: "Plafond PEA utilisé ≥ X% (150 000 €)",
+    text:  "Maximise l'utilisation de l'enveloppe fiscale du PEA.",
+    param: {key: "min", label: "Utilisation min du plafond (%)", default: 30},
+    check: (params) => {
+      const min = parseFloat(params.min) || 30;
+      const dep = (S.depots||[]).reduce((s,d) => s + (d.amount||0), 0);
+      const p = (dep / 150000) * 100;
+      if (p >= min + 10)  return {state:"ok",   msg:`Plafond utilisé : ${p.toFixed(1)}% (${dep.toFixed(0)} €)`};
+      if (p >= min)       return {state:"warn", msg:`Plafond utilisé : ${p.toFixed(1)}% (proche de l'objectif)`};
+      return {state:"err", msg:`Plafond utilisé : ${p.toFixed(1)}% — encore ${(150000-dep).toFixed(0)} € disponibles`};
+    }
+  },
+
+  /* ─── Coûts & Frais ─── */
+  {
+    category: "Coûts & Frais",
+    title: "Frais de courtage cumulés < X% du déposé",
+    text:  "Surveille que les frais ne grignotent pas le capital.",
+    param: {key: "max", label: "Seuil max (%)", default: 1.5},
+    check: (params) => {
+      const max = parseFloat(params.max) || 1.5;
+      const totalDep = (S.depots||[]).reduce((s,d) => s + (d.amount||0), 0);
+      const totalFee = (S.transactions||[]).reduce((s,t) => s + (t.frais||0), 0);
+      if (totalDep === 0) return null;
+      const p = (totalFee/totalDep)*100;
+      if (p <= max * 0.7)  return {state:"ok",   msg:`Frais : ${totalFee.toFixed(2)} € (${p.toFixed(2)}% du déposé)`};
+      if (p <= max)        return {state:"warn", msg:`Frais : ${totalFee.toFixed(2)} € (${p.toFixed(2)}%)`};
+      return {state:"err", msg:`Frais : ${p.toFixed(2)}% — dépasse l'objectif ${max}%`};
+    }
+  },
+  {
+    category: "Coûts & Frais",
+    title: "Frais moyen par transaction < X€",
+    text:  "Surveille le coût unitaire de chaque ordre passé.",
+    param: {key: "max", label: "Frais max par ordre (€)", default: 2},
+    check: (params) => {
+      const max = parseFloat(params.max) || 2;
+      const txs = (S.transactions||[]).filter(t => (t.frais||0) > 0);
+      if (!txs.length) return null;
+      const avg = txs.reduce((s,t) => s + (t.frais||0), 0) / txs.length;
+      if (avg <= max * 0.8)  return {state:"ok",   msg:`Frais moy. : ${avg.toFixed(2)} €/ordre (${txs.length} ordres)`};
+      if (avg <= max)        return {state:"warn", msg:`Frais moy. : ${avg.toFixed(2)} €/ordre (proche du seuil)`};
+      return {state:"err", msg:`Frais moy. : ${avg.toFixed(2)} €/ordre — dépasse ${max} €`};
+    }
+  },
+  {
+    category: "Coûts & Frais",
+    title: "Frais totaux cette année < X€",
+    text:  "Plafonne les frais de courtage sur l'année en cours.",
+    param: {key: "max", label: "Budget frais annuel (€)", default: 50},
+    check: (params) => {
+      const max = parseFloat(params.max) || 50;
+      const year = new Date().getFullYear().toString();
+      const total = (S.transactions||[]).filter(t => (t.date||"").startsWith(year)).reduce((s,t) => s + (t.frais||0), 0);
+      if (total <= max * 0.7)  return {state:"ok",   msg:`Frais ${year} : ${total.toFixed(2)} €`};
+      if (total <= max)        return {state:"warn", msg:`Frais ${year} : ${total.toFixed(2)} € (proche du plafond ${max} €)`};
+      return {state:"err", msg:`Frais ${year} : ${total.toFixed(2)} € — dépasse le budget ${max} €`};
+    }
+  },
+
+  /* ─── Cash & Liquidité ─── */
+  {
+    category: "Cash & Liquidité",
+    title: "Ne pas avoir de cash dormant > X€",
+    text:  "Le cash non investi perd contre l'inflation.",
+    param: {key: "max", label: "Cash max (€)", default: 500},
+    check: (params) => {
+      const max = parseFloat(params.max) || 500;
+      const cash = computeCash();
+      if (cash <= max * 0.7)  return {state:"ok",   msg:`Cash disponible : ${cash.toFixed(2)} €`};
+      if (cash <= max)        return {state:"warn", msg:`Cash : ${cash.toFixed(2)} € (proche du seuil)`};
+      return {state:"err", msg:`Cash dormant : ${cash.toFixed(2)} € — investis le surplus`};
+    }
+  },
+
+  /* ─── Activité & Trading ─── */
+  {
+    category: "Activité & Trading",
+    title: "Limiter les ventes à X par an",
+    text:  "Réduire le trading court terme et favoriser le long terme.",
+    param: {key: "max", label: "Ventes max / an", default: 3},
+    check: (params) => {
+      const max = parseInt(params.max) || 3;
+      const year = new Date().getFullYear().toString();
+      const n = (S.transactions||[]).filter(t => t.type === "Vente" && (t.date||"").startsWith(year)).length;
+      if (n <= max - 1)  return {state:"ok",   msg:`${n} vente${n>1?"s":""} en ${year}`};
+      if (n === max)     return {state:"warn", msg:`${n} ventes en ${year} (au seuil)`};
+      return {state:"err", msg:`${n} ventes en ${year} — au-delà de ${max}`};
+    }
+  },
+  {
+    category: "Activité & Trading",
+    title: "Moins de X transactions ce mois",
+    text:  "Évite le sur-trading mensuel qui génère des frais et des décisions impulsives.",
+    param: {key: "max", label: "Transactions max / mois", default: 4},
+    check: (params) => {
+      const max = parseInt(params.max) || 4;
+      const now = new Date();
+      const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+      const n = (S.transactions||[]).filter(t => (t.date||"").startsWith(prefix)).length;
+      if (n <= max - 2)  return {state:"ok",   msg:`${n} transaction${n>1?"s":""} ce mois`};
+      if (n <= max)      return {state:"warn", msg:`${n} transactions ce mois (objectif ≤ ${max})`};
+      return {state:"err", msg:`${n} transactions ce mois — dépasse ${max}`};
+    }
+  },
+  {
+    category: "Activité & Trading",
+    title: "Aucun achat le même jour que les news macro",
+    text:  "Règle comportementale — valider manuellement.",
+    param: null,
+    check: null
+  },
+  {
+    category: "Activité & Trading",
+    title: "Conserver chaque ligne au moins X mois",
+    text:  "Engagement long terme pour éviter le trading impulsif.",
+    param: {key: "months", label: "Durée min (mois)", default: 6},
+    check: null
+  },
+
+  /* ─── Dividendes ─── */
+  {
+    category: "Dividendes",
+    title: "Dividendes reçus cette année ≥ X€",
+    text:  "Suit l'objectif de revenu passif annuel.",
+    param: {key: "min", label: "Dividendes min (€)", default: 100},
+    check: (params) => {
+      const min = parseFloat(params.min) || 100;
+      const year = new Date().getFullYear().toString();
+      const total = (S.divReceived||[]).filter(d => (d.date||"").startsWith(year)).reduce((s,d) => s + (d.montant||0), 0);
+      const p = min > 0 ? (total/min*100) : 0;
+      if (p >= 100)  return {state:"ok",   msg:`Dividendes ${year} : ${total.toFixed(2)} € — objectif atteint`};
+      if (p >= 50)   return {state:"warn", msg:`Dividendes ${year} : ${total.toFixed(2)} € / ${min.toFixed(0)} € (${p.toFixed(0)}%)`};
+      return {state:"err", msg:`Dividendes ${year} : ${total.toFixed(2)} € / ${min.toFixed(0)} € — en retard`};
+    }
+  },
+  {
+    category: "Dividendes",
+    title: "Réinvestir 100% des dividendes reçus",
+    text:  "Composition long-terme — valider manuellement chaque trimestre.",
+    param: null,
+    check: null
+  },
+  {
+    category: "Dividendes",
+    title: "Réinvestir les dividendes dans les X jours",
+    text:  "Composer rapidement plutôt que de laisser dormir le cash.",
+    param: {key: "days", label: "Délai max (jours)", default: 30},
+    check: null
+  },
+
+  /* ─── Comportement & Discipline ─── */
+  {
+    category: "Comportement & Discipline",
+    title: "Ne jamais vendre sur panique (-X% en une journée)",
+    text:  "Engagement comportemental. Valider à chaque période de forte baisse.",
+    param: null,
+    check: null
+  },
+  {
+    category: "Comportement & Discipline",
+    title: "Vérifier l'allocation chaque trimestre",
+    text:  "Rituel de pilotage — à cocher chaque trimestre.",
+    param: null,
+    check: null
+  },
+  {
+    category: "Comportement & Discipline",
+    title: "Analyser les fondamentaux avant chaque achat",
+    text:  "Lire au moins les résultats annuels et le bilan avant d'investir dans une action.",
+    param: null,
+    check: null
+  },
+  {
+    category: "Comportement & Discipline",
+    title: "Comparer chaque idée d'achat à un ETF monde",
+    text:  "Se demander : pourquoi cette action plutôt que CW8 ? L'alpha justifie-t-il le risque ?",
+    param: null,
+    check: null
+  },
+  {
+    category: "Comportement & Discipline",
+    title: "Ne pas acheter un titre que je ne comprends pas",
+    text:  "Principe de Buffett : investir uniquement dans son cercle de compétence.",
+    param: null,
+    check: null
+  },
+  {
+    category: "Comportement & Discipline",
+    title: "Avoir une thèse écrite pour chaque ligne",
+    text:  "Formaliser la raison d'investissement avant d'acheter, pour rester rationnel en cas de baisse.",
+    param: null,
+    check: null
+  },
+  {
+    category: "Comportement & Discipline",
+    title: "Ne pas renforcer une ligne en baisse sans nouvelle thèse",
+    text:  "Distinguer le renforcement opportuniste du 'averaging down' émotionnel.",
+    param: null,
+    check: null
+  },
+  {
+    category: "Comportement & Discipline",
+    title: "Réviser la watchlist chaque mois",
+    text:  "Actualiser la liste des titres surveillés et réévaluer les convictions.",
+    param: null,
+    check: null
+  },
+  {
+    category: "Comportement & Discipline",
+    title: "Tenir un journal de trading",
+    text:  "Documenter chaque décision d'achat ou de vente avec le contexte et la thèse.",
+    param: null,
+    check: null
+  },
+  {
+    category: "Comportement & Discipline",
+    title: "Ne pas regarder le portefeuille plus de X fois par semaine",
+    text:  "Limiter la sur-surveillance qui génère des biais comportementaux.",
+    param: {key: "max", label: "Consultations max / semaine", default: 3},
+    check: null
+  },
 ];
 
 /* Recupere la fonction de check pour une regle donnee (basee sur titre) */
 function _getRuleCheck(rule) {
-  if (!rule || !rule.template) return null;
+  if (!rule || rule.template == null) return null;
   const tpl = STRAT_TEMPLATES[rule.template];
   if (!tpl || !tpl.check) return null;
   return () => tpl.check(rule.params || {});
+}
+
+/* Calcule le score de discipline 0-100 :
+   - règles auto évaluées : ok=1, warn=0.5, err=0
+   - règles manuelles : validated=true → 1, validated=false → 0, non défini → ignoré */
+function computeStratScore() {
+  const rules = S.strategies || [];
+  if (!rules.length) return null;
+  let points = 0, counted = 0;
+  rules.forEach(r => {
+    const checkFn = _getRuleCheck(r);
+    if (checkFn) {
+      const res = checkFn();
+      if (res) {
+        counted++;
+        if (res.state === "ok")   points += 1;
+        if (res.state === "warn") points += 0.5;
+      }
+    } else {
+      if (r.validated === true)  { counted++; points += 1; }
+      if (r.validated === false) { counted++; }
+    }
+  });
+  if (!counted) return null;
+  return Math.round((points / counted) * 100);
+}
+
+function toggleRuleValidated(id) {
+  const r = (S.strategies||[]).find(x => x.id === id);
+  if (!r) return;
+  pushUndo();
+  if (r.validated === true)       r.validated = false;
+  else if (r.validated === false) r.validated = undefined;
+  else                            r.validated = true;
+  persist(); renderStrat();
 }
 
 function renderStrat() {
@@ -5643,25 +5943,71 @@ function renderStrat() {
     return;
   }
 
-  // Ligne d'actions en haut
-  const header = `<div style="display:flex;gap:8px;justify-content:flex-end;padding:0 0 .8rem;border-bottom:1px dashed var(--brd);margin-bottom:.6rem">
+  // Score
+  const score = computeStratScore();
+  const scoreColor = score == null ? "var(--txt3)" : score >= 75 ? "var(--g)" : score >= 50 ? "var(--a)" : "var(--r)";
+  const auto  = S.strategies.filter(r => _getRuleCheck(r)).length;
+  const manOk = S.strategies.filter(r => !_getRuleCheck(r) && r.validated === true).length;
+  const manKo = S.strategies.filter(r => !_getRuleCheck(r) && r.validated === false).length;
+  const manNd = S.strategies.filter(r => !_getRuleCheck(r) && r.validated == null).length;
+  const scoreHtml = score != null ? `<div class="strat-score-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:13px;font-weight:700">Score de discipline</div>
+        <div style="font-size:11px;color:var(--txt2);margin-top:2px">
+          ${auto} auto · ${manOk} manuelles ✓ · ${manKo} manuelles ✗${manNd ? ` · ${manNd} non évaluées` : ""}
+        </div>
+      </div>
+      <div style="font-size:26px;font-weight:800;color:${scoreColor};font-family:var(--mono)">${score}<span style="font-size:14px;font-weight:600;color:var(--txt2)">/100</span></div>
+    </div>
+    <div class="strat-score-bar-track">
+      <div class="strat-score-bar-fill" style="width:${score}%;background:${scoreColor}"></div>
+    </div>
+    <div style="font-size:10px;color:var(--txt3);font-family:var(--mono)">
+      ${score >= 75 ? "Bonne discipline — continuez ainsi" : score >= 50 ? "Des règles à renforcer" : "Plusieurs règles non respectées — à travailler"}
+    </div>
+  </div>` : "";
+
+  // Barre d'actions
+  const header = `${scoreHtml}<div style="display:flex;gap:8px;justify-content:flex-end;padding:0 0 .8rem;border-bottom:1px dashed var(--brd);margin-bottom:.6rem">
     <button class="btn btn-sm btn-ghost" onclick="openTemplatePicker()" title="Choisir parmi des modèles pré-définis">📚 Modèles</button>
     <button class="btn btn-sm btn-ghost" onclick="openAddRule()">+ Règle personnalisée</button>
   </div>`;
 
-  // Cartes regles
-  const items = S.strategies.map((r, i) => {
+  // Cartes règles
+  const items = S.strategies.map((r) => {
     const checkFn = _getRuleCheck(r);
     const result  = checkFn ? checkFn() : null;
-    const stateColor = !result ? "var(--txt3)" : (result.state==="ok" ? "var(--g)" : result.state==="warn" ? "var(--a)" : "var(--r)");
-    const stateBg    = !result ? "transparent"  : (result.state==="ok" ? "rgba(22,163,74,.08)" : result.state==="warn" ? "rgba(217,119,6,.08)" : "rgba(220,38,38,.08)");
-    const stateIco   = !result ? "○" : (result.state==="ok" ? "🟢" : result.state==="warn" ? "🟡" : "🔴");
+
+    // État : auto ou manuel
+    let stateIco, stateColor, stateBg, stateMsg;
+    if (result) {
+      stateIco   = result.state==="ok" ? "🟢" : result.state==="warn" ? "🟡" : "🔴";
+      stateColor = result.state==="ok" ? "var(--g)" : result.state==="warn" ? "var(--a)" : "var(--r)";
+      stateBg    = result.state==="ok" ? "rgba(22,163,74,.06)" : result.state==="warn" ? "rgba(217,119,6,.06)" : "rgba(220,38,38,.06)";
+      stateMsg   = result.msg;
+    } else if (!checkFn) {
+      if (r.validated === true)       { stateIco = "🟢"; stateColor = "var(--g)";    stateBg = "rgba(22,163,74,.06)";   stateMsg = "Validée manuellement"; }
+      else if (r.validated === false) { stateIco = "🔴"; stateColor = "var(--r)";    stateBg = "rgba(220,38,38,.06)";   stateMsg = "Non respectée"; }
+      else                            { stateIco = "⚪"; stateColor = "var(--txt3)";  stateBg = "transparent";           stateMsg = null; }
+    } else {
+      stateIco = "⚪"; stateColor = "var(--txt3)"; stateBg = "transparent"; stateMsg = null;
+    }
 
     const stars = (r.stars || 0);
-    const starsHtml = [1,2,3,4,5].map(n => `<span onclick="setRuleStars(${r.id},${n})"
-      style="cursor:pointer;color:${n<=stars?'#f59e0b':'var(--txt3)'};font-size:13px">★</span>`).join("");
-
+    const starsHtml = [1,2,3,4,5].map(n =>
+      `<span onclick="setRuleStars(${r.id},${n})" style="cursor:pointer;color:${n<=stars?'#f59e0b':'var(--txt3)'};font-size:13px">★</span>`
+    ).join("");
     const ageStr = r.addedAt ? _ageStr(r.addedAt) : "";
+
+    // Badge auto / toggle manuel
+    const badgeOrToggle = checkFn
+      ? `<span class="badge ba" style="font-size:10px">auto</span>`
+      : `<button class="strat-validate-btn ${r.validated===true?'ok':r.validated===false?'err':'neu'}"
+           onclick="toggleRuleValidated(${r.id})"
+           title="${r.validated===true?'Cliquer pour marquer non respectée':r.validated===false?'Cliquer pour réinitialiser':'Cliquer pour valider'}">
+           ${r.validated===true?'✓ Respectée':r.validated===false?'✗ Non respectée':'○ À évaluer'}
+         </button>`;
 
     return `<div class="rule-item" id="rule-${r.id}" draggable="true"
       ondragstart="_onRuleDragStart(event,${r.id})"
@@ -5669,17 +6015,18 @@ function renderStrat() {
       ondrop="_onRuleDrop(event,${r.id})"
       ondragend="_onRuleDragEnd(event)"
       style="display:flex;gap:10px;align-items:flex-start;padding:.9rem 1.1rem;border:1px solid var(--brd);border-radius:var(--rad);margin-bottom:.5rem;background:${stateBg};cursor:grab">
-      <div style="font-size:16px;line-height:1.4;flex-shrink:0" title="${result ? result.msg : 'Pas de vérification automatique'}">${stateIco}</div>
+      <div style="font-size:16px;line-height:1.4;flex-shrink:0;margin-top:1px" title="${stateMsg || 'Pas de vérification automatique'}">${stateIco}</div>
       <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px">
           <div style="font-weight:700;font-size:13px">${escHtml(r.title)}</div>
           <div style="display:flex;gap:1px">${starsHtml}</div>
+          ${badgeOrToggle}
         </div>
-        ${r.text ? `<div style="font-size:11px;color:var(--txt2);margin-top:3px">${escHtml(r.text)}</div>` : ""}
-        ${result ? `<div style="font-size:11px;color:${stateColor};margin-top:4px;font-family:var(--mono);font-weight:600">${escHtml(result.msg)}</div>` : ""}
+        ${r.text ? `<div style="font-size:11px;color:var(--txt2);margin-top:2px">${escHtml(r.text)}</div>` : ""}
+        ${stateMsg ? `<div style="font-size:11px;color:${stateColor};margin-top:4px;font-family:var(--mono);font-weight:600">${escHtml(stateMsg)}</div>` : ""}
         ${ageStr ? `<div style="font-size:10px;color:var(--txt3);margin-top:3px;font-family:var(--mono)">Ajoutée ${ageStr}</div>` : ""}
       </div>
-      <div style="display:flex;gap:2px;flex-shrink:0">
+      <div style="display:flex;gap:2px;flex-shrink:0;margin-top:1px">
         <button class="btn btn-sm btn-ghost" onclick="editRule(${r.id})">✎</button>
         <button class="btn btn-sm btn-ghost" style="color:var(--r)" onclick="delRule(${r.id})">✕</button>
       </div>
@@ -5733,7 +6080,7 @@ function _onRuleDrop(e, id) {
   persist(); renderStrat();
 }
 
-/* Modal de selection de templates */
+/* Modal de selection de templates groupés par catégorie */
 function openTemplatePicker() {
   let ov = document.getElementById("ov-template");
   if (!ov) {
@@ -5741,24 +6088,79 @@ function openTemplatePicker() {
     ov.id = "ov-template";
     ov.className = "ov";
     ov.onclick = (e) => { if (e.target === ov) closeOv("ov-template"); };
-    ov.innerHTML = `<div class="modal" style="max-width:560px">
+    ov.innerHTML = `<div class="modal" style="max-width:600px">
       <h2>📚 Modèles de règles</h2>
-      <div id="tpl-list" style="display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow-y:auto"></div>
+      <div id="tpl-search-wrap" style="margin-bottom:.7rem">
+        <input id="tpl-search" placeholder="Filtrer les modèles…" oninput="_filterTpl()"
+          style="width:100%;background:var(--bg3);border:1px solid var(--brd2);border-radius:var(--rad);padding:7px 11px;font-size:12px;font-family:var(--font);color:var(--txt)">
+      </div>
+      <div id="tpl-list" style="display:flex;flex-direction:column;gap:2px;max-height:62vh;overflow-y:auto"></div>
       <div class="mact"><button class="btn btn-ghost" onclick="closeOv('ov-template')">Fermer</button></div>
     </div>`;
     document.body.appendChild(ov);
   }
-  const list = ov.querySelector("#tpl-list");
-  list.innerHTML = STRAT_TEMPLATES.map((t, idx) => `
-    <div style="border:1px solid var(--brd);border-radius:var(--rad);padding:.7rem .9rem;display:flex;gap:10px;align-items:center">
-      <div style="flex:1;min-width:0">
-        <div style="font-weight:700;font-size:12px">${escHtml(t.title)}</div>
-        <div style="font-size:10px;color:var(--txt2);margin-top:2px">${escHtml(t.text)}</div>
-        ${t.param ? '<span class="badge ba" style="margin-top:4px;display:inline-block">vérif auto</span>' : '<span class="badge bw" style="margin-top:4px;display:inline-block">manuelle</span>'}
-      </div>
-      <button class="btn btn-sm btn-primary" onclick="addFromTemplate(${idx})">+ Ajouter</button>
-    </div>`).join("");
+  _renderTplList("");
   ov.classList.add("open");
+  setTimeout(() => { const s = document.getElementById("tpl-search"); if (s) { s.value=""; s.focus(); } }, 80);
+}
+
+function _filterTpl() {
+  const q = (document.getElementById("tpl-search")?.value || "").toLowerCase();
+  _renderTplList(q);
+}
+
+function _renderTplList(q) {
+  const list = document.getElementById("tpl-list");
+  if (!list) return;
+  // Grouper par catégorie
+  const cats = {};
+  STRAT_TEMPLATES.forEach((t, idx) => {
+    if (q && !t.title.toLowerCase().includes(q) && !t.text.toLowerCase().includes(q)) return;
+    const cat = t.category || "Autres";
+    if (!cats[cat]) cats[cat] = [];
+    cats[cat].push({t, idx});
+  });
+  if (!Object.keys(cats).length) {
+    list.innerHTML = `<div style="text-align:center;color:var(--txt2);padding:1rem;font-size:12px">Aucun modèle trouvé</div>`;
+    return;
+  }
+  const CAT_ICONS = {
+    "Allocation & Risque":        "⚖",
+    "Versements & Objectifs":     "🎯",
+    "Coûts & Frais":              "💸",
+    "Cash & Liquidité":           "💰",
+    "Activité & Trading":         "📊",
+    "Dividendes":                 "🌱",
+    "Comportement & Discipline":  "🧠",
+    "Autres":                     "📋",
+  };
+  list.innerHTML = Object.entries(cats).map(([cat, items]) => {
+    const ico = CAT_ICONS[cat] || "📋";
+    const rows = items.map(({t, idx}) => {
+      const alreadyAdded = (S.strategies||[]).some(r => r.template === idx);
+      return `<div style="display:flex;gap:10px;align-items:center;padding:.55rem .7rem;border-radius:var(--rad);background:var(--bg3);border:1px solid var(--brd)">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:12px">${escHtml(t.title)}</div>
+          <div style="font-size:10px;color:var(--txt2);margin-top:2px">${escHtml(t.text)}</div>
+          <div style="margin-top:4px">
+            ${t.check ? '<span class="badge ba" style="font-size:10px">auto</span>' : '<span class="badge bw" style="font-size:10px">manuelle</span>'}
+            ${t.param ? `<span style="font-size:10px;color:var(--txt3);margin-left:6px">param : ${escHtml(t.param.label)}</span>` : ""}
+          </div>
+        </div>
+        <button class="btn btn-sm ${alreadyAdded ? 'btn-ghost' : 'btn-primary'}"
+          onclick="addFromTemplate(${idx})" style="flex-shrink:0">
+          ${alreadyAdded ? '+ Doublon' : '+ Ajouter'}
+        </button>
+      </div>`;
+    }).join("");
+    return `<div style="margin-bottom:.6rem">
+      <div style="font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.07em;padding:.4rem .2rem .3rem;display:flex;align-items:center;gap:6px">
+        <span>${ico}</span><span>${escHtml(cat)}</span>
+        <span style="font-weight:400;color:var(--txt3)">(${items.length})</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">${rows}</div>
+    </div>`;
+  }).join("");
 }
 
 function addFromTemplate(idx) {
