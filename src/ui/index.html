@@ -5886,6 +5886,44 @@ const STRAT_TEMPLATES = [
     param: {key: "max", label: "Consultations max / semaine", default: 3},
     check: null
   },
+
+  /* ─── Dividendes (suite) ─── */
+  {
+    category: "Dividendes",
+    title: "Dividendes attendus dans les 12 prochains mois ≥ X€",
+    text:  "Vérifie que le pipeline de dividendes futurs couvre l'objectif de revenu passif annuel.",
+    param: {key: "min", label: "Dividendes attendus min (€)", default: 200},
+    check: (params) => {
+      const min = parseFloat(params.min) || 200;
+      const now = new Date();
+      const horizon = new Date(now); horizon.setFullYear(horizon.getFullYear() + 1);
+      const total = (S.divFuture||[]).filter(d => {
+        if (!d.date) return false;
+        const dt = new Date(d.date + "T00:00:00");
+        return dt > now && dt <= horizon;
+      }).reduce((s, d) => s + (d.montant||0), 0);
+      const p = min > 0 ? (total / min * 100) : 0;
+      if (p >= 100)  return {state:"ok",   msg:`Pipeline 12 mois : ${total.toFixed(2)} € — objectif atteint`};
+      if (p >= 60)   return {state:"warn", msg:`Pipeline 12 mois : ${total.toFixed(2)} € / ${min.toFixed(0)} € (${p.toFixed(0)}%)`};
+      return {state:"err", msg:`Pipeline 12 mois : ${total.toFixed(2)} € / ${min.toFixed(0)} € — insuffisant`};
+    }
+  },
+
+  /* ─── Comportement & Discipline (suite) ─── */
+  {
+    category: "Comportement & Discipline",
+    title: "Rebalancer si une ligne dépasse X% de son allocation cible",
+    text:  "Définir une allocation cible par ligne et agir si l'écart devient trop important.",
+    param: null,
+    check: null
+  },
+  {
+    category: "Comportement & Discipline",
+    title: "Lire les résultats semestriels de chaque ligne",
+    text:  "Rituel bi-annuel pour vérifier que la thèse d'investissement tient toujours.",
+    param: null,
+    check: null
+  },
 ];
 
 /* Recupere la fonction de check pour une regle donnee (basee sur titre) */
