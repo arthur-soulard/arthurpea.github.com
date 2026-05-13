@@ -2401,13 +2401,19 @@ function drawPerfChart() {
   const portVals = series.map(p => p.val);         /* valeur marche jour J   */
   const depVals  = buildDepositSeries(dates);       /* versements cumules J   */
 
-  /* ── Calcul P&L : valeur lignes + solde especes - versements ───────────── */
-  const lastPort = portVals[portVals.length - 1];
-  const lastDep  = depVals[depVals.length - 1];
-  const cashNow  = computeCash();
-  const pnlEur   = Math.round((lastPort + cashNow - lastDep) * 100) / 100;
-  const pnlPct   = lastDep > 0 ? Math.round(((lastPort + cashNow) / lastDep - 1) * 10000) / 100 : null;
-  const isPos    = pnlEur >= 0;
+  /* ── Calcul P&L : memes valeurs que renderMetrics (p.cours + cash - depots) */
+  let _tvChart = 0, _ncChart = 0;
+  S.positions.forEach(p => { const e = computePos(p); if (e.val != null) { _tvChart += e.val; _ncChart++; } });
+  const _allChart  = _ncChart === S.positions.length;
+  const _depChart  = (S.depots||[]).reduce((s,d)=>s+(d.amount||0),0);
+  const _cashChart = computeCash();
+  const pnlEur = _allChart && _depChart > 0
+    ? Math.round((_tvChart + _cashChart - _depChart) * 100) / 100
+    : null;
+  const pnlPct = pnlEur != null
+    ? Math.round((pnlEur / _depChart) * 10000) / 100
+    : null;
+  const isPos = pnlEur == null ? true : pnlEur >= 0;
 
   /* ── Resume P&L ──────────────────────────────────────────────────────────── */
   const summaryEl = document.getElementById("twr-summary");
