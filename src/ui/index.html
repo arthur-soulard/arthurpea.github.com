@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -695,6 +695,72 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;
 }
+
+/* ── Secteurs ──────────────────────────────────────── */
+.sector-badge {
+  display: inline-block; padding: 2px 7px; border-radius: 4px;
+  font-size: 9px; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; white-space: nowrap; margin-top: 2px;
+}
+/* Pane secteurs */
+.sec-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+}
+@media (max-width: 1080px) { .sec-grid { grid-template-columns: 1fr; } }
+.sec-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 70px 70px 70px 70px 50px;
+  align-items: center; gap: 8px;
+  padding: 10px 12px; border-bottom: 1px solid var(--brd);
+  font-size: 12px; font-family: var(--mono);
+  transition: background .12s;
+}
+.sec-row:last-child { border-bottom: 0; }
+.sec-row:hover { background: var(--bg3); }
+.sec-icon { font-size: 16px; text-align: center; }
+.sec-name { font-weight: 700; font-size: 12px; font-family: var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sec-bar-wrap { height: 5px; background: var(--bg4); border-radius: 3px; overflow: hidden; margin-top: 3px; }
+.sec-bar-fill  { height: 100%; border-radius: 3px; transition: width .6s; }
+.sec-alert { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 99px; }
+.sec-alert-warn { background: var(--a2); color: var(--a); }
+.sec-alert-danger { background: var(--r2); color: var(--r); }
+.sec-alert-ok { background: var(--g2); color: var(--g); }
+.sec-detail-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 0; border-bottom: 1px dashed var(--brd); font-size: 11px;
+}
+.sec-detail-row:last-child { border-bottom: 0; }
+.sec-empty { text-align: center; color: var(--txt3); padding: 40px 0; font-size: 13px; }
+.sec-header-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 70px 70px 70px 70px 50px;
+  gap: 8px; padding: 6px 12px;
+  font-size: 10px; font-weight: 700; color: var(--txt2);
+  text-transform: uppercase; letter-spacing: .07em; font-family: var(--font);
+  border-bottom: 1px solid var(--brd); background: var(--bg3);
+}
+.sec-threshold-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: .7rem 1rem; background: var(--bg3);
+  border-bottom: 1px solid var(--brd); flex-wrap: wrap;
+  font-size: 11px; color: var(--txt2);
+}
+.sec-threshold-row input { width: 56px; font-family: var(--mono); font-size: 12px;
+  padding: 3px 6px; border: 1px solid var(--brd2); border-radius: var(--rad);
+  background: var(--bg2); color: var(--txt); }
+.sec-detail-card {
+  background: var(--bg2); border: 1px solid var(--brd);
+  border-radius: var(--radl); box-shadow: var(--sh);
+  overflow: hidden; margin-top: 14px;
+}
+.sec-detail-card-h {
+  display: flex; align-items: center; gap: 10px;
+  padding: .75rem 1rem; border-bottom: 1px solid var(--brd);
+  background: var(--bg3);
+}
+.sec-detail-card-icon { font-size: 18px; }
+.sec-detail-card-name { font-weight: 700; font-size: 14px; }
+.sec-detail-card-pct  { font-family: var(--mono); font-weight: 700; font-size: 13px; margin-left: auto; }
 </style>
 </head>
 <body>
@@ -767,7 +833,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
     </div>
     <div class="tw"><table>
       <thead><tr>
-        <th>Titre</th><th>Qté</th><th>PRU auto</th><th>Cours</th>
+        <th>Titre</th><th>Secteur</th><th>Qté</th><th>PRU auto</th><th>Cours</th>
         <th title="Évolution 30 derniers jours">30j</th>
         <th title="Price/Earnings Ratio (actions uniquement)">PER</th>
         <th title="Rendement du dividende (actions uniquement)">Dividendes</th>
@@ -910,10 +976,52 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
           <option value="action">Actions</option>
           <option value="etf">ETF</option>
         </select>
+        <select id="tx-filter-sector" onchange="renderTx()" style="font-family:var(--mono);background:var(--bg3);border:1px solid var(--brd2);border-radius:var(--rad);padding:5px 8px;font-size:11px;color:var(--txt)">
+          <option value="">Tous secteurs</option>
+        </select>
         <button class="btn btn-sm btn-ghost" onclick="openAddTx()">+ Ajouter</button>
       </div>
     </div>
     <div class="card-b" id="tx-list"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SECTEURS ═══════════════════ -->
+<div class="pane" id="pane-sector">
+  <div class="card" id="card-sector-overview">
+    <div class="card-h" style="flex-wrap:wrap;gap:.6rem">
+      <span class="card-t">Exposition sectorielle</span>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--txt2)">Seuil alerte :</span>
+        <input id="sector-threshold" type="number" min="5" max="100" value="30"
+          onchange="renderSectors()" title="% du portefeuille au-delà duquel une alerte est affichée"
+          style="width:56px;font-family:var(--mono);font-size:12px;padding:3px 6px;border:1px solid var(--brd2);border-radius:var(--rad);background:var(--bg2);color:var(--txt)">
+        <span style="font-size:11px;color:var(--txt2)">%</span>
+        <button class="btn btn-sm btn-ghost" onclick="goTab('pos')" title="Aller aux positions pour modifier les secteurs">✎ Modifier secteurs</button>
+      </div>
+    </div>
+    <div id="sector-alerts-bar" style="display:none;padding:.6rem 1rem;background:var(--r2);border-bottom:1px solid var(--brd);font-size:11px;color:var(--r);font-weight:700"></div>
+    <div class="sec-grid" style="padding:1rem;gap:1rem">
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt2);margin-bottom:.6rem">Répartition (valeur de marché)</div>
+        <canvas id="sector-chart" height="280" style="max-height:280px"></canvas>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt2);margin-bottom:.6rem">Détail par secteur</div>
+        <div id="sector-detail-list"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card" id="card-sector-positions" style="margin-top:0">
+    <div class="card-h" style="flex-wrap:wrap;gap:.6rem">
+      <span class="card-t">Positions par secteur</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <select id="sector-filter-select" onchange="renderSectorPositions()" style="font-family:var(--mono);background:var(--bg3);border:1px solid var(--brd2);border-radius:var(--rad);padding:5px 8px;font-size:11px;color:var(--txt)">
+          <option value="">Tous les secteurs</option>
+        </select>
+      </div>
+    </div>
+    <div id="sector-positions-list" style="padding:.75rem 1rem"></div>
   </div>
 </div>
 
@@ -1214,6 +1322,28 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       <div class="fg"><label>Date d'achat</label><input id="f-date" type="date"></div>
     </div>
     <div class="fg-row">
+      <div class="fg"><label>Secteur d'activité</label>
+        <select id="f-sector" style="background:var(--bg2)">
+          <option value="">— Choisir un secteur —</option>
+          <option value="tech">💻 Technologie &amp; Logiciels</option>
+          <option value="sante">⚕ Santé &amp; Pharma</option>
+          <option value="finance">🏦 Finance &amp; Banque &amp; Assurance</option>
+          <option value="industrie">⚙ Industrie &amp; Défense &amp; Aéro</option>
+          <option value="conso">🛒 Consommation courante (FMCG)</option>
+          <option value="luxe">💎 Luxe &amp; Consommation discrétionnaire</option>
+          <option value="energie">⚡ Énergie &amp; Ressources naturelles</option>
+          <option value="materiaux">🔩 Matériaux &amp; Chimie</option>
+          <option value="telecom">📡 Télécommunications</option>
+          <option value="utilities">💧 Services aux collectivités (Utilities)</option>
+          <option value="immobilier">🏢 Immobilier &amp; REIT</option>
+          <option value="transport">🚢 Transport &amp; Logistique</option>
+          <option value="media">🎬 Médias &amp; Divertissement</option>
+          <option value="etf">📊 ETF / Fonds diversifié</option>
+          <option value="autre">○ Autre</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg-row">
       <div class="fg"><label>Prix d'achat (EUR / part)</label><input id="f-prix" type="number" step="0.0001" placeholder=""></div>
       <div class="fg"><label>Quantité achetée</label><input id="f-qty" type="number" step="0.001" placeholder=""></div>
     </div>
@@ -1422,6 +1552,34 @@ const LS_VAR  = "pea4_v4_var";
 let S   = {};
 let NID = {pos:1, tx:1, wish:1, dep:1, div:1, divf:1, rule:1};
 let _ch = {};
+
+/* ─── Référentiel des secteurs ─── */
+const SECTORS = [
+  { id: "tech",        label: "Technologie",          icon: "💻", color: "#2563eb" },
+  { id: "sante",       label: "Santé & Pharma",        icon: "⚕",  color: "#16a34a" },
+  { id: "finance",     label: "Finance & Banque",      icon: "🏦", color: "#7c3aed" },
+  { id: "industrie",   label: "Industrie & Défense",   icon: "⚙",  color: "#d97706" },
+  { id: "conso",       label: "Conso. courante",       icon: "🛒", color: "#0891b2" },
+  { id: "luxe",        label: "Luxe & Discr.",         icon: "💎", color: "#db2777" },
+  { id: "energie",     label: "Énergie",               icon: "⚡", color: "#ca8a04" },
+  { id: "materiaux",   label: "Matériaux",             icon: "🔩", color: "#71717a" },
+  { id: "telecom",     label: "Télécoms",              icon: "📡", color: "#0284c7" },
+  { id: "utilities",   label: "Services collect.",     icon: "💧", color: "#059669" },
+  { id: "immobilier",  label: "Immobilier",            icon: "🏢", color: "#dc2626" },
+  { id: "transport",   label: "Transport & Logistique",icon: "🚢", color: "#9333ea" },
+  { id: "media",       label: "Médias & Divert.",      icon: "🎬", color: "#ea580c" },
+  { id: "etf",         label: "ETF / Fonds",           icon: "📊", color: "#6366f1" },
+  { id: "autre",       label: "Autre",                 icon: "○",  color: "#a1a1aa" },
+];
+function sectorById(id) {
+  return SECTORS.find(s => s.id === id) || { id: "autre", label: "Autre", icon: "○", color: "#a1a1aa" };
+}
+function sectorBadgeHtml(id) {
+  if (!id) return '<span style="color:var(--txt3);font-size:10px">—</span>';
+  const s = sectorById(id);
+  const bg = s.color + "22";
+  return `<span class="sector-badge" style="background:${bg};color:${s.color}">${s.icon} ${s.label}</span>`;
+}
 let _gsTimer  = null;
 let _wsVar    = {};
 let _wsAnalysts = {};   // {ticker: {targetMean, numAnalysts, recoMean, recoKey, ...}}
@@ -1841,6 +1999,7 @@ function renderPositions() {
         <div class="tk2">${p.ticker}${p.cours==null ? ' <span title="Cours non chargé — vérifiez le ticker dans Google Sheets" style="color:var(--a);font-size:10px">⚠</span>' : ""}</div>
         <span class="badge ${p.type==="etf"?"be":"ba"}">${p.type==="etf"?"ETF":"Action"}</span>
       </td>
+      <td>${sectorBadgeHtml(p.sector)}</td>
       <td>${e.qty}</td>
       <td>${e.pru>0 ? eur(e.pru) : "—"}</td>
       <td>${p.cours!=null ? eur(p.cours) : '<span style="color:var(--txt3)">—</span>'}</td>
@@ -3255,8 +3414,9 @@ function renderTx() {
   // Applique les filtres
   const fTicker = fT ? fT.value : "";
   const fYear   = fY ? fY.value : "";
-  const fType   = (document.getElementById("tx-filter-type")||{}).value  || "";
-  const fAsset  = (document.getElementById("tx-filter-asset")||{}).value || "";
+  const fType   = (document.getElementById("tx-filter-type")||{}).value   || "";
+  const fAsset  = (document.getElementById("tx-filter-asset")||{}).value  || "";
+  const fSector = (document.getElementById("tx-filter-sector")||{}).value || "";
 
   // Helper : determine si un ticker est action ou ETF (positions ouvertes ou closes)
   const assetTypeOf = (ticker) => {
@@ -3266,12 +3426,29 @@ function renderTx() {
     if (c) return c.type || "action";
     return null;
   };
+  const sectorOf = (ticker) => {
+    const p = (S.positions||[]).find(x => x.ticker === ticker);
+    return p ? (p.sector || "") : "";
+  };
+
+  // Remplit le filtre secteur
+  const fSel = document.getElementById("tx-filter-sector");
+  if (fSel) {
+    const usedSectors = [...new Set(all.map(t => sectorOf(t.asset)).filter(Boolean))].sort();
+    const curSec = fSel.value;
+    fSel.innerHTML = '<option value="">Tous secteurs</option>'
+      + usedSectors.map(sid => {
+          const s = sectorById(sid);
+          return `<option value="${sid}"${sid===curSec?" selected":""}>${s.icon} ${s.label}</option>`;
+        }).join("");
+  }
 
   const sorted = all
     .filter(t => !fTicker || t.asset === fTicker)
     .filter(t => !fYear   || (t.date||"").startsWith(fYear))
     .filter(t => !fType   || t.type === fType)
     .filter(t => !fAsset  || assetTypeOf(t.asset) === fAsset)
+    .filter(t => !fSector || sectorOf(t.asset) === fSector)
     .sort((a,b)=>normDate(b.date).localeCompare(normDate(a.date)));
 
   const target = document.getElementById("tx-list");
@@ -3303,10 +3480,12 @@ function renderTx() {
     const typeBadge = isSell
       ? `<span class="badge" style="background:var(--r2);color:var(--r)">${t.type}</span>`
       : `<span class="badge be">${t.type}</span>`;
+    const txSectorId   = sectorOf(t.asset);
+    const txSectorHtml = txSectorId ? sectorBadgeHtml(txSectorId) : "";
     return `<div class="txr" style="${isFuture ? "opacity:.6;border-left:3px solid var(--a);padding-left:9px" : ""}">
       <span style="font-family:var(--mono);color:var(--txt2);font-size:10px;min-width:86px">${t.date}</span>
       ${futureBadge}<span style="font-weight:600;font-size:12px;min-width:80px">${label}</span>
-      ${typeBadge}
+      ${typeBadge}${txSectorHtml}
       <span style="font-family:var(--mono);color:var(--txt2);font-size:10px;flex:1;text-align:right">${t.qty?t.qty+"\u00A0\u00D7\u00A0"+eur(t.cours)+(t.frais?" \u00B7 frais "+eur(t.frais):""):""}</span>
       <span style="font-family:var(--mono);font-weight:700;font-size:12px;min-width:80px;text-align:right">${tot?eur(tot):""}${pvHtml}</span>
       ${ebtn("editTx",t.id)}${dbtn("delTx",t.id)}
@@ -3314,6 +3493,174 @@ function renderTx() {
   }).join("");
 }
 
+
+/* ─── Secteurs ─── */
+let _sectorChart = null;
+
+function renderSectors() {
+  const positions = (S.positions || []);
+  if (!positions.length) {
+    const dl = document.getElementById("sector-detail-list");
+    const pl = document.getElementById("sector-positions-list");
+    if (dl) dl.innerHTML = '<div class="sec-empty">Aucune position — ajoutez des positions avec un secteur pour voir l\'analyse.</div>';
+    if (pl) pl.innerHTML = "";
+    return;
+  }
+
+  const threshold = parseFloat((document.getElementById("sector-threshold")||{}).value || 30);
+
+  const byId = {};
+  positions.forEach(p => {
+    const e = computePos(p);
+    const sid = p.sector || "autre";
+    if (!byId[sid]) byId[sid] = { val: 0, inv: 0, pv: 0, positions: [] };
+    byId[sid].val += e.val != null ? e.val : e.inv;
+    byId[sid].inv += e.inv;
+    byId[sid].pv  += e.pv || 0;
+    byId[sid].positions.push({ p, e });
+  });
+
+  const totalVal = Object.values(byId).reduce((s, x) => s + x.val, 0);
+
+  const sorted = Object.entries(byId)
+    .map(([sid, data]) => ({ sid, ...data, sec: sectorById(sid), pct: totalVal > 0 ? data.val / totalVal * 100 : 0 }))
+    .sort((a, b) => b.val - a.val);
+
+  const alertBar = document.getElementById("sector-alerts-bar");
+  const overexposed = sorted.filter(x => x.pct >= threshold);
+  if (alertBar) {
+    if (overexposed.length) {
+      alertBar.style.display = "";
+      alertBar.innerHTML = "⚠ Surexposition détectée : "
+        + overexposed.map(x => `${x.sec.icon} ${x.sec.label} (${x.pct.toFixed(1)}%)`).join(" · ");
+    } else {
+      alertBar.style.display = "none";
+    }
+  }
+
+  const canvas = document.getElementById("sector-chart");
+  if (canvas) {
+    if (_sectorChart) { _sectorChart.destroy(); _sectorChart = null; }
+    _sectorChart = new Chart(canvas.getContext("2d"), {
+      type: "doughnut",
+      data: {
+        labels: sorted.map(x => x.sec.label),
+        datasets: [{
+          data: sorted.map(x => x.val),
+          backgroundColor: sorted.map(x => x.sec.color + "cc"),
+          borderColor: sorted.map(x => x.sec.color),
+          borderWidth: 1.5,
+          hoverOffset: 6,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        cutout: "62%",
+        plugins: {
+          legend: { position: "bottom", labels: { font: { size: 11 }, boxWidth: 12, padding: 10 } },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const x = sorted[ctx.dataIndex];
+                return ` ${x.pct.toFixed(1)}% · ${x.val.toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0})} €`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  const dl = document.getElementById("sector-detail-list");
+  if (dl) {
+    dl.innerHTML = sorted.map(x => {
+      const alertCls = x.pct >= threshold ? "sec-alert-danger" : x.pct >= threshold * 0.75 ? "sec-alert-warn" : "sec-alert-ok";
+      const alertTxt = x.pct >= threshold ? "⚠ Surexposé" : x.pct >= threshold * 0.75 ? "⚡ Attention" : "✓ OK";
+      const pvSign   = x.pv >= 0 ? "+" : "−";
+      const pvCls    = x.pv >= 0 ? "pos" : "neg";
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--brd)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="font-size:18px">${x.sec.icon}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:13px">${x.sec.label}</div>
+            <div style="font-size:10px;color:var(--txt2);font-family:var(--mono)">${x.positions.length} position${x.positions.length>1?"s":""}</div>
+          </div>
+          <span class="sec-alert ${alertCls}" style="font-size:10px">${alertTxt}</span>
+          <span style="font-family:var(--mono);font-weight:800;font-size:14px;color:${x.sec.color}">${x.pct.toFixed(1)}%</span>
+        </div>
+        <div class="sec-bar-wrap" style="margin-bottom:6px">
+          <div class="sec-bar-fill" style="width:${Math.min(x.pct,100).toFixed(1)}%;background:${x.sec.color}"></div>
+        </div>
+        <div style="display:flex;gap:16px;font-size:11px;font-family:var(--mono);color:var(--txt2);flex-wrap:wrap">
+          <span>Valeur : <strong style="color:var(--txt)">${x.val.toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0})} €</strong></span>
+          <span>Investi : <strong style="color:var(--txt)">${x.inv.toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0})} €</strong></span>
+          <span class="${pvCls}">PV : <strong>${pvSign}${Math.abs(x.pv).toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0})} €</strong></span>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  const sfSel = document.getElementById("sector-filter-select");
+  if (sfSel) {
+    const cur = sfSel.value;
+    sfSel.innerHTML = '<option value="">Tous les secteurs</option>'
+      + sorted.map(x => `<option value="${x.sid}"${x.sid===cur?" selected":""}>${x.sec.icon} ${x.sec.label} (${x.pct.toFixed(1)}%)</option>`).join("");
+  }
+
+  renderSectorPositions();
+}
+
+function renderSectorPositions() {
+  const sfSel  = document.getElementById("sector-filter-select");
+  const filter = sfSel ? sfSel.value : "";
+  const target = document.getElementById("sector-positions-list");
+  if (!target) return;
+
+  const positions = (S.positions || []).filter(p => !filter || (p.sector || "autre") === filter);
+  if (!positions.length) {
+    target.innerHTML = '<div class="sec-empty">Aucune position pour ce secteur.</div>';
+    return;
+  }
+
+  const groups = {};
+  positions.forEach(p => {
+    const sid = p.sector || "autre";
+    if (!groups[sid]) groups[sid] = [];
+    groups[sid].push(p);
+  });
+
+  target.innerHTML = Object.entries(groups).map(([sid, ps]) => {
+    const sec = sectorById(sid);
+    const rows = ps.map(p => {
+      const e      = computePos(p);
+      const pvCls  = (e.pv||0) >= 0 ? "pos" : "neg";
+      const pvSign = (e.pv||0) >= 0 ? "+" : "−";
+      const pvStr  = e.pv != null ? (pvSign + Math.abs(e.pv).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2}) + " €") : "—";
+      const pvPStr = e.pvP != null ? " (" + (e.pvP>=0?"+":"") + e.pvP.toFixed(2).replace(".",",") + " %)" : "";
+      const valStr = e.val!=null ? e.val.toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0})+" €" : "—";
+      return `<div class="sec-detail-row">
+        <div>
+          <span style="font-weight:700;font-size:13px">${p.name}</span>
+          <span style="font-size:10px;color:var(--txt2);font-family:var(--mono);margin-left:6px">${p.ticker}</span>
+          <span class="badge ${p.type==="etf"?"be":"ba"}" style="margin-left:4px">${p.type==="etf"?"ETF":"Action"}</span>
+        </div>
+        <div style="display:flex;gap:14px;align-items:center;font-family:var(--mono);font-size:11px;flex-wrap:wrap">
+          <span style="color:var(--txt2)">${e.qty} × ${e.pru>0?e.pru.toFixed(2)+" € PRU":"—"}</span>
+          <span>${valStr}</span>
+          <span class="${pvCls}" style="font-weight:700">${pvStr}${pvPStr}</span>
+        </div>
+      </div>`;
+    }).join("");
+    return `<div class="sec-detail-card">
+      <div class="sec-detail-card-h">
+        <span class="sec-detail-card-icon">${sec.icon}</span>
+        <span class="sec-detail-card-name" style="color:${sec.color}">${sec.label}</span>
+        <span style="font-size:10px;color:var(--txt2);font-family:var(--mono);margin-left:4px">${ps.length} position${ps.length>1?"s":""}</span>
+      </div>
+      <div style="padding:.5rem 1rem">${rows}</div>
+    </div>`;
+  }).join("");
+}
 /* ─── Wishlist ─── */
 function starsHtml(id, cur) {
   return `<div class="star-row">${[1,2,3,4,5].map(n=>`<span class="star${n<=cur?" on":""}" onclick="setStars(${id},${n})">★</span>`).join("")}</div>`;
@@ -4292,6 +4639,7 @@ function goTab(n) {
   const pane = document.getElementById("pane-"+n);
   if (pane) pane.classList.add("active");
   if (n==="perf") renderPerf();
+  if (n==="sector") renderSectors();
   if (n==="div") renderDividends();
   if (n==="reco") { renderReco(); fetchAnalysts(); fetchKeystats(); }
   if (n==="sim" && typeof _initSimulateurs === "function") _initSimulateurs();
@@ -4309,6 +4657,8 @@ function closeOv(id) {
     });
     const tkEl=document.getElementById("f-ticker");
     if(tkEl){ tkEl.readOnly=false; tkEl.style.opacity=""; }
+    const secEl=document.getElementById("f-sector");
+    if(secEl){ secEl.value=""; }
     const btn=document.querySelector("#ov-pos .btn-primary");
     if(btn){ btn.textContent="Enregistrer"; btn.onclick=savePos; }
   }
@@ -4504,6 +4854,7 @@ function savePos() {
       ticker,
       name: name || ticker,
       type:      document.getElementById("f-type").value,
+      sector:    document.getElementById("f-sector").value || null,
       cours:     null,
       dividende: parseFloat(document.getElementById("f-div").value)||0,
       exdiv:     document.getElementById("f-exdiv").value.trim()||null,
@@ -4527,6 +4878,7 @@ function savePos() {
   renderPositions();
   renderTx();
   if (document.getElementById("pane-perf").classList.contains("active")) renderPerf();
+  if (document.getElementById("pane-sector")?.classList.contains("active")) renderSectors();
   // Actualiser les cours immédiatement pour la nouvelle position
   applyGsData();
 }
@@ -4534,10 +4886,11 @@ function savePos() {
 function editPos(id) {
   const p = S.positions.find(x=>x.id===id); if(!p) return;
   /* Remplir les champs modifiables */
-  document.getElementById("f-name").value  = p.name||"";
-  document.getElementById("f-type").value  = p.type||"action";
-  document.getElementById("f-div").value   = p.dividende||"";
-  document.getElementById("f-exdiv").value = p.exdiv||"";
+  document.getElementById("f-name").value   = p.name||"";
+  document.getElementById("f-type").value   = p.type||"action";
+  document.getElementById("f-sector").value = p.sector||"";
+  document.getElementById("f-div").value    = p.dividende||"";
+  document.getElementById("f-exdiv").value  = p.exdiv||"";
   /* Ticker figé */
   const tkEl = document.getElementById("f-ticker");
   tkEl.value    = p.ticker;
@@ -4559,9 +4912,11 @@ function saveEditPos(id) {
   pushUndo();
   p.name      = document.getElementById("f-name").value.trim()||p.name;
   p.type      = document.getElementById("f-type").value;
+  p.sector    = document.getElementById("f-sector").value || null;
   p.dividende = parseFloat(document.getElementById("f-div").value)||0;
   p.exdiv     = document.getElementById("f-exdiv").value.trim()||null;
   persist(); closeOv("ov-pos"); renderPositions(); renderDividends();
+  if (document.getElementById("pane-sector")?.classList.contains("active")) renderSectors();
 }
 
 
@@ -6327,33 +6682,36 @@ document.addEventListener("DOMContentLoaded", ()=>{
 ══════════════════════════════════════════════════ */
 
 const SIDEBAR_ITEMS = [
-  { id: "dash",  icon: "⊞", label: "Vue d'ensemble" },
-  { id: "pos",   icon: "■", label: "Positions"     },
-  { id: "perf",  icon: "↗", label: "Performance"   },
-  { id: "div",   icon: "€", label: "Dividendes"    },
-  { id: "tx",    icon: "⇄", label: "Transactions"  },
-  { id: "wish",  icon: "☆", label: "Wishlist"      },
-  { id: "dep",   icon: "⊕", label: "Dépôts"        },
-  { id: "strat", icon: "≡", label: "Stratégie"     },
-  { id: "sim",   icon: "ƒ", label: "Simulateurs"   },
+  { id: "dash",   icon: "⊞", label: "Vue d'ensemble" },
+  { id: "pos",    icon: "■", label: "Positions"       },
+  { id: "perf",   icon: "↗", label: "Performance"     },
+  { id: "sector", icon: "⬡", label: "Secteurs"        },
+  { id: "div",    icon: "€", label: "Dividendes"      },
+  { id: "tx",     icon: "⇄", label: "Transactions"    },
+  { id: "wish",   icon: "☆", label: "Wishlist"        },
+  { id: "dep",    icon: "⊕", label: "Dépôts"          },
+  { id: "strat",  icon: "≡", label: "Stratégie"       },
+  { id: "sim",    icon: "ƒ", label: "Simulateurs"     },
 ];
 
 const CARD_ITEMS = [
-  { id: "card-pos",         label: "Positions · Tableau" },
-  { id: "card-twr",         label: "Performance · Évolution du capital" },
-  { id: "card-pie-val",     label: "Performance · Camembert valeur" },
-  { id: "card-pie-inv",     label: "Performance · Camembert investi" },
-  { id: "card-heatmap",     label: "Performance · Carte thermique" },
-  { id: "card-div-chart",   label: "Dividendes · Graphique" },
-  { id: "card-div-list",    label: "Dividendes · Tableau reçus" },
-  { id: "card-tx",          label: "Transactions · Tableau" },
-  { id: "card-wish-action", label: "Wishlist · Actions" },
-  { id: "card-wish-etf",    label: "Wishlist · ETF" },
-  { id: "card-dep",         label: "Dépôts · Tableau" },
-  { id: "card-strat",       label: "Stratégie · Règles" },
-  { id: "card-sim-dca",     label: "Simulateurs · Projection versements" },
-  { id: "card-sim-goal",    label: "Simulateurs · Objectifs" },
-  { id: "card-sim-cmp",     label: "Simulateurs · Comparateur d'actifs" },
+  { id: "card-pos",              label: "Positions · Tableau" },
+  { id: "card-twr",              label: "Performance · Évolution du capital" },
+  { id: "card-pie-val",          label: "Performance · Camembert valeur" },
+  { id: "card-pie-inv",          label: "Performance · Camembert investi" },
+  { id: "card-heatmap",          label: "Performance · Carte thermique" },
+  { id: "card-sector-overview",  label: "Secteurs · Analyse exposition" },
+  { id: "card-sector-positions", label: "Secteurs · Positions par secteur" },
+  { id: "card-div-chart",        label: "Dividendes · Graphique" },
+  { id: "card-div-list",         label: "Dividendes · Tableau reçus" },
+  { id: "card-tx",               label: "Transactions · Tableau" },
+  { id: "card-wish-action",      label: "Wishlist · Actions" },
+  { id: "card-wish-etf",         label: "Wishlist · ETF" },
+  { id: "card-dep",              label: "Dépôts · Tableau" },
+  { id: "card-strat",            label: "Stratégie · Règles" },
+  { id: "card-sim-dca",          label: "Simulateurs · Projection versements" },
+  { id: "card-sim-goal",         label: "Simulateurs · Objectifs" },
+  { id: "card-sim-cmp",          label: "Simulateurs · Comparateur d'actifs" },
 ];
 
 function _setActiveSidebar(id) {
