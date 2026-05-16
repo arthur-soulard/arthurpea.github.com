@@ -1039,6 +1039,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       <thead><tr id="wl-action-headers">
         <th style="text-align:left">Entreprise</th>
         <th style="text-align:left">Ticker</th>
+        <th style="text-align:left">Secteur</th>
         <th style="text-align:center;cursor:pointer" data-sort="stars" onclick="setWlSort('action','stars')">Envie d'achat</th>
         <th>Cours</th>
         <th title="Évolution 30 derniers jours">30j</th>
@@ -1061,6 +1062,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       <thead><tr id="wl-etf-headers">
         <th style="text-align:left">Fonds</th>
         <th style="text-align:left">Ticker</th>
+        <th style="text-align:left">Secteur</th>
         <th style="text-align:center;cursor:pointer" data-sort="stars" onclick="setWlSort('etf','stars')">Envie d'achat</th>
         <th>Cours</th>
         <th title="Évolution 30 derniers jours">30j</th>
@@ -1325,21 +1327,25 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       <div class="fg"><label>Secteur d'activité</label>
         <select id="f-sector" style="background:var(--bg2)">
           <option value="">— Choisir un secteur —</option>
-          <option value="tech">💻 Technologie &amp; Logiciels</option>
-          <option value="sante">⚕ Santé &amp; Pharma</option>
-          <option value="finance">🏦 Finance &amp; Banque &amp; Assurance</option>
-          <option value="industrie">⚙ Industrie &amp; Défense &amp; Aéro</option>
-          <option value="conso">🛒 Consommation courante (FMCG)</option>
-          <option value="luxe">💎 Luxe &amp; Consommation discrétionnaire</option>
-          <option value="energie">⚡ Énergie &amp; Ressources naturelles</option>
-          <option value="materiaux">🔩 Matériaux &amp; Chimie</option>
-          <option value="telecom">📡 Télécommunications</option>
-          <option value="utilities">💧 Services aux collectivités (Utilities)</option>
-          <option value="immobilier">🏢 Immobilier &amp; REIT</option>
-          <option value="transport">🚢 Transport &amp; Logistique</option>
-          <option value="media">🎬 Médias &amp; Divertissement</option>
-          <option value="etf">📊 ETF / Fonds diversifié</option>
-          <option value="autre">○ Autre</option>
+          <option value="tech">Technologie &amp; Logiciels</option>
+          <option value="semico">Semi-conducteurs &amp; Électronique</option>
+          <option value="sante">Santé &amp; Pharma</option>
+          <option value="finance">Finance &amp; Banque &amp; Assurance</option>
+          <option value="industrie">Industrie &amp; Défense &amp; Aéro</option>
+          <option value="automobile">Automobile &amp; Équipementiers</option>
+          <option value="construction">Construction &amp; BTP</option>
+          <option value="conso">Consommation courante (FMCG)</option>
+          <option value="agroalimentaire">Agroalimentaire &amp; Boissons</option>
+          <option value="luxe">Luxe &amp; Consommation discrétionnaire</option>
+          <option value="energie">Énergie &amp; Ressources naturelles</option>
+          <option value="materiaux">Matériaux &amp; Chimie</option>
+          <option value="telecom">Télécommunications</option>
+          <option value="utilities">Services aux collectivités (Utilities)</option>
+          <option value="immobilier">Immobilier &amp; REIT</option>
+          <option value="transport">Transport &amp; Logistique</option>
+          <option value="media">Médias &amp; Divertissement</option>
+          <option value="etf">ETF / Fonds diversifié</option>
+          <option value="autre">Autre</option>
         </select>
       </div>
     </div>
@@ -1410,7 +1416,33 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       </div>
       <div class="fg"><label>Ticker</label><input id="w-ticker" placeholder="EPA:AIR" autocomplete="off"></div>
     </div>
-    <div class="fg"><label>Étoiles (1–5)</label><input id="w-stars" type="number" min="1" max="5" value="3"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Étoiles (1–5)</label><input id="w-stars" type="number" min="1" max="5" value="3"></div>
+      <div class="fg"><label>Secteur d'activité</label>
+        <select id="w-sector" style="background:var(--bg2)">
+          <option value="">— Choisir un secteur —</option>
+          <option value="tech">Technologie &amp; Logiciels</option>
+          <option value="semico">Semi-conducteurs &amp; Électronique</option>
+          <option value="sante">Santé &amp; Pharma</option>
+          <option value="finance">Finance &amp; Banque &amp; Assurance</option>
+          <option value="industrie">Industrie &amp; Défense &amp; Aéro</option>
+          <option value="automobile">Automobile &amp; Équipementiers</option>
+          <option value="construction">Construction &amp; BTP</option>
+          <option value="conso">Consommation courante (FMCG)</option>
+          <option value="agroalimentaire">Agroalimentaire &amp; Boissons</option>
+          <option value="luxe">Luxe &amp; Consommation discrétionnaire</option>
+          <option value="energie">Énergie &amp; Ressources naturelles</option>
+          <option value="materiaux">Matériaux &amp; Chimie</option>
+          <option value="telecom">Télécommunications</option>
+          <option value="utilities">Services aux collectivités (Utilities)</option>
+          <option value="immobilier">Immobilier &amp; REIT</option>
+          <option value="transport">Transport &amp; Logistique</option>
+          <option value="media">Médias &amp; Divertissement</option>
+          <option value="etf">ETF / Fonds diversifié</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
+    </div>
     <div class="mact">
       <button class="btn btn-ghost" onclick="closeOv('ov-wish')">Annuler</button>
       <button class="btn btn-primary" onclick="saveWish()">Ajouter</button>
@@ -1555,21 +1587,25 @@ let _ch = {};
 
 /* ─── Référentiel des secteurs ─── */
 const SECTORS = [
-  { id: "tech",        label: "Technologie",          icon: "💻", color: "#2563eb" },
-  { id: "sante",       label: "Santé & Pharma",        icon: "⚕",  color: "#16a34a" },
-  { id: "finance",     label: "Finance & Banque",      icon: "🏦", color: "#7c3aed" },
-  { id: "industrie",   label: "Industrie & Défense",   icon: "⚙",  color: "#d97706" },
-  { id: "conso",       label: "Conso. courante",       icon: "🛒", color: "#0891b2" },
-  { id: "luxe",        label: "Luxe & Discr.",         icon: "💎", color: "#db2777" },
-  { id: "energie",     label: "Énergie",               icon: "⚡", color: "#ca8a04" },
-  { id: "materiaux",   label: "Matériaux",             icon: "🔩", color: "#71717a" },
-  { id: "telecom",     label: "Télécoms",              icon: "📡", color: "#0284c7" },
-  { id: "utilities",   label: "Services collect.",     icon: "💧", color: "#059669" },
-  { id: "immobilier",  label: "Immobilier",            icon: "🏢", color: "#dc2626" },
-  { id: "transport",   label: "Transport & Logistique",icon: "🚢", color: "#9333ea" },
-  { id: "media",       label: "Médias & Divert.",      icon: "🎬", color: "#ea580c" },
-  { id: "etf",         label: "ETF / Fonds",           icon: "📊", color: "#6366f1" },
-  { id: "autre",       label: "Autre",                 icon: "○",  color: "#a1a1aa" },
+  { id: "tech",            label: "Technologie",          icon: "💻", color: "#2563eb" },
+  { id: "semico",          label: "Semi-conducteurs",     icon: "🔌", color: "#8b5cf6" },
+  { id: "sante",           label: "Santé & Pharma",       icon: "⚕",  color: "#16a34a" },
+  { id: "finance",         label: "Finance & Banque",     icon: "🏦", color: "#7c3aed" },
+  { id: "industrie",       label: "Industrie & Défense",  icon: "⚙",  color: "#d97706" },
+  { id: "automobile",      label: "Automobile",           icon: "🚗", color: "#f97316" },
+  { id: "construction",    label: "Construction & BTP",   icon: "🏗", color: "#92400e" },
+  { id: "conso",           label: "Conso. courante",      icon: "🛒", color: "#0891b2" },
+  { id: "agroalimentaire", label: "Agroalimentaire",      icon: "🌾", color: "#65a30d" },
+  { id: "luxe",            label: "Luxe & Discr.",        icon: "💎", color: "#db2777" },
+  { id: "energie",         label: "Énergie",              icon: "⚡", color: "#ca8a04" },
+  { id: "materiaux",       label: "Matériaux",            icon: "🔩", color: "#71717a" },
+  { id: "telecom",         label: "Télécoms",             icon: "📡", color: "#0284c7" },
+  { id: "utilities",       label: "Services collect.",    icon: "💧", color: "#059669" },
+  { id: "immobilier",      label: "Immobilier",           icon: "🏢", color: "#dc2626" },
+  { id: "transport",       label: "Transport & Logistique",icon: "🚢",color: "#9333ea" },
+  { id: "media",           label: "Médias & Divert.",     icon: "🎬", color: "#ea580c" },
+  { id: "etf",             label: "ETF / Fonds",          icon: "📊", color: "#6366f1" },
+  { id: "autre",           label: "Autre",                icon: "○",  color: "#a1a1aa" },
 ];
 function sectorById(id) {
   return SECTORS.find(s => s.id === id) || { id: "autre", label: "Autre", icon: "○", color: "#a1a1aa" };
@@ -3733,6 +3769,7 @@ function renderWishlist() {
       return `<tr>
         <td><div style="font-weight:600;font-size:13px">${w.name}</div></td>
         <td style="text-align:left"><span style="font-family:var(--mono);font-size:11px;color:var(--txt2)">${w.ticker}</span></td>
+        <td style="text-align:left">${sectorBadgeHtml(w.sector)}</td>
         <td style="text-align:center"><div class="star-row" id="sr-${w.id}">${[1,2,3,4,5].map(n=>`<span class="star${n<=w.stars?" on":""}" onclick="setStars(${w.id},${n})">★</span>`).join("")}</div></td>
         <td>${cours}</td>
         <td>${_renderSparkline(_wsSpark[w.ticker])}</td>
@@ -3742,7 +3779,7 @@ function renderWishlist() {
         <td>${vfmt(v?.y1)}</td>
         <td>${dbtn("delWish",w.id)}</td>
       </tr>`;
-    }).join("")||`<tr><td colspan="${wtype==="action" ? 11 : 9}" style="text-align:center;color:var(--txt2);padding:14px">Aucun élément</td></tr>`;
+    }).join("")||`<tr><td colspan="${wtype==="action" ? 12 : 10}" style="text-align:center;color:var(--txt2);padding:14px">Aucun élément</td></tr>`;
   });
   const t = new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
   const wu = document.getElementById("wish-update");
@@ -5002,6 +5039,7 @@ function openAddWish(list, type) {
   document.getElementById("w-name").placeholder   = type==="etf"?"ex : ETF MSCI World":"ex : Airbus";
   ["w-ticker","w-name"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("w-stars").value=3;
+  document.getElementById("w-sector").value="";
   // Auto-completion : meme systeme que pour les positions
   _wireTickerSearch({
     nameId:    "w-name",
@@ -5021,6 +5059,7 @@ function saveWish() {
   S.wishlist.push({
     id:NID.wish++, ticker, name,
     stars:parseInt(document.getElementById("w-stars").value)||3,
+    sector:document.getElementById("w-sector").value||"",
     list:document.getElementById("w-list").value,
     wtype:document.getElementById("w-type").value||"action"
   });
