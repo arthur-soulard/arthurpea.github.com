@@ -1614,7 +1614,7 @@ function sectorBadgeHtml(id) {
   if (!id) return '<span style="color:var(--txt3);font-size:10px">—</span>';
   const s = sectorById(id);
   const bg = s.color + "22";
-  return `<span class="sector-badge" style="background:${bg};color:${s.color}">${s.icon} ${s.label}</span>`;
+  return `<span class="sector-badge" style="background:${bg};color:${s.color}">${s.label}</span>`;
 }
 let _gsTimer  = null;
 let _wsVar    = {};
@@ -3475,7 +3475,7 @@ function renderTx() {
     fSel.innerHTML = '<option value="">Tous secteurs</option>'
       + usedSectors.map(sid => {
           const s = sectorById(sid);
-          return `<option value="${sid}"${sid===curSec?" selected":""}>${s.icon} ${s.label}</option>`;
+          return `<option value="${sid}"${sid===curSec?" selected":""}>${s.label}</option>`;
         }).join("");
   }
 
