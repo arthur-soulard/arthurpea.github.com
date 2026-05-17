@@ -982,6 +982,55 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   font-size: 10px; font-weight: 700; font-family: var(--mono);
   margin-left: auto;
 }
+
+/* Bandeau récap année */
+.fin-year-header {
+  display: flex; justify-content: center;
+  margin: 1.5rem 0 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--brd2);
+}
+.fin-year-nav { display: flex; align-items: center; gap: 8px; }
+.fin-year-label {
+  font-size: 13px; font-weight: 700; color: var(--txt);
+  font-family: var(--font);
+  min-width: 220px; text-align: center;
+}
+.fin-year-label #fin-year-lbl {
+  font-family: var(--mono); color: var(--accent);
+}
+
+/* Top catégories rows */
+.fin-top-row {
+  display: grid;
+  grid-template-columns: 26px 16px 1fr 1fr 60px 110px;
+  gap: 12px; align-items: center;
+  padding: 10px 4px; border-bottom: 1px dashed var(--brd);
+}
+.fin-top-row:last-child { border-bottom: 0; }
+.fin-top-rank {
+  font-family: var(--mono); font-weight: 700; color: var(--txt2);
+  text-align: center; font-size: 13px;
+}
+.fin-top-color { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+.fin-top-name { font-weight: 600; font-size: 13px; }
+.fin-top-bar-wrap {
+  height: 8px; background: var(--bg4);
+  border-radius: 4px; overflow: hidden;
+}
+.fin-top-bar { height: 100%; border-radius: 4px; transition: width .4s ease; }
+.fin-top-pct {
+  font-family: var(--mono); font-size: 12px;
+  color: var(--txt2); text-align: right;
+}
+.fin-top-amount {
+  font-family: var(--mono); font-weight: 700;
+  text-align: right; color: var(--r);
+}
+@media (max-width: 880px) {
+  .fin-top-row { grid-template-columns: 26px 16px 1fr 70px; }
+  .fin-top-bar-wrap, .fin-top-pct { display: none; }
+}
 </style>
 </head>
 <body>
@@ -1484,6 +1533,56 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       <div class="card-b">
         <div style="position:relative;height:280px"><canvas id="fin-chart-bar"></canvas></div>
       </div>
+    </div>
+  </div>
+
+  <!-- ──────────── RÉCAP DE L'ANNÉE ──────────── -->
+  <div class="fin-year-header">
+    <div class="fin-year-nav">
+      <button class="btn btn-sm btn-ghost" onclick="finChangeYear(-1)" title="Année précédente">←</button>
+      <span class="fin-year-label">Récap de l'année <span id="fin-year-lbl">—</span></span>
+      <button class="btn btn-sm btn-ghost" onclick="finChangeYear(1)" title="Année suivante">→</button>
+      <button class="btn btn-sm btn-ghost" onclick="finGoCurrentYear()" style="margin-left:6px">Cette année</button>
+    </div>
+  </div>
+
+  <!-- KPI annuels -->
+  <div class="card" id="card-fin-year-kpis">
+    <div class="card-h"><span class="card-t">Indicateurs de l'année</span></div>
+    <div class="card-b">
+      <div class="fin-kpis">
+        <div class="fin-kpi fin-kpi-income">
+          <span class="fin-kpi-lbl">Revenus de l'année</span>
+          <span class="fin-kpi-val" id="fin-year-kpi-income">0,00 €</span>
+          <span class="fin-kpi-sub" id="fin-year-kpi-income-sub">—</span>
+        </div>
+        <div class="fin-kpi fin-kpi-expense">
+          <span class="fin-kpi-lbl">Dépenses de l'année</span>
+          <span class="fin-kpi-val" id="fin-year-kpi-expense">0,00 €</span>
+          <span class="fin-kpi-sub" id="fin-year-kpi-expense-sub">—</span>
+        </div>
+        <div class="fin-kpi">
+          <span class="fin-kpi-lbl">Solde net annuel</span>
+          <span class="fin-kpi-val" id="fin-year-kpi-net">+0,00 €</span>
+          <span class="fin-kpi-sub" id="fin-year-kpi-net-sub">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graphique évolution 12 mois -->
+  <div class="card" id="card-fin-year-chart">
+    <div class="card-h"><span class="card-t">Évolution mensuelle</span></div>
+    <div class="card-b">
+      <div style="position:relative;height:300px"><canvas id="fin-chart-year"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Top catégories de dépenses -->
+  <div class="card" id="card-fin-year-top">
+    <div class="card-h"><span class="card-t">Top 5 catégories de dépenses</span></div>
+    <div class="card-b" id="fin-year-top-list">
+      <div class="fin-empty">Aucune dépense cette année.</div>
     </div>
   </div>
 
@@ -7280,6 +7379,9 @@ const CARD_ITEMS = [
   { id: "card-fin-chart-pie",    label: "Mes comptes · Camembert dépenses" },
   { id: "card-fin-chart-bar",    label: "Mes comptes · Revenus vs Dépenses" },
   { id: "card-fin-tx",           label: "Mes comptes · Liste des transactions" },
+  { id: "card-fin-year-kpis",    label: "Mes comptes · Indicateurs de l'année" },
+  { id: "card-fin-year-chart",   label: "Mes comptes · Évolution mensuelle" },
+  { id: "card-fin-year-top",     label: "Mes comptes · Top dépenses (année)" },
 ];
 
 function _setActiveSidebar(id) {
@@ -8040,7 +8142,8 @@ async function _checkForUpdates() {
 
 let F = null;
 let _finMonth = null;
-let _finCharts = { pie: null, bar: null };
+let _finYear = null;
+let _finCharts = { pie: null, bar: null, year: null };
 let _finPendingList = [];
 let _finEditingTxId  = null;
 let _finEditingRecId = null;
@@ -8225,6 +8328,17 @@ function finGoToday() {
   finRenderAll();
 }
 
+// ── Navigation annuelle (récap année indépendant du mois affiché) ──
+function finChangeYear(delta) {
+  if (_finYear == null) _finYear = new Date().getFullYear();
+  _finYear += delta;
+  finRenderYearRecap();
+}
+function finGoCurrentYear() {
+  _finYear = new Date().getFullYear();
+  finRenderYearRecap();
+}
+
 // ── Calculs ──
 function finComputeMonthTotals(y, m) {
   let income = 0, expense = 0, incC = 0, expC = 0;
@@ -8237,15 +8351,125 @@ function finComputeMonthTotals(y, m) {
   return { income, expense, net: income - expense, incCount: incC, expCount: expC };
 }
 
+// ── Calculs annuels (récap année) ──
+function finComputeYearTotals(year) {
+  let income = 0, expense = 0;
+  const monthly = Array.from({length: 12}, () => ({ income: 0, expense: 0 }));
+  const byCatExpense = {};   // categoryId -> sum
+  for (const tx of F.transactions) {
+    if (!tx.date) continue;
+    const [Y, M] = tx.date.split("-").map(Number);
+    if (Y !== year) continue;
+    const v = Number(tx.amount) || 0;
+    if (tx.type === "income") {
+      income += v;
+      monthly[M - 1].income += v;
+    } else {
+      expense += v;
+      monthly[M - 1].expense += v;
+      if (tx.categoryId) byCatExpense[tx.categoryId] = (byCatExpense[tx.categoryId] || 0) + v;
+    }
+  }
+  return { income, expense, net: income - expense, monthly, byCatExpense };
+}
+
 // ── Render orchestrator ──
 function finRenderAll() {
   if (!F || !_finMonth) return;
+  if (_finYear == null) _finYear = new Date().getFullYear();
   finRenderHeader();
   finRenderPending();
   finRenderKpis();
   finRefreshFilters();
   finRenderTxList();
   finRenderCharts();
+  finRenderYearRecap();
+}
+
+function finRenderYearRecap() {
+  if (!F || _finYear == null) return;
+  const lbl = document.getElementById("fin-year-lbl");
+  if (lbl) lbl.textContent = _finYear;
+  const t = finComputeYearTotals(_finYear);
+  finRenderYearKpis(t);
+  finRenderYearChart(t);
+  finRenderYearTop(t);
+}
+
+function finRenderYearKpis(t) {
+  // Moyenne mensuelle calculée sur les mois "avec activité" pour rester pertinent
+  let active = 0;
+  for (const m of t.monthly) if (m.income > 0 || m.expense > 0) active++;
+  const avgI = active ? t.income / active : 0;
+  const avgE = active ? t.expense / active : 0;
+  const avgN = active ? t.net / active : 0;
+
+  document.getElementById("fin-year-kpi-income").textContent      = finFmtAbs(t.income);
+  document.getElementById("fin-year-kpi-income-sub").textContent  = active ? `moy ${finFmtAbs(avgI)} / mois (${active} mois)` : "—";
+  document.getElementById("fin-year-kpi-expense").textContent     = finFmtAbs(t.expense);
+  document.getElementById("fin-year-kpi-expense-sub").textContent = active ? `moy ${finFmtAbs(avgE)} / mois (${active} mois)` : "—";
+
+  const netEl = document.getElementById("fin-year-kpi-net");
+  netEl.textContent = finFmtSigned(t.net);
+  netEl.style.color = t.net > 0 ? "var(--g)" : t.net < 0 ? "var(--r)" : "var(--txt2)";
+  document.getElementById("fin-year-kpi-net-sub").textContent = active ? `moy ${finFmtSigned(avgN)} / mois` : "—";
+}
+
+function finRenderYearChart(t) {
+  const canvas = document.getElementById("fin-chart-year");
+  if (!canvas) return;
+  const months = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Août","Sep","Oct","Nov","Déc"];
+  const txtColor  = getComputedStyle(document.body).getPropertyValue("color") || "#18181b";
+  const gridColor = getComputedStyle(document.documentElement).getPropertyValue("--brd").trim() || "rgba(0,0,0,0.07)";
+
+  if (_finCharts.year) _finCharts.year.destroy();
+  _finCharts.year = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: months,
+      datasets: [
+        { label: "Revenus",  data: t.monthly.map(m => m.income),  backgroundColor: "#16a34a", borderRadius: 4, maxBarThickness: 28 },
+        { label: "Dépenses", data: t.monthly.map(m => m.expense), backgroundColor: "#dc2626", borderRadius: 4, maxBarThickness: 28 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "top", labels: { color: txtColor, boxWidth: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ": " + Number(ctx.raw).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €" } }
+      },
+      scales: {
+        x: { ticks: { color: txtColor }, grid: { display: false } },
+        y: { beginAtZero: true, ticks: { color: txtColor, callback: v => Number(v).toLocaleString("fr-FR") + " €" }, grid: { color: gridColor } }
+      }
+    }
+  });
+}
+
+function finRenderYearTop(t) {
+  const list = document.getElementById("fin-year-top-list");
+  if (!list) return;
+  const total = Object.values(t.byCatExpense).reduce((a, b) => a + b, 0);
+  if (!total) { list.innerHTML = `<div class="fin-empty">Aucune dépense cette année.</div>`; return; }
+
+  const sorted = Object.entries(t.byCatExpense)
+    .map(([id, amount]) => ({ id: Number(id), amount, pct: (amount / total) * 100 }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
+
+  list.innerHTML = sorted.map((entry, i) => {
+    const cat = finCatById(entry.id);
+    if (!cat) return "";
+    const color = cat.color || "#a1a1aa";
+    return `<div class="fin-top-row">
+      <span class="fin-top-rank">${i + 1}</span>
+      <span class="fin-top-color" style="background:${color}"></span>
+      <span class="fin-top-name">${_finEsc(cat.name)}</span>
+      <div class="fin-top-bar-wrap"><div class="fin-top-bar" style="width:${entry.pct.toFixed(1)}%;background:${color}"></div></div>
+      <span class="fin-top-pct">${entry.pct.toFixed(1)}%</span>
+      <span class="fin-top-amount">${finFmtAbs(entry.amount)}</span>
+    </div>`;
+  }).join("");
 }
 
 function finRenderHeader() {
