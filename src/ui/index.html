@@ -1439,42 +1439,47 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   </div>
 
   <!-- Zone "À valider" (visible uniquement si récurrents en attente) -->
-  <div class="card" id="fin-pending-card" style="display:none;border-left:3px solid var(--a)">
+  <div class="card" id="card-fin-pending" style="display:none;border-left:3px solid var(--a)">
     <div class="card-h">
       <span class="card-t" style="color:var(--a)">⚠ Récurrents à valider <span id="fin-pending-count">(0)</span></span>
     </div>
     <div class="card-b" id="fin-pending-list"></div>
   </div>
 
-  <!-- KPIs -->
-  <div class="fin-kpis">
-    <div class="fin-kpi fin-kpi-income">
-      <span class="fin-kpi-lbl">Revenus du mois</span>
-      <span class="fin-kpi-val" id="fin-kpi-income">0,00 €</span>
-      <span class="fin-kpi-sub" id="fin-kpi-income-sub">0 entrée</span>
-    </div>
-    <div class="fin-kpi fin-kpi-expense">
-      <span class="fin-kpi-lbl">Dépenses du mois</span>
-      <span class="fin-kpi-val" id="fin-kpi-expense">0,00 €</span>
-      <span class="fin-kpi-sub" id="fin-kpi-expense-sub">0 entrée</span>
-    </div>
-    <div class="fin-kpi">
-      <span class="fin-kpi-lbl">Solde net</span>
-      <span class="fin-kpi-val" id="fin-kpi-net">+0,00 €</span>
-      <span class="fin-kpi-sub" id="fin-kpi-net-sub">—</span>
+  <!-- KPIs (carte unique pour pouvoir tout masquer d'un coup) -->
+  <div class="card" id="card-fin-kpis">
+    <div class="card-h"><span class="card-t">Indicateurs du mois</span></div>
+    <div class="card-b">
+      <div class="fin-kpis">
+        <div class="fin-kpi fin-kpi-income">
+          <span class="fin-kpi-lbl">Revenus du mois</span>
+          <span class="fin-kpi-val" id="fin-kpi-income">0,00 €</span>
+          <span class="fin-kpi-sub" id="fin-kpi-income-sub">0 entrée</span>
+        </div>
+        <div class="fin-kpi fin-kpi-expense">
+          <span class="fin-kpi-lbl">Dépenses du mois</span>
+          <span class="fin-kpi-val" id="fin-kpi-expense">0,00 €</span>
+          <span class="fin-kpi-sub" id="fin-kpi-expense-sub">0 entrée</span>
+        </div>
+        <div class="fin-kpi">
+          <span class="fin-kpi-lbl">Solde net</span>
+          <span class="fin-kpi-val" id="fin-kpi-net">+0,00 €</span>
+          <span class="fin-kpi-sub" id="fin-kpi-net-sub">—</span>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Graphiques -->
   <div class="fin-charts">
-    <div class="card">
+    <div class="card" id="card-fin-chart-pie">
       <div class="card-h"><span class="card-t">Dépenses par catégorie</span></div>
       <div class="card-b">
         <div style="position:relative;height:280px"><canvas id="fin-chart-pie"></canvas></div>
         <div class="fin-empty" id="fin-chart-pie-empty" style="display:none">Aucune dépense ce mois-ci.</div>
       </div>
     </div>
-    <div class="card">
+    <div class="card" id="card-fin-chart-bar">
       <div class="card-h"><span class="card-t">Revenus vs Dépenses</span></div>
       <div class="card-b">
         <div style="position:relative;height:280px"><canvas id="fin-chart-bar"></canvas></div>
@@ -1483,7 +1488,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   </div>
 
   <!-- Liste transactions -->
-  <div class="card">
+  <div class="card" id="card-fin-tx">
     <div class="card-h" style="flex-wrap:wrap;gap:8px">
       <span class="card-t">Transactions du mois</span>
       <div class="fin-tx-filters">
@@ -7238,16 +7243,17 @@ document.addEventListener("DOMContentLoaded", ()=>{
 ══════════════════════════════════════════════════ */
 
 const SIDEBAR_ITEMS = [
-  { id: "dash",   icon: "⊞", label: "Vue d'ensemble" },
-  { id: "pos",    icon: "■", label: "Positions"       },
-  { id: "perf",   icon: "↗", label: "Performance"     },
-  { id: "sector", icon: "⬡", label: "Secteurs"        },
-  { id: "div",    icon: "€", label: "Dividendes"      },
-  { id: "tx",     icon: "⇄", label: "Transactions"    },
-  { id: "wish",   icon: "☆", label: "Wishlist"        },
-  { id: "dep",    icon: "⊕", label: "Dépôts"          },
-  { id: "strat",  icon: "≡", label: "Stratégie"       },
-  { id: "sim",    icon: "ƒ", label: "Simulateurs"     },
+  { id: "dash",     icon: "⊞", label: "Vue d'ensemble", section: "Suivi PEA" },
+  { id: "pos",      icon: "■", label: "Positions",      section: "Suivi PEA" },
+  { id: "perf",     icon: "↗", label: "Performance",    section: "Suivi PEA" },
+  { id: "sector",   icon: "⬡", label: "Secteurs",       section: "Suivi PEA" },
+  { id: "div",      icon: "€", label: "Dividendes",     section: "Suivi PEA" },
+  { id: "tx",       icon: "⇄", label: "Transactions",   section: "Suivi PEA" },
+  { id: "wish",     icon: "☆", label: "Wishlist",       section: "Suivi PEA" },
+  { id: "dep",      icon: "⊕", label: "Dépôts",         section: "Suivi PEA" },
+  { id: "strat",    icon: "≡", label: "Stratégie",      section: "Suivi PEA" },
+  { id: "sim",      icon: "ƒ", label: "Simulateurs",    section: "Suivi PEA" },
+  { id: "finances", icon: "◈", label: "Mes comptes",    section: "Finances perso" },
 ];
 
 const CARD_ITEMS = [
@@ -7268,6 +7274,12 @@ const CARD_ITEMS = [
   { id: "card-sim-dca",          label: "Simulateurs · Projection versements" },
   { id: "card-sim-goal",         label: "Simulateurs · Objectifs" },
   { id: "card-sim-cmp",          label: "Simulateurs · Comparateur d'actifs" },
+  // ── Mes comptes (finances perso) ──
+  { id: "card-fin-pending",      label: "Mes comptes · Récurrents à valider" },
+  { id: "card-fin-kpis",         label: "Mes comptes · Indicateurs du mois" },
+  { id: "card-fin-chart-pie",    label: "Mes comptes · Camembert dépenses" },
+  { id: "card-fin-chart-bar",    label: "Mes comptes · Revenus vs Dépenses" },
+  { id: "card-fin-tx",           label: "Mes comptes · Liste des transactions" },
 ];
 
 function _setActiveSidebar(id) {
@@ -7306,10 +7318,15 @@ function _injectTitlebar() {
 
 function _injectSidebar() {
   const hidden = (S.uiPrefs && S.uiPrefs.hiddenSidebar) || [];
-  let html = `<aside class="sidebar" id="pea-sidebar">
-    <div class="sb-section-lbl">Suivi PEA</div>`;
+  let html = `<aside class="sidebar" id="pea-sidebar">`;
+  let lastSection = null;
   SIDEBAR_ITEMS.forEach(it => {
     if (hidden.includes(it.id)) return;
+    const sec = it.section || "Suivi";
+    if (sec !== lastSection) {
+      html += `<div class="sb-section-lbl"${lastSection ? ' style="margin-top:8px"' : ''}>${sec}</div>`;
+      lastSection = sec;
+    }
     html += `<button class="sb-item" data-tab="${it.id}">
                <span class="sb-icon">${it.icon}</span>
                <span>${it.label}</span>
@@ -7317,11 +7334,6 @@ function _injectSidebar() {
              </button>`;
   });
   html += `
-    <div class="sb-section-lbl" style="margin-top:8px">Finances perso</div>
-    <button class="sb-item" data-tab="finances">
-      <span class="sb-icon">◈</span>
-      <span>Mes comptes</span>
-    </button>
     <div class="sb-bottom">
       <button class="sb-item" id="sb-theme">
         <span class="sb-icon">☾</span><span id="sb-theme-lbl">Thème sombre</span>
@@ -8259,9 +8271,14 @@ function finRenderKpis() {
 }
 
 function finRenderPending() {
-  const card = document.getElementById("fin-pending-card");
+  const card = document.getElementById("card-fin-pending");
   const list = document.getElementById("fin-pending-list");
-  if (!_finPendingList.length) { card.style.display = "none"; return; }
+  // Respecte le masquage manuel via le bouton œil
+  const hidden = (S && S.uiPrefs && S.uiPrefs.hiddenCards) || [];
+  if (hidden.includes("card-fin-pending") || !_finPendingList.length) {
+    card.style.display = "none";
+    return;
+  }
   card.style.display = "";
   document.getElementById("fin-pending-count").textContent = "(" + _finPendingList.length + ")";
 
