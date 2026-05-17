@@ -25,11 +25,12 @@ import webview                        # pywebview
 
 import server
 import storage
+import finances
 import notifications
 
 
 APP_NAME    = "Suivi PEA"
-APP_VERSION = "3.4.4"
+APP_VERSION = "3.5.0"
 SINGLE_INSTANCE_PORT = 50317          # port arbitraire pour le verrou single-instance
 WINDOW_DEFAULT_SIZE  = (1280, 800)
 WINDOW_MIN_SIZE      = (960, 640)
@@ -142,6 +143,21 @@ class Api:
             d["uiPrefs"] = prefs or {}
             storage.save_data(d)
             return {"ok": True, "uiPrefs": d["uiPrefs"]}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # -- Finances perso (commun a tous les profils PEA) -------------------
+
+    def load_finances(self) -> dict:
+        try:
+            return {"ok": True, "data": finances.load_data()}
+        except Exception as e:
+            return {"ok": False, "error": str(e), "trace": traceback.format_exc()}
+
+    def save_finances(self, data: dict) -> dict:
+        try:
+            finances.save_data(data or {})
+            return {"ok": True}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 

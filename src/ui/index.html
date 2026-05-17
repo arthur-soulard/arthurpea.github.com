@@ -761,6 +761,227 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 .sec-detail-card-icon { font-size: 18px; }
 .sec-detail-card-name { font-weight: 700; font-size: 14px; }
 .sec-detail-card-pct  { font-family: var(--mono); font-weight: 700; font-size: 13px; margin-left: auto; }
+
+/* ══════════════════════════════════════════════════
+   FINANCES PERSO — module "Mes comptes"
+══════════════════════════════════════════════════ */
+
+/* Header (mois + bilan + actions) */
+.fin-header {
+  display: grid; grid-template-columns: auto 1fr auto;
+  gap: 1.5rem; align-items: center;
+  background: var(--bg2); border: 1px solid var(--brd);
+  border-radius: var(--radl); padding: 1rem 1.2rem;
+  margin-bottom: 1rem; box-shadow: var(--sh);
+}
+.fin-month-nav { display: flex; align-items: center; gap: 8px; }
+.fin-month-label {
+  font-family: var(--mono); font-size: 14px; font-weight: 700;
+  min-width: 130px; text-align: center;
+}
+.fin-balance { display: flex; flex-direction: column; align-items: center; }
+.fin-balance-lbl {
+  font-size: 9px; font-weight: 700; color: var(--txt2);
+  text-transform: uppercase; letter-spacing: .09em; margin-bottom: 2px;
+}
+.fin-balance-val {
+  font-family: var(--mono); font-size: 24px; font-weight: 800;
+  letter-spacing: -.5px;
+}
+.fin-balance-val.pos { color: var(--g); }
+.fin-balance-val.neg { color: var(--r); }
+.fin-balance-val.neu { color: var(--txt2); }
+.fin-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 1080px) {
+  .fin-header { grid-template-columns: 1fr; gap: 12px; }
+  .fin-actions { justify-content: center; }
+}
+
+/* KPIs */
+.fin-kpis {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 14px; margin-bottom: 1rem;
+}
+@media (max-width: 880px) { .fin-kpis { grid-template-columns: 1fr; } }
+.fin-kpi {
+  background: var(--bg2); border: 1px solid var(--brd);
+  border-radius: var(--radl); padding: 1rem 1.2rem;
+  box-shadow: var(--sh);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.fin-kpi-lbl {
+  font-size: 9px; font-weight: 700; color: var(--txt2);
+  text-transform: uppercase; letter-spacing: .09em;
+}
+.fin-kpi-val {
+  font-family: var(--mono); font-size: 20px; font-weight: 800;
+  letter-spacing: -.4px; line-height: 1.15;
+}
+.fin-kpi-sub { font-size: 11px; color: var(--txt3); font-family: var(--mono); }
+.fin-kpi-income .fin-kpi-val { color: var(--g); }
+.fin-kpi-expense .fin-kpi-val { color: var(--r); }
+
+/* Charts */
+.fin-charts {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 14px; margin-bottom: 1rem;
+}
+@media (max-width: 880px) { .fin-charts { grid-template-columns: 1fr; } }
+
+/* Filtres */
+.fin-tx-filters { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.fin-input-sm {
+  background: var(--bg3); border: 1px solid var(--brd2);
+  border-radius: var(--rad); padding: 5px 9px;
+  font-size: 11px; color: var(--txt); font-family: var(--font);
+}
+.fin-input-sm:focus { outline: none; border-color: var(--accent); }
+
+/* Liste transactions */
+.fin-tx-row {
+  display: grid;
+  grid-template-columns: 76px 1fr 130px 110px 100px 60px;
+  gap: 10px; align-items: center;
+  padding: 9px 6px; border-bottom: 1px dashed var(--brd);
+  font-size: 12px;
+}
+.fin-tx-row:hover { background: var(--bg3); }
+.fin-tx-row:last-child { border-bottom: 0; }
+.fin-tx-date { font-family: var(--mono); font-size: 11px; color: var(--txt2); }
+.fin-tx-label { font-weight: 600; }
+.fin-tx-meta  { font-size: 10px; color: var(--txt3); font-family: var(--mono); margin-top: 2px; }
+.fin-tx-cat-pill {
+  display: inline-block; padding: 2px 9px; border-radius: 99px;
+  font-size: 10px; font-weight: 700; white-space: nowrap;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+}
+.fin-tx-source { font-size: 11px; color: var(--txt2); font-family: var(--mono); }
+.fin-tx-amount { font-family: var(--mono); font-weight: 700; font-size: 13px; text-align: right; white-space: nowrap; }
+.fin-tx-amount.income  { color: var(--g); }
+.fin-tx-amount.expense { color: var(--r); }
+.fin-tx-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.fin-tx-act-btn {
+  width: 24px; height: 24px; border-radius: 5px;
+  background: transparent; border: 1px solid var(--brd2); color: var(--txt2);
+  cursor: pointer; font-size: 11px; display: inline-flex;
+  align-items: center; justify-content: center;
+}
+.fin-tx-act-btn:hover { background: var(--bg3); color: var(--txt); }
+.fin-tx-act-btn.del:hover { background: var(--r2); color: var(--r); border-color: var(--r); }
+
+/* En-tête liste transactions */
+.fin-tx-head {
+  display: grid;
+  grid-template-columns: 76px 1fr 130px 110px 100px 60px;
+  gap: 10px; padding: 6px;
+  font-size: 9px; font-weight: 700; color: var(--txt2);
+  text-transform: uppercase; letter-spacing: .08em;
+  border-bottom: 1px solid var(--brd);
+}
+
+.fin-empty {
+  text-align: center; color: var(--txt3);
+  padding: 32px 0; font-size: 13px;
+}
+
+/* Zone "à valider" */
+.fin-pending-row {
+  display: grid;
+  grid-template-columns: 78px 1fr 140px 120px auto;
+  gap: 10px; align-items: center;
+  padding: 10px 4px; border-bottom: 1px dashed var(--brd);
+}
+.fin-pending-row:last-child { border-bottom: 0; }
+.fin-pending-amount-input {
+  width: 100px; background: var(--bg3); border: 1px solid var(--brd2);
+  border-radius: var(--rad); padding: 5px 8px; font-size: 12px;
+  font-family: var(--mono); color: var(--txt); text-align: right;
+}
+.fin-pending-amount-input:focus { outline: none; border-color: var(--accent); }
+
+/* Modale gestion catégories */
+.fin-cat-block {
+  background: var(--bg3); border: 1px solid var(--brd);
+  border-radius: var(--rad); padding: .6rem .8rem; margin-bottom: .5rem;
+}
+.fin-cat-head {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.fin-cat-color-dot {
+  width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+}
+.fin-cat-name { font-weight: 700; font-size: 13px; flex: 1; }
+.fin-cat-type-pill {
+  font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 99px;
+  text-transform: uppercase; letter-spacing: .07em;
+}
+.fin-cat-type-pill.expense { background: var(--r2); color: var(--r); }
+.fin-cat-type-pill.income  { background: var(--g2); color: var(--g); }
+.fin-sub-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 0; font-size: 12px;
+}
+.fin-sub-row .fin-sub-name { flex: 1; color: var(--txt2); }
+
+.fin-add-line {
+  display: flex; gap: 6px; align-items: center;
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px dashed var(--brd);
+}
+.fin-add-line input, .fin-add-line select {
+  flex: 1; background: var(--bg2); border: 1px solid var(--brd2);
+  border-radius: var(--rad); padding: 6px 9px; font-size: 11px;
+  color: var(--txt); font-family: var(--font);
+}
+
+/* Modale récurrents */
+.fin-rec-row {
+  display: grid;
+  grid-template-columns: 1fr 110px 130px 100px auto;
+  gap: 10px; align-items: center;
+  padding: 9px 4px; border-bottom: 1px dashed var(--brd);
+  font-size: 12px;
+}
+.fin-rec-row:last-child { border-bottom: 0; }
+.fin-rec-name { font-weight: 600; }
+.fin-rec-meta { font-size: 10px; color: var(--txt3); font-family: var(--mono); margin-top: 2px; }
+.fin-rec-pill {
+  font-size: 10px; padding: 2px 7px; border-radius: 99px;
+  background: var(--bg4); color: var(--txt2); font-weight: 600;
+}
+.fin-rec-pill.fixed    { background: var(--b2); color: var(--b); }
+.fin-rec-pill.variable { background: var(--a2); color: var(--a); }
+.fin-rec-pill.paused   { background: var(--bg4); color: var(--txt3); }
+
+/* Sources : ligne simple */
+.fin-src-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px; align-items: center;
+  padding: 8px 4px; border-bottom: 1px dashed var(--brd);
+}
+.fin-src-row:last-child { border-bottom: 0; }
+
+/* Tab interne (radio Dépense/Revenu) */
+.fin-toggle {
+  display: inline-flex; gap: 0;
+  background: var(--bg3); border: 1px solid var(--brd);
+  border-radius: var(--rad); padding: 3px;
+}
+.fin-toggle-btn {
+  padding: 6px 14px; border: 0; background: transparent;
+  font-size: 12px; font-weight: 600; color: var(--txt2);
+  border-radius: 5px; cursor: pointer; transition: all .15s;
+}
+.fin-toggle-btn.active { background: var(--bg2); color: var(--txt); box-shadow: var(--sh); }
+
+/* Badge sidebar (récurrents en attente) */
+.sb-badge {
+  background: var(--a); color: #fff;
+  border-radius: 99px; padding: 1px 7px;
+  font-size: 10px; font-weight: 700; font-family: var(--mono);
+  margin-left: auto;
+}
 </style>
 </head>
 <body>
@@ -1193,7 +1414,303 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   </div>
 </div>
 
+<!-- ═══════════════════ MES COMPTES (FINANCES PERSO) ═══════════════════ -->
+<div class="pane" id="pane-finances">
+
+  <!-- Header : navigateur mois + bilan + actions -->
+  <div class="fin-header">
+    <div class="fin-month-nav">
+      <button class="btn btn-sm btn-ghost" onclick="finChangeMonth(-1)" title="Mois précédent">←</button>
+      <span class="fin-month-label" id="fin-month-lbl">—</span>
+      <button class="btn btn-sm btn-ghost" onclick="finChangeMonth(1)" title="Mois suivant">→</button>
+      <button class="btn btn-sm btn-ghost" onclick="finGoToday()" title="Mois courant" style="margin-left:6px">Aujourd'hui</button>
+    </div>
+    <div class="fin-balance">
+      <span class="fin-balance-lbl">Bilan du mois</span>
+      <span class="fin-balance-val neu" id="fin-balance-val">+0,00 €</span>
+    </div>
+    <div class="fin-actions">
+      <button class="btn btn-primary"  onclick="finOpenTx('expense')">+ Dépense</button>
+      <button class="btn btn-primary"  onclick="finOpenTx('income')">+ Revenu</button>
+      <button class="btn btn-ghost"    onclick="finOpenRecurrences()">↻ Récurrents</button>
+      <button class="btn btn-ghost"    onclick="finOpenCategories()">▦ Catégories</button>
+      <button class="btn btn-ghost"    onclick="finOpenSources()">⊳ Sources</button>
+    </div>
+  </div>
+
+  <!-- Zone "À valider" (visible uniquement si récurrents en attente) -->
+  <div class="card" id="fin-pending-card" style="display:none;border-left:3px solid var(--a)">
+    <div class="card-h">
+      <span class="card-t" style="color:var(--a)">⚠ Récurrents à valider <span id="fin-pending-count">(0)</span></span>
+    </div>
+    <div class="card-b" id="fin-pending-list"></div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="fin-kpis">
+    <div class="fin-kpi fin-kpi-income">
+      <span class="fin-kpi-lbl">Revenus du mois</span>
+      <span class="fin-kpi-val" id="fin-kpi-income">0,00 €</span>
+      <span class="fin-kpi-sub" id="fin-kpi-income-sub">0 entrée</span>
+    </div>
+    <div class="fin-kpi fin-kpi-expense">
+      <span class="fin-kpi-lbl">Dépenses du mois</span>
+      <span class="fin-kpi-val" id="fin-kpi-expense">0,00 €</span>
+      <span class="fin-kpi-sub" id="fin-kpi-expense-sub">0 entrée</span>
+    </div>
+    <div class="fin-kpi">
+      <span class="fin-kpi-lbl">Solde net</span>
+      <span class="fin-kpi-val" id="fin-kpi-net">+0,00 €</span>
+      <span class="fin-kpi-sub" id="fin-kpi-net-sub">—</span>
+    </div>
+  </div>
+
+  <!-- Graphiques -->
+  <div class="fin-charts">
+    <div class="card">
+      <div class="card-h"><span class="card-t">Dépenses par catégorie</span></div>
+      <div class="card-b">
+        <div style="position:relative;height:280px"><canvas id="fin-chart-pie"></canvas></div>
+        <div class="fin-empty" id="fin-chart-pie-empty" style="display:none">Aucune dépense ce mois-ci.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span class="card-t">Revenus vs Dépenses</span></div>
+      <div class="card-b">
+        <div style="position:relative;height:280px"><canvas id="fin-chart-bar"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste transactions -->
+  <div class="card">
+    <div class="card-h" style="flex-wrap:wrap;gap:8px">
+      <span class="card-t">Transactions du mois</span>
+      <div class="fin-tx-filters">
+        <input id="fin-search" type="text" placeholder="Rechercher…" class="fin-input-sm" oninput="finRenderTxList()">
+        <select id="fin-filter-cat" class="fin-input-sm" onchange="finRenderTxList()">
+          <option value="">Toutes catégories</option>
+        </select>
+        <select id="fin-filter-src" class="fin-input-sm" onchange="finRenderTxList()">
+          <option value="">Toutes sources</option>
+        </select>
+      </div>
+    </div>
+    <div class="fin-tx-head">
+      <span>Date</span><span>Libellé</span><span>Catégorie</span><span>Source</span><span style="text-align:right">Montant</span><span></span>
+    </div>
+    <div class="card-b" style="padding:0 1rem">
+      <div id="fin-tx-list"><div class="fin-empty">Aucune transaction ce mois-ci.</div></div>
+    </div>
+  </div>
+
+</div>
+<!-- ═══════════════════ /MES COMPTES ═══════════════════ -->
+
 </div><!-- /wrap -->
+
+<!-- ════════════ MODALES MES COMPTES ════════════ -->
+
+<!-- Modale : Ajouter/Modifier une transaction -->
+<div class="ov" id="ov-fin-tx" onclick="if(event.target===this)closeOv('ov-fin-tx')">
+  <div class="modal" style="max-width:500px">
+    <h2 id="fin-tx-title">Nouvelle dépense</h2>
+
+    <div class="fg">
+      <label>Type</label>
+      <div class="fin-toggle">
+        <button type="button" class="fin-toggle-btn"        id="fin-tx-type-expense" onclick="finSetTxType('expense')">Dépense</button>
+        <button type="button" class="fin-toggle-btn active" id="fin-tx-type-income"  onclick="finSetTxType('income')">Revenu</button>
+      </div>
+    </div>
+
+    <div class="fg-row">
+      <div class="fg">
+        <label>Date</label>
+        <input id="fin-tx-date" type="date">
+      </div>
+      <div class="fg">
+        <label>Montant (€)</label>
+        <input id="fin-tx-amount" type="number" step="0.01" placeholder="0.00">
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Libellé</label>
+      <input id="fin-tx-label" type="text" placeholder="Ex. Courses Carrefour, Salaire mai…">
+    </div>
+
+    <div class="fg-row">
+      <div class="fg">
+        <label>Catégorie</label>
+        <select id="fin-tx-cat" onchange="finRefreshSubs('fin-tx-cat','fin-tx-sub')"></select>
+      </div>
+      <div class="fg">
+        <label>Sous-catégorie</label>
+        <select id="fin-tx-sub"></select>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Source de paiement</label>
+      <select id="fin-tx-src"></select>
+    </div>
+
+    <div class="fg">
+      <label>Note (optionnel)</label>
+      <input id="fin-tx-note" type="text" placeholder="Détail libre…">
+    </div>
+
+    <div class="mact">
+      <button class="btn btn-ghost" onclick="closeOv('ov-fin-tx')">Annuler</button>
+      <button class="btn btn-primary" id="fin-tx-save-btn" onclick="finSaveTx()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale : Gérer les catégories -->
+<div class="ov" id="ov-fin-cats" onclick="if(event.target===this)closeOv('ov-fin-cats')">
+  <div class="modal" style="max-width:620px">
+    <h2>▦ Gérer les catégories</h2>
+
+    <div class="fg">
+      <label>Filtrer</label>
+      <div class="fin-toggle">
+        <button type="button" class="fin-toggle-btn active" id="fin-catf-expense" onclick="finCatsFilter('expense')">Dépenses</button>
+        <button type="button" class="fin-toggle-btn"        id="fin-catf-income"  onclick="finCatsFilter('income')">Revenus</button>
+      </div>
+    </div>
+
+    <div id="fin-cats-list" style="max-height:55vh;overflow-y:auto;padding-right:6px"></div>
+
+    <div class="fin-add-line">
+      <input id="fin-newcat-name" type="text" placeholder="Nouvelle catégorie…">
+      <input id="fin-newcat-color" type="color" value="#7c3aed" style="width:38px;height:34px;padding:2px;cursor:pointer">
+      <button class="btn btn-primary btn-sm" onclick="finAddCategory()">+ Ajouter</button>
+    </div>
+
+    <div class="mact">
+      <button class="btn btn-ghost" onclick="closeOv('ov-fin-cats')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale : Gérer les sources de paiement -->
+<div class="ov" id="ov-fin-srcs" onclick="if(event.target===this)closeOv('ov-fin-srcs')">
+  <div class="modal" style="max-width:460px">
+    <h2>⊳ Sources de paiement</h2>
+
+    <div id="fin-srcs-list" style="max-height:55vh;overflow-y:auto;padding-right:6px"></div>
+
+    <div class="fin-add-line">
+      <input id="fin-newsrc-name" type="text" placeholder="Ex. Compte joint, Revolut…">
+      <button class="btn btn-primary btn-sm" onclick="finAddSource()">+ Ajouter</button>
+    </div>
+
+    <div class="mact">
+      <button class="btn btn-ghost" onclick="closeOv('ov-fin-srcs')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale : Gérer les récurrents -->
+<div class="ov" id="ov-fin-recs" onclick="if(event.target===this)closeOv('ov-fin-recs')">
+  <div class="modal" style="max-width:680px">
+    <h2 style="display:flex;justify-content:space-between;align-items:center">
+      <span>↻ Transactions récurrentes</span>
+      <button class="btn btn-primary btn-sm" onclick="finOpenRecEdit()">+ Nouveau</button>
+    </h2>
+    <div id="fin-recs-list" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="mact">
+      <button class="btn btn-ghost" onclick="closeOv('ov-fin-recs')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale : Ajouter/Modifier un récurrent -->
+<div class="ov" id="ov-fin-rec-edit" onclick="if(event.target===this)closeOv('ov-fin-rec-edit')">
+  <div class="modal" style="max-width:520px">
+    <h2 id="fin-rec-title">Nouvelle transaction récurrente</h2>
+
+    <div class="fg">
+      <label>Type</label>
+      <div class="fin-toggle">
+        <button type="button" class="fin-toggle-btn"        id="fin-rec-type-expense" onclick="finSetRecType('expense')">Dépense</button>
+        <button type="button" class="fin-toggle-btn active" id="fin-rec-type-income"  onclick="finSetRecType('income')">Revenu</button>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Libellé</label>
+      <input id="fin-rec-label" type="text" placeholder="Ex. Loyer, Netflix, Salaire…">
+    </div>
+
+    <div class="fg-row">
+      <div class="fg">
+        <label>Montant (€)</label>
+        <input id="fin-rec-amount" type="number" step="0.01" placeholder="0.00">
+      </div>
+      <div class="fg">
+        <label>Mode</label>
+        <select id="fin-rec-mode">
+          <option value="fixed">Fixe (auto)</option>
+          <option value="variable">Variable (à valider)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="fg-row">
+      <div class="fg">
+        <label>Catégorie</label>
+        <select id="fin-rec-cat" onchange="finRefreshSubs('fin-rec-cat','fin-rec-sub')"></select>
+      </div>
+      <div class="fg">
+        <label>Sous-catégorie</label>
+        <select id="fin-rec-sub"></select>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Source de paiement</label>
+      <select id="fin-rec-src"></select>
+    </div>
+
+    <div class="fg-row">
+      <div class="fg">
+        <label>Fréquence</label>
+        <select id="fin-rec-freq" onchange="finOnFreqChange()">
+          <option value="monthly-dom">Tous les mois — jour précis</option>
+          <option value="weekly">Toutes les semaines</option>
+          <option value="monthly">Tous les mois (à partir d'une date)</option>
+          <option value="quarterly">Tous les 3 mois</option>
+          <option value="yearly">Tous les ans</option>
+        </select>
+      </div>
+      <div class="fg" id="fin-rec-dom-wrap">
+        <label>Jour du mois</label>
+        <input id="fin-rec-dom" type="number" min="1" max="31" value="1">
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Date de début</label>
+      <input id="fin-rec-start" type="date">
+    </div>
+
+    <div class="fg">
+      <label>Note (optionnel)</label>
+      <input id="fin-rec-note" type="text" placeholder="Détail libre…">
+    </div>
+
+    <div class="mact" style="justify-content:space-between">
+      <button class="btn btn-ghost" id="fin-rec-del-btn" onclick="finDeleteRec()" style="color:var(--r);display:none">Supprimer</button>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn btn-ghost" onclick="closeOv('ov-fin-rec-edit')">Annuler</button>
+        <button class="btn btn-primary" id="fin-rec-save-btn" onclick="finSaveRec()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Modal : Ajouter/Modifier règle stratégie -->
 <div class="ov" id="ov-rule" onclick="if(event.target===this)closeOv('ov-rule')">
@@ -6790,7 +7307,7 @@ function _injectTitlebar() {
 function _injectSidebar() {
   const hidden = (S.uiPrefs && S.uiPrefs.hiddenSidebar) || [];
   let html = `<aside class="sidebar" id="pea-sidebar">
-    <div class="sb-section-lbl">Suivi</div>`;
+    <div class="sb-section-lbl">Suivi PEA</div>`;
   SIDEBAR_ITEMS.forEach(it => {
     if (hidden.includes(it.id)) return;
     html += `<button class="sb-item" data-tab="${it.id}">
@@ -6800,6 +7317,11 @@ function _injectSidebar() {
              </button>`;
   });
   html += `
+    <div class="sb-section-lbl" style="margin-top:8px">Finances perso</div>
+    <button class="sb-item" data-tab="finances">
+      <span class="sb-icon">◈</span>
+      <span>Mes comptes</span>
+    </button>
     <div class="sb-bottom">
       <button class="sb-item" id="sb-theme">
         <span class="sb-icon">☾</span><span id="sb-theme-lbl">Thème sombre</span>
@@ -7500,6 +8022,867 @@ async function _checkForUpdates() {
   }
 }
 
+/* ════════════════════════════════════════════════════════
+   MES COMPTES (FINANCES PERSO) — module
+════════════════════════════════════════════════════════ */
+
+let F = null;
+let _finMonth = null;
+let _finCharts = { pie: null, bar: null };
+let _finPendingList = [];
+let _finEditingTxId  = null;
+let _finEditingRecId = null;
+let _finCatFilter    = "expense";
+let _finTxModalType  = "expense";
+let _finRecModalType = "expense";
+let _finBootstrapped = false;
+let _finSaveTimer    = null;
+
+async function finLoad() {
+  if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.load_finances) {
+    return false;
+  }
+  try {
+    const r = await window.pywebview.api.load_finances();
+    if (!r || !r.ok) return false;
+    F = r.data || {};
+    F.categories   = F.categories   || [];
+    F.sources      = F.sources      || [];
+    F.transactions = F.transactions || [];
+    F.recurrences  = F.recurrences  || [];
+    F._nid = F._nid || { tx: 1, cat: 1, sub: 1, src: 1, rec: 1 };
+    return true;
+  } catch (e) { console.warn("[fin] load KO:", e); return false; }
+}
+
+function finPersist() {
+  if (!F) return;
+  if (_finSaveTimer) clearTimeout(_finSaveTimer);
+  _finSaveTimer = setTimeout(async () => {
+    try {
+      if (window.pywebview && window.pywebview.api && window.pywebview.api.save_finances) {
+        await window.pywebview.api.save_finances(F);
+      }
+    } catch(e) { console.warn("[fin] save KO:", e); }
+  }, 400);
+}
+
+// ── Helpers ──
+function _finEsc(s) {
+  if (!s) return "";
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function _finParseISO(s) {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+function _finDateToISO(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+function _finDateToFR(iso) {
+  if (!iso) return "—";
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+function _finLastDayOfMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
+function _finAdvanceDue(date, rec) {
+  const d = new Date(date);
+  const freq = rec.frequency;
+  if (freq === "weekly")    { d.setDate(d.getDate() + 7); return d; }
+  if (freq === "quarterly") { d.setMonth(d.getMonth() + 3); return d; }
+  if (freq === "yearly")    { d.setFullYear(d.getFullYear() + 1); return d; }
+  if (freq === "monthly-dom") {
+    const dom = rec.dayOfMonth || 1;
+    d.setDate(1);
+    d.setMonth(d.getMonth() + 1);
+    const last = _finLastDayOfMonth(d.getFullYear(), d.getMonth());
+    d.setDate(Math.min(dom, last));
+    return d;
+  }
+  // "monthly" simple
+  d.setMonth(d.getMonth() + 1);
+  return d;
+}
+function finFmtAbs(amount) {
+  return Math.abs(amount).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+}
+function finFmtSigned(amount) {
+  return (amount >= 0 ? "+" : "−") + finFmtAbs(amount);
+}
+function finUid(kind) {
+  F._nid = F._nid || { tx: 1, cat: 1, sub: 1, src: 1, rec: 1 };
+  const id = F._nid[kind] || 1;
+  F._nid[kind] = id + 1;
+  return id;
+}
+function finMonthLabel(y, m) {
+  const months = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+  return months[m] + " " + y;
+}
+function finTxIsInMonth(tx, y, m) {
+  if (!tx.date) return false;
+  const [Y, M] = tx.date.split("-").map(Number);
+  return Y === y && M === (m + 1);
+}
+function finCatById(id) { return F.categories.find(c => c.id === id); }
+function finSubById(catId, subId) {
+  const c = finCatById(catId);
+  if (!c) return null;
+  return (c.subs || []).find(s => s.id === subId);
+}
+function finSrcById(id) { return F.sources.find(s => s.id === id); }
+function finRecById(id) { return F.recurrences.find(r => r.id === id); }
+
+// ── Récurrents : process + pending list ──
+function finProcessRecurrences() {
+  if (!F || !F.recurrences) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  let mutated = false;
+
+  // 1. Auto-crée les fixes en retard et avance leur nextDue
+  for (const r of F.recurrences) {
+    if (r.status === "paused") continue;
+    if (!r.nextDue) {
+      r.nextDue = r.startDate || _finDateToISO(today);
+      mutated = true;
+    }
+    if (r.amountMode !== "fixed") continue;
+    let due = _finParseISO(r.nextDue);
+    while (due <= today) {
+      finCreateTxFromRec(r, _finDateToISO(due), r.amount);
+      const next = _finAdvanceDue(due, r);
+      r.nextDue = _finDateToISO(next);
+      due = next;
+      mutated = true;
+    }
+  }
+  if (mutated) finPersist();
+
+  // 2. Liste des occurrences variables en attente (sans persister)
+  _finPendingList = [];
+  for (const r of F.recurrences) {
+    if (r.status === "paused" || r.amountMode !== "variable") continue;
+    if (!r.nextDue) continue;
+    let due = _finParseISO(r.nextDue);
+    // Limite défensive : max 12 occurrences en attente par récurrent
+    let n = 0;
+    while (due <= today && n < 12) {
+      _finPendingList.push({
+        recurrenceId: r.id,
+        scheduledDate: _finDateToISO(due),
+        defaultAmount: r.amount,
+      });
+      due = _finAdvanceDue(due, r);
+      n++;
+    }
+  }
+  // Sort by date asc
+  _finPendingList.sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate));
+}
+
+function finCreateTxFromRec(rec, date, amount) {
+  F.transactions.push({
+    id: finUid("tx"), date,
+    label: rec.label,
+    amount: Number(amount) || 0,
+    type: rec.type,
+    categoryId: rec.categoryId,
+    subcategoryId: rec.subcategoryId || null,
+    sourceId: rec.sourceId,
+    note: rec.note || "",
+    recurrenceId: rec.id,
+    createdAt: new Date().toISOString(),
+  });
+}
+
+// ── Navigation mensuelle ──
+function finChangeMonth(delta) {
+  if (!_finMonth) { finGoToday(); return; }
+  let y = _finMonth.year, m = _finMonth.month + delta;
+  while (m < 0)  { m += 12; y--; }
+  while (m > 11) { m -= 12; y++; }
+  _finMonth = { year: y, month: m };
+  finRenderAll();
+}
+function finGoToday() {
+  const now = new Date();
+  _finMonth = { year: now.getFullYear(), month: now.getMonth() };
+  finRenderAll();
+}
+
+// ── Calculs ──
+function finComputeMonthTotals(y, m) {
+  let income = 0, expense = 0, incC = 0, expC = 0;
+  for (const tx of F.transactions) {
+    if (!finTxIsInMonth(tx, y, m)) continue;
+    const v = Number(tx.amount) || 0;
+    if (tx.type === "income") { income += v; incC++; }
+    else                      { expense += v; expC++; }
+  }
+  return { income, expense, net: income - expense, incCount: incC, expCount: expC };
+}
+
+// ── Render orchestrator ──
+function finRenderAll() {
+  if (!F || !_finMonth) return;
+  finRenderHeader();
+  finRenderPending();
+  finRenderKpis();
+  finRefreshFilters();
+  finRenderTxList();
+  finRenderCharts();
+}
+
+function finRenderHeader() {
+  document.getElementById("fin-month-lbl").textContent = finMonthLabel(_finMonth.year, _finMonth.month);
+  const { net } = finComputeMonthTotals(_finMonth.year, _finMonth.month);
+  const valEl = document.getElementById("fin-balance-val");
+  valEl.textContent = finFmtSigned(net);
+  valEl.classList.remove("pos","neg","neu");
+  valEl.classList.add(net > 0 ? "pos" : net < 0 ? "neg" : "neu");
+}
+
+function finRenderKpis() {
+  const t = finComputeMonthTotals(_finMonth.year, _finMonth.month);
+  document.getElementById("fin-kpi-income").textContent = finFmtAbs(t.income);
+  document.getElementById("fin-kpi-expense").textContent = finFmtAbs(t.expense);
+  document.getElementById("fin-kpi-income-sub").textContent  = t.incCount + (t.incCount > 1 ? " entrées" : " entrée");
+  document.getElementById("fin-kpi-expense-sub").textContent = t.expCount + (t.expCount > 1 ? " entrées" : " entrée");
+  const netEl = document.getElementById("fin-kpi-net");
+  netEl.textContent = finFmtSigned(t.net);
+  netEl.style.color = t.net > 0 ? "var(--g)" : t.net < 0 ? "var(--r)" : "var(--txt2)";
+  document.getElementById("fin-kpi-net-sub").textContent =
+    t.net > 0 ? "Bénéficiaire" : t.net < 0 ? "Déficitaire" : "Équilibré";
+}
+
+function finRenderPending() {
+  const card = document.getElementById("fin-pending-card");
+  const list = document.getElementById("fin-pending-list");
+  if (!_finPendingList.length) { card.style.display = "none"; return; }
+  card.style.display = "";
+  document.getElementById("fin-pending-count").textContent = "(" + _finPendingList.length + ")";
+
+  list.innerHTML = _finPendingList.map((p, idx) => {
+    const r = finRecById(p.recurrenceId); if (!r) return "";
+    const cat = finCatById(r.categoryId);
+    const catName = cat ? cat.name : "—";
+    const typeIcon = r.type === "income" ? "+" : "−";
+    return `<div class="fin-pending-row">
+      <span class="fin-tx-date">${_finDateToFR(p.scheduledDate)}</span>
+      <div>
+        <div class="fin-tx-label">${typeIcon} ${_finEsc(r.label)}</div>
+        <div class="fin-tx-meta">${_finEsc(catName)} · variable · estimé ${finFmtAbs(p.defaultAmount || 0)}</div>
+      </div>
+      <input type="number" step="0.01" value="${p.defaultAmount || ''}" class="fin-pending-amount-input" id="fin-pa-${idx}" placeholder="Montant réel">
+      <button class="btn btn-primary btn-sm" onclick="finValidatePending(${idx})">✓ Valider</button>
+      <button class="btn btn-ghost btn-sm" onclick="finSkipPending(${idx})" title="Reporter (passer au prochain)">↪ Reporter</button>
+    </div>`;
+  }).join("");
+}
+
+function finValidatePending(idx) {
+  const p = _finPendingList[idx]; if (!p) return;
+  const r = finRecById(p.recurrenceId); if (!r) return;
+  const inp = document.getElementById("fin-pa-" + idx);
+  const amount = Number(inp.value);
+  if (!amount || amount <= 0) { showToastModern("Saisir un montant valide", "err"); inp.focus(); return; }
+  finCreateTxFromRec(r, p.scheduledDate, amount);
+  const next = _finAdvanceDue(_finParseISO(r.nextDue), r);
+  r.nextDue = _finDateToISO(next);
+  finPersist();
+  finProcessRecurrences();
+  finRenderAll();
+  showToastModern("Transaction ajoutée (" + finFmtAbs(amount) + ")", "ok");
+}
+
+function finSkipPending(idx) {
+  const p = _finPendingList[idx]; if (!p) return;
+  const r = finRecById(p.recurrenceId); if (!r) return;
+  const next = _finAdvanceDue(_finParseISO(r.nextDue), r);
+  r.nextDue = _finDateToISO(next);
+  finPersist();
+  finProcessRecurrences();
+  finRenderAll();
+}
+
+// ── Filtres ──
+function finRefreshFilters() {
+  const catSel = document.getElementById("fin-filter-cat");
+  if (catSel) {
+    const cur = catSel.value;
+    catSel.innerHTML = `<option value="">Toutes catégories</option>` +
+      F.categories.map(c =>
+        `<option value="${c.id}">${_finEsc(c.name)} (${c.type === "income" ? "Rev" : "Dép"})</option>`
+      ).join("");
+    catSel.value = cur;
+  }
+  const srcSel = document.getElementById("fin-filter-src");
+  if (srcSel) {
+    const cur = srcSel.value;
+    srcSel.innerHTML = `<option value="">Toutes sources</option>` +
+      F.sources.map(s => `<option value="${s.id}">${_finEsc(s.name)}</option>`).join("");
+    srcSel.value = cur;
+  }
+}
+
+// ── Liste transactions ──
+function finRenderTxList() {
+  const list = document.getElementById("fin-tx-list");
+  if (!list) return;
+  const search   = (document.getElementById("fin-search").value || "").toLowerCase().trim();
+  const catFilt  = document.getElementById("fin-filter-cat").value;
+  const srcFilt  = document.getElementById("fin-filter-src").value;
+
+  let txs = F.transactions.filter(tx => finTxIsInMonth(tx, _finMonth.year, _finMonth.month));
+  if (catFilt) txs = txs.filter(tx => String(tx.categoryId) === String(catFilt));
+  if (srcFilt) txs = txs.filter(tx => String(tx.sourceId)   === String(srcFilt));
+  if (search) {
+    txs = txs.filter(tx => {
+      const cat = finCatById(tx.categoryId);
+      const sub = finSubById(tx.categoryId, tx.subcategoryId);
+      const src = finSrcById(tx.sourceId);
+      const hay = ((tx.label || "") + " " + (tx.note || "") + " " +
+                   (cat ? cat.name : "") + " " + (sub ? sub.name : "") + " " +
+                   (src ? src.name : "")).toLowerCase();
+      return hay.includes(search);
+    });
+  }
+  txs.sort((a, b) => {
+    if (a.date !== b.date) return b.date.localeCompare(a.date);
+    return (b.createdAt || "").localeCompare(a.createdAt || "");
+  });
+
+  if (!txs.length) {
+    list.innerHTML = `<div class="fin-empty">Aucune transaction.</div>`;
+    return;
+  }
+
+  list.innerHTML = txs.map(tx => {
+    const cat = finCatById(tx.categoryId);
+    const sub = finSubById(tx.categoryId, tx.subcategoryId);
+    const src = finSrcById(tx.sourceId);
+    const catName = cat ? cat.name : "—";
+    const subPart = sub ? " · " + sub.name : "";
+    const pillStyle = cat ? `background:${cat.color}22;color:${cat.color}` : "";
+    const amountStr = (tx.type === "income" ? "+" : "−") + finFmtAbs(Number(tx.amount) || 0);
+    const recIcon = tx.recurrenceId ? ` <span title="Issue d'un récurrent" style="color:var(--txt3);font-size:10px">↻</span>` : "";
+    return `<div class="fin-tx-row">
+      <span class="fin-tx-date">${_finDateToFR(tx.date)}</span>
+      <div>
+        <div class="fin-tx-label">${_finEsc(tx.label)}${recIcon}</div>
+        ${tx.note ? `<div class="fin-tx-meta">${_finEsc(tx.note)}</div>` : ""}
+      </div>
+      <span class="fin-tx-cat-pill" style="${pillStyle}">${_finEsc(catName + subPart)}</span>
+      <span class="fin-tx-source">${_finEsc(src ? src.name : "—")}</span>
+      <span class="fin-tx-amount ${tx.type}">${amountStr}</span>
+      <div class="fin-tx-actions">
+        <button class="fin-tx-act-btn"     onclick="finEditTx(${tx.id})"   title="Modifier">✎</button>
+        <button class="fin-tx-act-btn del" onclick="finDeleteTx(${tx.id})" title="Supprimer">✕</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── Graphiques ──
+function finRenderCharts() {
+  const cy = _finMonth.year, cm = _finMonth.month;
+  const txtColor = getComputedStyle(document.body).getPropertyValue("color") || "#18181b";
+  const gridColor = getComputedStyle(document.documentElement).getPropertyValue("--brd").trim() || "rgba(0,0,0,0.07)";
+
+  // Camembert dépenses par catégorie
+  const expByCat = {};
+  for (const tx of F.transactions) {
+    if (tx.type !== "expense") continue;
+    if (!finTxIsInMonth(tx, cy, cm)) continue;
+    const cat = finCatById(tx.categoryId);
+    if (!cat) continue;
+    expByCat[cat.id] = (expByCat[cat.id] || 0) + (Number(tx.amount) || 0);
+  }
+  const ids = Object.keys(expByCat);
+  const pieCanvas = document.getElementById("fin-chart-pie");
+  const pieEmpty  = document.getElementById("fin-chart-pie-empty");
+  if (!ids.length) {
+    if (_finCharts.pie) { _finCharts.pie.destroy(); _finCharts.pie = null; }
+    pieCanvas.style.display = "none";
+    pieEmpty.style.display  = "";
+  } else {
+    pieCanvas.style.display = "";
+    pieEmpty.style.display  = "none";
+    const labels = ids.map(id => finCatById(Number(id)).name);
+    const values = ids.map(id => expByCat[id]);
+    const colors = ids.map(id => finCatById(Number(id)).color || "#a1a1aa");
+    if (_finCharts.pie) _finCharts.pie.destroy();
+    _finCharts.pie = new Chart(pieCanvas, {
+      type: "doughnut",
+      data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: getComputedStyle(document.documentElement).getPropertyValue("--bg2") || "#fff" }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "right", labels: { color: txtColor, font: { size: 11 } } },
+          tooltip: { callbacks: { label: ctx => ctx.label + ": " + Number(ctx.raw).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €" } }
+        }
+      }
+    });
+  }
+
+  // Barres revenus vs dépenses vs solde
+  const t = finComputeMonthTotals(cy, cm);
+  const barCanvas = document.getElementById("fin-chart-bar");
+  if (_finCharts.bar) _finCharts.bar.destroy();
+  _finCharts.bar = new Chart(barCanvas, {
+    type: "bar",
+    data: {
+      labels: ["Revenus", "Dépenses", "Solde net"],
+      datasets: [{
+        data: [t.income, t.expense, t.net],
+        backgroundColor: ["#16a34a", "#dc2626", t.net >= 0 ? "#16a34a" : "#dc2626"],
+        borderRadius: 6,
+        maxBarThickness: 80,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => Number(ctx.raw).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €" } }
+      },
+      scales: {
+        x: { ticks: { color: txtColor }, grid: { display: false } },
+        y: { ticks: { color: txtColor, callback: v => Number(v).toLocaleString("fr-FR") + " €" }, grid: { color: gridColor } }
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// MODALE TRANSACTION
+// ════════════════════════════════════════════════════════
+function finOpenTx(type) {
+  _finEditingTxId = null;
+  _finTxModalType = type || "expense";
+  document.getElementById("fin-tx-title").textContent = (type === "income") ? "Nouveau revenu" : "Nouvelle dépense";
+  document.getElementById("fin-tx-date").value   = _finDateToISO(new Date());
+  document.getElementById("fin-tx-amount").value = "";
+  document.getElementById("fin-tx-label").value  = "";
+  document.getElementById("fin-tx-note").value   = "";
+  finSetTxType(_finTxModalType);
+  document.getElementById("fin-tx-save-btn").textContent = "Enregistrer";
+  document.getElementById("ov-fin-tx").classList.add("open");
+  setTimeout(() => document.getElementById("fin-tx-label").focus(), 80);
+}
+
+function finEditTx(id) {
+  const tx = F.transactions.find(t => t.id === id); if (!tx) return;
+  _finEditingTxId = id;
+  _finTxModalType = tx.type || "expense";
+  document.getElementById("fin-tx-title").textContent = "Modifier la transaction";
+  document.getElementById("fin-tx-date").value   = tx.date || _finDateToISO(new Date());
+  document.getElementById("fin-tx-amount").value = tx.amount || "";
+  document.getElementById("fin-tx-label").value  = tx.label || "";
+  document.getElementById("fin-tx-note").value   = tx.note || "";
+  finSetTxType(_finTxModalType);
+  document.getElementById("fin-tx-cat").value = tx.categoryId || "";
+  finRefreshSubs("fin-tx-cat","fin-tx-sub");
+  document.getElementById("fin-tx-sub").value = tx.subcategoryId || "";
+  document.getElementById("fin-tx-src").value = tx.sourceId || "";
+  document.getElementById("fin-tx-save-btn").textContent = "Enregistrer les modifications";
+  document.getElementById("ov-fin-tx").classList.add("open");
+}
+
+function finSetTxType(type) {
+  _finTxModalType = type;
+  document.getElementById("fin-tx-type-expense").classList.toggle("active", type === "expense");
+  document.getElementById("fin-tx-type-income").classList.toggle("active",  type === "income");
+  const catSel = document.getElementById("fin-tx-cat");
+  const cats = F.categories.filter(c => c.type === type);
+  catSel.innerHTML = cats.map(c => `<option value="${c.id}">${_finEsc(c.name)}</option>`).join("");
+  finRefreshSubs("fin-tx-cat","fin-tx-sub");
+  const srcSel = document.getElementById("fin-tx-src");
+  srcSel.innerHTML = F.sources.map(s => `<option value="${s.id}">${_finEsc(s.name)}</option>`).join("");
+}
+
+function finRefreshSubs(catSelId, subSelId) {
+  const catId = Number(document.getElementById(catSelId).value);
+  const cat = finCatById(catId);
+  const sel = document.getElementById(subSelId);
+  if (!cat || !cat.subs || !cat.subs.length) { sel.innerHTML = `<option value="">—</option>`; return; }
+  sel.innerHTML = `<option value="">—</option>` +
+    cat.subs.map(s => `<option value="${s.id}">${_finEsc(s.name)}</option>`).join("");
+}
+
+function finSaveTx() {
+  const date   = document.getElementById("fin-tx-date").value;
+  const amount = Number(document.getElementById("fin-tx-amount").value);
+  const label  = document.getElementById("fin-tx-label").value.trim();
+  const catId  = Number(document.getElementById("fin-tx-cat").value);
+  const subRaw = document.getElementById("fin-tx-sub").value;
+  const subId  = subRaw ? Number(subRaw) : null;
+  const srcId  = Number(document.getElementById("fin-tx-src").value);
+  const note   = document.getElementById("fin-tx-note").value.trim();
+  if (!date || !amount || amount <= 0 || !label || !catId || !srcId) {
+    showToastModern("Vérifiez les champs obligatoires", "err"); return;
+  }
+  if (_finEditingTxId) {
+    const tx = F.transactions.find(t => t.id === _finEditingTxId);
+    if (tx) Object.assign(tx, { date, amount, label, type: _finTxModalType, categoryId: catId, subcategoryId: subId, sourceId: srcId, note });
+  } else {
+    F.transactions.push({
+      id: finUid("tx"), date, amount, label,
+      type: _finTxModalType, categoryId: catId, subcategoryId: subId,
+      sourceId: srcId, note,
+      createdAt: new Date().toISOString(),
+    });
+  }
+  closeOv("ov-fin-tx");
+  finPersist();
+  finRenderAll();
+  showToastModern(_finEditingTxId ? "Transaction modifiée" : "Transaction enregistrée", "ok");
+  _finEditingTxId = null;
+}
+
+function finDeleteTx(id) {
+  if (!confirm("Supprimer cette transaction ?")) return;
+  F.transactions = F.transactions.filter(t => t.id !== id);
+  finPersist();
+  finRenderAll();
+  showToastModern("Transaction supprimée", "ok");
+}
+
+// ════════════════════════════════════════════════════════
+// CATÉGORIES
+// ════════════════════════════════════════════════════════
+function finOpenCategories() {
+  finCatsFilter("expense");
+  document.getElementById("ov-fin-cats").classList.add("open");
+}
+function finCatsFilter(type) {
+  _finCatFilter = type;
+  document.getElementById("fin-catf-expense").classList.toggle("active", type === "expense");
+  document.getElementById("fin-catf-income").classList.toggle("active",  type === "income");
+  finRenderCatsList();
+}
+function finRenderCatsList() {
+  const list = document.getElementById("fin-cats-list");
+  const cats = F.categories.filter(c => c.type === _finCatFilter);
+  if (!cats.length) { list.innerHTML = `<div class="fin-empty">Aucune catégorie.</div>`; return; }
+  list.innerHTML = cats.map(c => {
+    const used = finIsCatUsed(c.id);
+    const subsHtml = (c.subs || []).map(s => {
+      const subUsed = finIsSubUsed(c.id, s.id);
+      return `<div class="fin-sub-row">
+        <span class="fin-sub-name">↳ ${_finEsc(s.name)}</span>
+        <button class="fin-tx-act-btn" onclick="finRenameSub(${c.id},${s.id})" title="Renommer">✎</button>
+        <button class="fin-tx-act-btn del" onclick="finDeleteSub(${c.id},${s.id})" title="${subUsed ? 'Bloqué : sous-catégorie utilisée par des transactions' : 'Supprimer'}" ${subUsed ? 'disabled style="opacity:.35;cursor:not-allowed"' : ''}>✕</button>
+      </div>`;
+    }).join("");
+    return `<div class="fin-cat-block">
+      <div class="fin-cat-head">
+        <span class="fin-cat-color-dot" style="background:${c.color || '#a1a1aa'}"></span>
+        <span class="fin-cat-name">${_finEsc(c.name)}</span>
+        <span class="fin-cat-type-pill ${c.type}">${c.type === "income" ? "Revenu" : "Dépense"}</span>
+        <button class="fin-tx-act-btn" onclick="finRenameCat(${c.id})"  title="Renommer">✎</button>
+        <button class="fin-tx-act-btn" onclick="finChangeColor(${c.id})" title="Changer la couleur">◐</button>
+        <button class="fin-tx-act-btn del" onclick="finDeleteCat(${c.id})" title="${used ? 'Bloqué : transactions ou récurrents liés' : 'Supprimer'}" ${used ? 'disabled style="opacity:.35;cursor:not-allowed"' : ''}>✕</button>
+      </div>
+      ${subsHtml}
+      <div class="fin-add-line">
+        <input id="fin-newsub-${c.id}" type="text" placeholder="Nouvelle sous-catégorie…">
+        <button class="btn btn-ghost btn-sm" onclick="finAddSub(${c.id})">+ Ajouter</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+function finIsCatUsed(catId) {
+  return F.transactions.some(tx => tx.categoryId === catId) ||
+         F.recurrences.some(r => r.categoryId === catId);
+}
+function finIsSubUsed(catId, subId) {
+  return F.transactions.some(tx => tx.categoryId === catId && tx.subcategoryId === subId) ||
+         F.recurrences.some(r => r.categoryId === catId && r.subcategoryId === subId);
+}
+function finAddCategory() {
+  const name  = document.getElementById("fin-newcat-name").value.trim();
+  const color = document.getElementById("fin-newcat-color").value || "#7c3aed";
+  if (!name) return;
+  F.categories.push({ id: finUid("cat"), name, type: _finCatFilter, color, subs: [] });
+  document.getElementById("fin-newcat-name").value = "";
+  finPersist(); finRenderCatsList(); finRefreshFilters();
+  showToastModern("Catégorie ajoutée", "ok");
+}
+function finDeleteCat(id) {
+  if (finIsCatUsed(id)) { showToastModern("Réaffectez d'abord les transactions/récurrents liés", "err"); return; }
+  if (!confirm("Supprimer cette catégorie ?")) return;
+  F.categories = F.categories.filter(c => c.id !== id);
+  finPersist(); finRenderCatsList(); finRefreshFilters(); finRenderAll();
+}
+function finRenameCat(id) {
+  const c = finCatById(id); if (!c) return;
+  const v = prompt("Nouveau nom :", c.name);
+  if (!v || !v.trim()) return;
+  c.name = v.trim();
+  finPersist(); finRenderCatsList(); finRefreshFilters(); finRenderAll();
+}
+function finChangeColor(id) {
+  const c = finCatById(id); if (!c) return;
+  const v = prompt("Code couleur (hex) :", c.color || "#7c3aed");
+  if (!v) return;
+  c.color = v.trim();
+  finPersist(); finRenderCatsList(); finRenderAll();
+}
+function finAddSub(catId) {
+  const c = finCatById(catId); if (!c) return;
+  const inp = document.getElementById("fin-newsub-" + catId);
+  const name = (inp.value || "").trim(); if (!name) return;
+  c.subs = c.subs || [];
+  const subId = (c.subs.reduce((m, s) => Math.max(m, s.id || 0), 0)) + 1;
+  c.subs.push({ id: subId, name });
+  inp.value = "";
+  finPersist(); finRenderCatsList();
+}
+function finRenameSub(catId, subId) {
+  const s = finSubById(catId, subId); if (!s) return;
+  const v = prompt("Nouveau nom :", s.name);
+  if (!v || !v.trim()) return;
+  s.name = v.trim();
+  finPersist(); finRenderCatsList(); finRenderAll();
+}
+function finDeleteSub(catId, subId) {
+  if (finIsSubUsed(catId, subId)) { showToastModern("Sous-catégorie utilisée par des transactions/récurrents", "err"); return; }
+  if (!confirm("Supprimer cette sous-catégorie ?")) return;
+  const c = finCatById(catId); if (!c) return;
+  c.subs = (c.subs || []).filter(s => s.id !== subId);
+  finPersist(); finRenderCatsList();
+}
+
+// ════════════════════════════════════════════════════════
+// SOURCES
+// ════════════════════════════════════════════════════════
+function finOpenSources() {
+  finRenderSrcsList();
+  document.getElementById("ov-fin-srcs").classList.add("open");
+}
+function finRenderSrcsList() {
+  const list = document.getElementById("fin-srcs-list");
+  if (!F.sources.length) { list.innerHTML = `<div class="fin-empty">Aucune source.</div>`; return; }
+  list.innerHTML = F.sources.map(s => {
+    const used = finIsSrcUsed(s.id);
+    return `<div class="fin-src-row">
+      <span>${_finEsc(s.name)}</span>
+      <div style="display:flex;gap:4px">
+        <button class="fin-tx-act-btn" onclick="finRenameSrc(${s.id})" title="Renommer">✎</button>
+        <button class="fin-tx-act-btn del" onclick="finDeleteSrc(${s.id})" title="${used ? 'Bloqué : source utilisée' : 'Supprimer'}" ${used ? 'disabled style="opacity:.35;cursor:not-allowed"' : ''}>✕</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+function finIsSrcUsed(id) {
+  return F.transactions.some(t => t.sourceId === id) ||
+         F.recurrences.some(r => r.sourceId === id);
+}
+function finAddSource() {
+  const name = document.getElementById("fin-newsrc-name").value.trim();
+  if (!name) return;
+  F.sources.push({ id: finUid("src"), name });
+  document.getElementById("fin-newsrc-name").value = "";
+  finPersist(); finRenderSrcsList(); finRefreshFilters();
+}
+function finRenameSrc(id) {
+  const s = finSrcById(id); if (!s) return;
+  const v = prompt("Nouveau nom :", s.name);
+  if (!v || !v.trim()) return;
+  s.name = v.trim();
+  finPersist(); finRenderSrcsList(); finRefreshFilters(); finRenderAll();
+}
+function finDeleteSrc(id) {
+  if (finIsSrcUsed(id)) { showToastModern("Source utilisée par des transactions/récurrents", "err"); return; }
+  if (!confirm("Supprimer cette source ?")) return;
+  F.sources = F.sources.filter(s => s.id !== id);
+  finPersist(); finRenderSrcsList(); finRefreshFilters();
+}
+
+// ════════════════════════════════════════════════════════
+// RÉCURRENTS
+// ════════════════════════════════════════════════════════
+function finOpenRecurrences() {
+  finRenderRecsList();
+  document.getElementById("ov-fin-recs").classList.add("open");
+}
+function finRenderRecsList() {
+  const list = document.getElementById("fin-recs-list");
+  if (!F.recurrences.length) {
+    list.innerHTML = `<div class="fin-empty">Aucun récurrent. Cliquez sur + Nouveau pour créer un abonnement, un loyer, etc.</div>`;
+    return;
+  }
+  list.innerHTML = F.recurrences.map(r => {
+    const cat = finCatById(r.categoryId);
+    return `<div class="fin-rec-row">
+      <div>
+        <div class="fin-rec-name">${r.type === "income" ? "+" : "−"} ${_finEsc(r.label)}</div>
+        <div class="fin-rec-meta">${cat ? _finEsc(cat.name) : "—"} · ${_finFreqLabel(r)}</div>
+      </div>
+      <span class="fin-rec-pill ${r.amountMode}">${r.amountMode === "fixed" ? "Fixe" : "Variable"}</span>
+      <span class="fin-tx-source">Prochain : ${_finDateToFR(r.nextDue)}</span>
+      <span class="fin-tx-amount ${r.type}">${(r.type === "income" ? "+" : "−") + finFmtAbs(Number(r.amount) || 0)}</span>
+      <div style="display:flex;gap:4px">
+        <button class="fin-tx-act-btn" onclick="finToggleRec(${r.id})" title="${r.status === 'paused' ? 'Réactiver' : 'Mettre en pause'}">${r.status === "paused" ? "▶" : "⏸"}</button>
+        <button class="fin-tx-act-btn" onclick="finOpenRecEdit(${r.id})" title="Modifier">✎</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+function _finFreqLabel(r) {
+  switch (r.frequency) {
+    case "weekly":      return "Hebdomadaire";
+    case "monthly":     return "Mensuel";
+    case "monthly-dom": return "Mensuel (le " + (r.dayOfMonth || 1) + ")";
+    case "quarterly":   return "Trimestriel";
+    case "yearly":      return "Annuel";
+    default:            return r.frequency || "—";
+  }
+}
+function finOpenRecEdit(id) {
+  _finEditingRecId = (typeof id === "number") ? id : null;
+  const r = _finEditingRecId ? finRecById(_finEditingRecId) : null;
+  document.getElementById("fin-rec-del-btn").style.display = _finEditingRecId ? "" : "none";
+  document.getElementById("fin-rec-title").textContent = _finEditingRecId ? "Modifier le récurrent" : "Nouveau récurrent";
+
+  _finRecModalType = r ? r.type : "expense";
+  finSetRecType(_finRecModalType);
+
+  document.getElementById("fin-rec-label").value  = r ? r.label : "";
+  document.getElementById("fin-rec-amount").value = r ? r.amount : "";
+  document.getElementById("fin-rec-mode").value   = r ? r.amountMode : "fixed";
+  document.getElementById("fin-rec-note").value   = r ? (r.note || "") : "";
+  document.getElementById("fin-rec-freq").value   = r ? r.frequency : "monthly-dom";
+  document.getElementById("fin-rec-dom").value    = r ? (r.dayOfMonth || 1) : new Date().getDate();
+  document.getElementById("fin-rec-start").value  = r ? (r.startDate || _finDateToISO(new Date())) : _finDateToISO(new Date());
+  finOnFreqChange();
+
+  if (r) {
+    document.getElementById("fin-rec-cat").value = r.categoryId || "";
+    finRefreshSubs("fin-rec-cat","fin-rec-sub");
+    document.getElementById("fin-rec-sub").value = r.subcategoryId || "";
+    document.getElementById("fin-rec-src").value = r.sourceId || "";
+  }
+  document.getElementById("ov-fin-rec-edit").classList.add("open");
+}
+function finSetRecType(type) {
+  _finRecModalType = type;
+  document.getElementById("fin-rec-type-expense").classList.toggle("active", type === "expense");
+  document.getElementById("fin-rec-type-income").classList.toggle("active",  type === "income");
+  const catSel = document.getElementById("fin-rec-cat");
+  const cats = F.categories.filter(c => c.type === type);
+  catSel.innerHTML = cats.map(c => `<option value="${c.id}">${_finEsc(c.name)}</option>`).join("");
+  finRefreshSubs("fin-rec-cat","fin-rec-sub");
+  const srcSel = document.getElementById("fin-rec-src");
+  srcSel.innerHTML = F.sources.map(s => `<option value="${s.id}">${_finEsc(s.name)}</option>`).join("");
+}
+function finOnFreqChange() {
+  const freq = document.getElementById("fin-rec-freq").value;
+  document.getElementById("fin-rec-dom-wrap").style.display = (freq === "monthly-dom") ? "" : "none";
+}
+function finSaveRec() {
+  const label  = document.getElementById("fin-rec-label").value.trim();
+  const amount = Number(document.getElementById("fin-rec-amount").value);
+  const mode   = document.getElementById("fin-rec-mode").value;
+  const catId  = Number(document.getElementById("fin-rec-cat").value);
+  const subRaw = document.getElementById("fin-rec-sub").value;
+  const subId  = subRaw ? Number(subRaw) : null;
+  const srcId  = Number(document.getElementById("fin-rec-src").value);
+  const note   = document.getElementById("fin-rec-note").value.trim();
+  const freq   = document.getElementById("fin-rec-freq").value;
+  const dom    = Number(document.getElementById("fin-rec-dom").value) || 1;
+  const startD = document.getElementById("fin-rec-start").value;
+  if (!label || !amount || amount <= 0 || !catId || !srcId || !startD) {
+    showToastModern("Vérifiez les champs obligatoires", "err"); return;
+  }
+  let nextDue = startD;
+  if (freq === "monthly-dom") {
+    const s = _finParseISO(startD);
+    const cand = new Date(s.getFullYear(), s.getMonth(), Math.min(dom, _finLastDayOfMonth(s.getFullYear(), s.getMonth())));
+    if (cand < s) cand.setMonth(cand.getMonth() + 1);
+    nextDue = _finDateToISO(cand);
+  }
+  if (_finEditingRecId) {
+    const r = finRecById(_finEditingRecId);
+    if (r) Object.assign(r, {
+      label, amount, amountMode: mode, type: _finRecModalType,
+      categoryId: catId, subcategoryId: subId, sourceId: srcId, note,
+      frequency: freq, dayOfMonth: (freq === "monthly-dom") ? dom : null,
+      startDate: startD
+    });
+  } else {
+    F.recurrences.push({
+      id: finUid("rec"), label, amount, amountMode: mode,
+      type: _finRecModalType, categoryId: catId, subcategoryId: subId,
+      sourceId: srcId, note,
+      frequency: freq, dayOfMonth: (freq === "monthly-dom") ? dom : null,
+      startDate: startD, nextDue, status: "active",
+      createdAt: new Date().toISOString()
+    });
+  }
+  closeOv("ov-fin-rec-edit");
+  finPersist();
+  finProcessRecurrences();
+  finRenderAll();
+  finRenderRecsList();
+  showToastModern(_finEditingRecId ? "Récurrent modifié" : "Récurrent ajouté", "ok");
+  _finEditingRecId = null;
+}
+function finDeleteRec() {
+  if (!_finEditingRecId) return;
+  if (!confirm("Supprimer ce récurrent ?\n(Les transactions déjà créées restent dans l'historique.)")) return;
+  F.recurrences = F.recurrences.filter(r => r.id !== _finEditingRecId);
+  closeOv("ov-fin-rec-edit");
+  finPersist();
+  finProcessRecurrences();
+  finRenderAll();
+  finRenderRecsList();
+  _finEditingRecId = null;
+  showToastModern("Récurrent supprimé", "ok");
+}
+function finToggleRec(id) {
+  const r = finRecById(id); if (!r) return;
+  r.status = (r.status === "paused") ? "active" : "paused";
+  finPersist();
+  finProcessRecurrences();
+  finRenderAll();
+  finRenderRecsList();
+}
+
+// ────────────────────────────────────────────────────────
+// Bootstrap : chargé après que pywebview soit prêt
+// ────────────────────────────────────────────────────────
+async function finBootstrap() {
+  if (_finBootstrapped) return;
+  const ok = await finLoad();
+  if (!ok || !F) return;
+  _finBootstrapped = true;
+  finProcessRecurrences();
+  finGoToday();   // sets _finMonth and renders
+}
+
+// Patch goTab pour rafraîchir le pane quand on entre dans Mes Comptes
+(function patchGoTab() {
+  const _origGoTab = window.goTab;
+  if (typeof _origGoTab !== "function") return;
+  window.goTab = function(n) {
+    _origGoTab.call(this, n);
+    if (n === "finances") {
+      if (!_finBootstrapped) {
+        // Tentative tardive si pywebview est dispo entre temps
+        finBootstrap().then(() => { if (F) finRenderAll(); });
+      } else {
+        finProcessRecurrences();
+        finRenderAll();
+      }
+    }
+  };
+})();
+
 (async function boot() {
   try {
     // 1. Hydratation HTTP en parallele (rapide, pas besoin d'attendre pywebview)
@@ -7536,6 +8919,8 @@ async function _checkForUpdates() {
     startGsRefresh();
     // Verifie les mises a jour apres stabilisation de l'UI (15s = temps suffisant pour l'API GitHub)
     if (window.pywebview) setTimeout(_checkForUpdates, 5000);
+    // Initialise le module Mes Comptes (en silence, sans bloquer le rendu PEA)
+    if (hasPy) { try { await finBootstrap(); } catch(e) { console.warn("[fin] bootstrap KO:", e); } }
   } catch(e) {
     const box=document.getElementById("errbox");
     if (box) { box.style.display="block"; box.textContent="Erreur JS : "+e.message+" — Cliquez sur Reset."; }
