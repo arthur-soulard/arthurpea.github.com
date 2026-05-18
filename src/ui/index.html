@@ -4433,7 +4433,7 @@ function renderWishlist() {
         <td>${vfmt(v?.w1)}</td>
         <td>${vfmt(v?.m1)}</td>
         <td>${vfmt(v?.y1)}</td>
-        <td>${dbtn("delWish",w.id)}</td>
+        <td style="white-space:nowrap">${ebtn("editWish",w.id)}${dbtn("delWish",w.id)}</td>
       </tr>`;
     }).join("")||`<tr><td colspan="${wtype==="action" ? 12 : 10}" style="text-align:center;color:var(--txt2);padding:14px">Aucun élément</td></tr>`;
   });
@@ -5722,6 +5722,32 @@ function saveWish() {
   persist(); closeOv("ov-wish"); renderWishlist();
 }
 function delWish(id) { pushUndo(); S.wishlist=S.wishlist.filter(w=>w.id!==id); persist(); renderWishlist(); }
+
+function editWish(id) {
+  const w = S.wishlist.find(x=>x.id===id); if (!w) return;
+  openAddWish(w.list, w.wtype);
+  document.getElementById("w-modal-title").textContent = "Modifier " + (w.wtype==="etf"?"l'ETF":"l'action");
+  document.getElementById("w-name").value   = w.name   || "";
+  document.getElementById("w-ticker").value = w.ticker || "";
+  document.getElementById("w-stars").value  = w.stars  || 3;
+  document.getElementById("w-sector").value = w.sector || "";
+  const btn = document.querySelector("#ov-wish .btn-primary");
+  btn.textContent = "Mettre à jour";
+  btn.onclick = () => saveEditWish(id);
+}
+function saveEditWish(id) {
+  const tickerRaw = document.getElementById("w-ticker").value.trim().toUpperCase();
+  const name      = document.getElementById("w-name").value.trim();
+  if (!tickerRaw || !name) return;
+  const ticker = normalizeTicker(tickerRaw);
+  const idx = S.wishlist.findIndex(x=>x.id===id); if (idx<0) return;
+  pushUndo();
+  S.wishlist[idx] = {...S.wishlist[idx], ticker, name,
+    stars:  parseInt(document.getElementById("w-stars").value) || 3,
+    sector: document.getElementById("w-sector").value || ""
+  };
+  persist(); closeOv("ov-wish"); renderWishlist();
+}
 
 /* Modal Dépôt */
 function openAddDepot() {
