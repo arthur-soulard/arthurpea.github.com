@@ -2720,11 +2720,39 @@ async function loadPerfHistory() {
   if (!tickers.length) return null;
 
   try {
-    const url  = LOCAL_HIST_URL + "?tickers=" + tickers.map(encodeURIComponent).join(",");
-    const r    = await fetch(url, {cache: "no-store"});
+    const tkParam = tickers.map(encodeURIComponent).join(",");
+    const url     = LOCAL_HIST_URL + "?tickers=" + tkParam;
+    const r       = await fetch(url, {cache: "no-store"});
     if (!r.ok) throw new Error("HTTP " + r.status);
     const data = await r.json();
     if (!data.ok || !data.history) throw new Error("Reponse invalide");
+
+    /* Supplement avec les 30 derniers jours (intervalle daily garanti)
+       pour que les plages courtes 1S/1M aient toujours des points récents. */
+    try {
+      const r1mo   = await fetch(url + "&range=1mo", {cache: "no-store"});
+      const d1mo   = r1mo.ok ? await r1mo.json() : null;
+      if (d1mo && d1mo.ok && d1mo.history) {
+        for (const [tk, h] of Object.entries(d1mo.history)) {
+          if (!data.history[tk]) {
+            data.history[tk] = h;
+          } else {
+            const have = new Set(data.history[tk].dates);
+            h.dates.forEach((d, i) => {
+              if (!have.has(d) && h.closes[i] != null) {
+                data.history[tk].dates.push(d);
+                data.history[tk].closes.push(h.closes[i]);
+              }
+            });
+            /* Re-trier par date apres fusion */
+            const pairs = data.history[tk].dates.map((d, i) => [d, data.history[tk].closes[i]]);
+            pairs.sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+            data.history[tk].dates  = pairs.map(p => p[0]);
+            data.history[tk].closes = pairs.map(p => p[1]);
+          }
+        }
+      }
+    } catch(e2) { console.warn("[history/1mo]", e2.message); }
 
     const ts      = new Date().toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"});
     const payload = {history: data.history, fetchedAt: ts};
