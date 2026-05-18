@@ -1140,6 +1140,9 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
           </label>
         </div>
         <div id="perf-range-btns" style="display:flex;gap:4px">
+          <button class="btn btn-sm" id="prb-1w"  onclick="setPerfRange('1W')">1S</button>
+          <button class="btn btn-sm" id="prb-1m"  onclick="setPerfRange('1M')">1M</button>
+          <button class="btn btn-sm" id="prb-6m"  onclick="setPerfRange('6M')">6M</button>
           <button class="btn btn-sm" id="prb-ytd" onclick="setPerfRange('YTD')">YTD</button>
           <button class="btn btn-sm btn-primary" id="prb-max" onclick="setPerfRange('MAX')">Max</button>
         </div>
@@ -2900,6 +2903,7 @@ function filterByRange(series, range) {
   let cutoff;
   if      (range === "1W")  cutoff = isoDateMinus(ref, "days",   7);
   else if (range === "1M")  cutoff = isoDateMinus(ref, "months", 1);
+  else if (range === "6M")  cutoff = isoDateMinus(ref, "months", 6);
   else if (range === "YTD") cutoff = ref.slice(0, 4) + "-01-01";
   else if (range === "1Y")  cutoff = isoDateMinus(ref, "years",  1);
   else                      return series;   /* MAX */
@@ -3134,7 +3138,7 @@ async function toggleBenchmark(bench, enabled) {
 
 function setPerfRange(range) {
   _perfRange = range;
-  ["YTD", "MAX"].forEach(r => {
+  ["1W", "1M", "6M", "YTD", "MAX"].forEach(r => {
     const id  = "prb-" + r.toLowerCase();
     const btn = document.getElementById(id);
     if (btn) btn.classList.toggle("btn-primary", r === range);
@@ -3215,17 +3219,17 @@ function drawPerfChart() {
   let series   = (filtered && filtered.length >= 2) ? filtered : null;
 
   if (!series) {
-    /* Pas assez de points pour YTD (portefeuille recent) → bascule sur MAX */
+    /* Pas assez de points pour la plage choisie → bascule sur MAX */
     const nd = document.getElementById("perf-nodata");
     nd.style.display = "block";
     nd.style.color   = "var(--a)";
-    nd.textContent   = "Pas assez de donnees pour la plage YTD — affichage MAX.";
+    nd.textContent   = "Pas assez de données pour cette plage — affichage Max.";
     series = _perfFullSeries;
     _perfRange = "MAX";
-    const ytdBtn = document.getElementById("prb-ytd");
-    const maxBtn = document.getElementById("prb-max");
-    if (ytdBtn) ytdBtn.classList.remove("btn-primary");
-    if (maxBtn) maxBtn.classList.add("btn-primary");
+    ["1W","1M","6M","YTD","MAX"].forEach(r => {
+      const btn = document.getElementById("prb-" + r.toLowerCase());
+      if (btn) btn.classList.toggle("btn-primary", r === "MAX");
+    });
   } else {
     document.getElementById("perf-nodata").style.display = "none";
   }
@@ -3288,13 +3292,16 @@ function drawPerfChart() {
     const nd = normDate(d);
     const [y, m, dd] = nd.split("-").map(Number);
     const dt = new Date(y, m - 1, dd);
-    if (_perfRange === "YTD")
+    if (_perfRange === "1W" || _perfRange === "1M" || _perfRange === "YTD")
       return dt.toLocaleDateString("fr-FR", {day: "2-digit", month: "short"});
     return dt.toLocaleDateString("fr-FR", {month: "short", year: "2-digit"});
   };
 
   const labels   = dates.map(fmtLabel);
-  const maxTicks = _perfRange === "YTD" ? 8 : 10;
+  const maxTicks = (_perfRange === "1W") ? 7
+                 : (_perfRange === "1M") ? 6
+                 : (_perfRange === "YTD") ? 8
+                 : 10;
 
   /* ── Couleurs dynamiques ─────────────────────────────────────────────────── */
   const portColor = isPos ? "#16a34a" : "#dc2626";
@@ -3429,7 +3436,7 @@ async function renderPerf() {
   // Restaure la plage YTD/MAX sauvegardee
   try {
     const savedRange = (S.uiPrefs && S.uiPrefs.perfRange) || "MAX";
-    if (savedRange === "YTD" || savedRange === "MAX") _perfRange = savedRange;
+    if (["1W","1M","6M","YTD","MAX"].includes(savedRange)) _perfRange = savedRange;
   } catch(e) {}
 
   const cutToday = todayISO();
