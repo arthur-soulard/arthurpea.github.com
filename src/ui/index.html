@@ -2957,13 +2957,14 @@ function filterByRange(series, range) {
              pour ne pas inclure le nouveau capital dans le rendement
              de la sous-periode precedente.
 ───────────────────────────────────────────────────────────────────────── */
-function computePnl(series, allTxs, range) {
+function computePnl(series, allTxs, divs, range) {
   if (!series || series.length < 2) return {pnlEur: null, pnlPct: null};
 
   const startDate   = series[0].date;
   const endDate     = series[series.length - 1].date;
   const vEnd        = series[series.length - 1].val;
   const firstTxDate = allTxs.length > 0 ? allTxs[0].date : null;
+  const allDivs     = divs || [];
 
   /* Détecter si la plage couvre tout l'historique :
      - range explicitement MAX, OU
@@ -2979,8 +2980,9 @@ function computePnl(series, allTxs, range) {
       return s;
     }, 0);
     if (netCapital <= 0) return {pnlEur: null, pnlPct: null};
-    const pnlEur = Math.round((vEnd - netCapital) * 100) / 100;
-    const pnlPct = Math.round((vEnd / netCapital - 1) * 10000) / 100;
+    const divsTotal = allDivs.reduce((s, d) => s + (d.montant || 0), 0);
+    const pnlEur = Math.round((vEnd - netCapital + divsTotal) * 100) / 100;
+    const pnlPct = Math.round(((vEnd + divsTotal) / netCapital - 1) * 10000) / 100;
     return {pnlEur, pnlPct};
   }
 
@@ -3001,7 +3003,12 @@ function computePnl(series, allTxs, range) {
     return s;
   }, 0);
 
-  const pnlEur = Math.round((vEnd - vStart - fluxNet) * 100) / 100;
+  /* Dividendes recus dans la plage (startDate exclu, endDate inclus) */
+  const windowDivs = allDivs.filter(d => d.date && d.date > startDate && d.date <= endDate);
+  const divsPlage  = windowDivs.reduce((s, d) => s + (d.montant || 0), 0);
+
+  /* P&L EUR sur la plage = ΔValeur − FluxNet + Dividendes reçus dans la plage */
+  const pnlEur = Math.round((vEnd - vStart - fluxNet + divsPlage) * 100) / 100;
 
   /* Dates de rupture TWR (flux) - sans doublon, sans depasser endDate */
   const breakDates = [...new Set(windowTxs.map(t => t.date))]
@@ -3009,13 +3016,15 @@ function computePnl(series, allTxs, range) {
     .sort();
 
   if (!breakDates.length) {
-    /* Aucun flux dans la plage → rendement simple */
-    return {pnlEur, pnlPct: Math.round((vEnd / vStart - 1) * 10000) / 100};
+    /* Aucun flux dans la plage → TWR simple incluant les dividendes :
+       (V_end + dividendes reçus) / V_start − 1 */
+    return {pnlEur, pnlPct: Math.round(((vEnd + divsPlage) / vStart - 1) * 10000) / 100};
   }
 
-  /* Produit TWR */
+  /* Produit TWR — dividendes traites comme gains intra-segment (pas comme flux) */
   let twrProduct = 1;
   let prevEnd    = vStart;
+  let segStart   = startDate;
   const allBreaks = [...breakDates, endDate];   /* breakDates déjà < endDate */
 
   for (const bDate of allBreaks) {
@@ -3023,11 +3032,18 @@ function computePnl(series, allTxs, range) {
     const pts = series.filter(p => p.date < bDate);
     if (!pts.length || prevEnd <= 0) continue;
     const vBefore = pts[pts.length - 1].val;
-    twrProduct *= vBefore / prevEnd;
+
+    /* Dividendes recus pendant ce segment (segStart, bDate] */
+    const segDivs = windowDivs
+      .filter(d => d.date > segStart && d.date <= bDate)
+      .reduce((s, d) => s + (d.montant || 0), 0);
+
+    twrProduct *= (vBefore + segDivs) / prevEnd;
 
     /* Premier point >= bDate = valeur apres flux applique */
     const ptsAfter = series.filter(p => p.date >= bDate);
-    prevEnd = ptsAfter.length ? ptsAfter[0].val : vBefore;
+    prevEnd  = ptsAfter.length ? ptsAfter[0].val : vBefore;
+    segStart = bDate;
   }
 
   return {pnlEur, pnlPct: Math.round((twrProduct - 1) * 10000) / 100};
@@ -3267,19 +3283,22 @@ function drawPerfChart() {
   const portVals = series.map(p => p.val);         /* valeur marche jour J   */
   const depVals  = buildDepositSeries(dates);       /* versements cumules J   */
 
-  /* ── Calcul P&L : memes valeurs que renderMetrics (p.cours + cash - depots) */
-  let _tvChart = 0, _ncChart = 0;
-  S.positions.forEach(p => { const e = computePos(p); if (e.val != null) { _tvChart += e.val; _ncChart++; } });
-  const _allChart  = _ncChart === S.positions.length;
-  const _depChart  = (S.depots||[]).reduce((s,d)=>s+(d.amount||0),0);
-  const _cashChart = computeCash();
-  const pnlEur = _allChart && _depChart > 0
-    ? Math.round((_tvChart + _cashChart - _depChart) * 100) / 100
-    : null;
-  const pnlPct = pnlEur != null
-    ? Math.round((pnlEur / _depChart) * 10000) / 100
-    : null;
-  const isPos = pnlEur == null ? true : pnlEur >= 0;
+  /* ── Calcul P&L pour la plage selectionnee (via computePnl)
+     - MAX : V_end − netCapital + Σ dividendes reçus
+     - Plage partielle : ΔValeur − FluxNet + dividendes de la plage ; % = TWR */
+  const _cutToday = todayISO();
+  const _allDivs  = [
+    ...(S.divReceived || []),
+    ...(S.divFuture   || []).filter(d => d.date && normDate(d.date) <= _cutToday)
+  ].map(d => ({...d, date: normDate(d.date)}));
+  const _allTxs = [...(S.transactions || [])]
+    .filter(t => (t.type === "Achat" || t.type === "Vente") && normDate(t.date) <= _cutToday)
+    .map(t => ({...t, date: normDate(t.date)}))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const _pnl = computePnl(series, _allTxs, _allDivs, _perfRange);
+  const pnlEur = _pnl.pnlEur;
+  const pnlPct = _pnl.pnlPct;
+  const isPos  = pnlEur == null ? true : pnlEur >= 0;
 
   /* ── Resume P&L ──────────────────────────────────────────────────────────── */
   const summaryEl = document.getElementById("twr-summary");
@@ -3288,8 +3307,10 @@ function drawPerfChart() {
   const valEl = document.getElementById("twr-pnl-val");
   const pctEl = document.getElementById("twr-pnl-pct");
   if (valEl) {
-    valEl.textContent = (pnlEur >= 0 ? "+" : "\u2212") + Math.abs(pnlEur).toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " \u20AC";
-    valEl.style.color = isPos ? "var(--g)" : "var(--r)";
+    valEl.textContent = pnlEur != null
+      ? (pnlEur >= 0 ? "+" : "\u2212") + Math.abs(pnlEur).toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " \u20AC"
+      : "\u2014";
+    valEl.style.color = pnlEur == null ? "var(--txt2)" : (isPos ? "var(--g)" : "var(--r)");
   }
   if (pctEl) {
     pctEl.textContent = pnlPct != null
