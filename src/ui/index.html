@@ -2716,7 +2716,14 @@ function priceAt(sortedMap, date) {
    CHARGEMENT HISTORIQUE (serveur + fallback localStorage)
 ───────────────────────────────────────────────────────────────────────── */
 async function loadPerfHistory() {
-  const tickers = S.positions.map(p => p.ticker);
+  /* On telecharge aussi l'historique des titres VENDUS (closedPositions) :
+     apres une vente totale, la position quitte S.positions, donc sans cela son
+     historique n'est plus charge et buildTwrSeries ne peut plus valoriser les
+     jours ou le titre etait detenu -> serie sous 2 points -> graphique vide. */
+  const tickers = [...new Set([
+    ...S.positions.map(p => p.ticker),
+    ...(S.closedPositions || []).map(c => c.ticker),
+  ].filter(Boolean))];
   if (!tickers.length) return null;
 
   try {
@@ -2789,6 +2796,11 @@ function hideCacheLabel() {
 
 /* ─────────────────────────────────────────────────────────────────────────
    CONSTRUCTION DE LA SERIE JOURNALIERE
+   La valeur tracee est la VALEUR TOTALE du portefeuille = titres + especes.
+   Inclure le solde espece est essentiel : sans cela, une vente fait chuter la
+   courbe alors que l'argent est seulement passe en liquidite (la valeur reelle
+   ne bouge pas). Avec les especes, vendre ne cree aucune marche artificielle.
+
    Principe :
    - On part du premier achat (firstDate).
    - Les seules dates utilisees sont celles contenues dans l'historique Yahoo
@@ -2797,8 +2809,12 @@ function hideCacheLabel() {
        il n'influe pas sur la valeur et ne cree pas de chute artificielle.
    - Pour chaque ticker deja achete, on utilise priceAt() qui retourne le
      dernier prix connu <= date (forward-fill sur jours feries / weekends).
-   - On n'emet un point que si TOUS les tickers deja achetes ont un prix connu.
-     Cela evite les jours partiels (ex: introduction en bourse d'un nouveau titre).
+   - On n'emet un point que si TOUS les tickers detenus ont un prix connu
+     (evite les jours partiels, ex: introduction en bourse d'un nouveau titre).
+   - Especes(date) = depots − retraits + dividendes encaisses
+                     − achats (qty*cours+frais) + ventes (qty*cours−frais),
+     cumules jusqu'a la date. Clampe a >= 0 pour rester coherent avec le solde
+     espece affiche ailleurs (computeCash).
 ───────────────────────────────────────────────────────────────────────── */
 function buildTwrSeries(history) {
   if (!history) return null;
@@ -2822,6 +2838,23 @@ function buildTwrSeries(history) {
       sortedMaps[c.ticker] = buildSortedPriceMap(history[c.ticker]);
   });
 
+  /* Flux d'especes a rejouer (deposits/retraits, dividendes, achats/ventes).
+     cash(date) = somme des deltas dont la date <= date. */
+  const cashEvents = [];
+  (S.depots || []).forEach(d => {
+    if (d.date && d.amount) cashEvents.push({date: normDate(d.date), delta: d.amount});
+  });
+  [...(S.divReceived || []), ...(S.divFuture || [])].forEach(d => {
+    if (d.date && d.montant && normDate(d.date) <= cutToday)
+      cashEvents.push({date: normDate(d.date), delta: d.montant});
+  });
+  txs.forEach(t => {
+    const flow = t.qty * t.cours;
+    if (t.type === "Achat")      cashEvents.push({date: normDate(t.date), delta: -(flow + (t.frais || 0))});
+    else if (t.type === "Vente") cashEvents.push({date: normDate(t.date), delta:  (flow - (t.frais || 0))});
+  });
+  cashEvents.sort((a, b) => a.date.localeCompare(b.date));
+
   /* Union des dates de trading de tous les tickers connus, depuis firstDate */
   const dateSet = new Set();
   Object.values(sortedMaps).forEach(sm => {
@@ -2832,6 +2865,8 @@ function buildTwrSeries(history) {
 
   /* Repasse sur toutes les transactions pour construire l'etat du portefeuille */
   let txIdx = 0;
+  let ceIdx = 0;
+  let cash  = 0;                      /* solde espece cumule au fil des jours   */
   const qtys = {};                   /* {ticker: qty actuelle} */
   const dayValues = [];
 
@@ -2849,13 +2884,18 @@ function buildTwrSeries(history) {
       txIdx++;
     }
 
-    /* Calculer la valeur du portefeuille.
-       Regle : on ignore les tickers avec qty=0.
+    /* Accumuler les flux d'especes (depots, dividendes, achats, ventes) <= date */
+    while (ceIdx < cashEvents.length && cashEvents[ceIdx].date <= date) {
+      cash += cashEvents[ceIdx].delta;
+      ceIdx++;
+    }
+
+    /* Valeur des titres detenus.
        Pour chaque ticker avec qty>0, on exige un prix connu (priceAt).
        Si un ticker n'a AUCUN prix connu jusqu'a cette date → on saute ce jour
        (evite les points parasites lors de l'introduction d'un titre). */
-    let val = 0;
-    let valid = true;
+    let equity = 0;
+    let valid  = true;
 
     for (const [ticker, qty] of Object.entries(qtys)) {
       if (qty < 0.0001) continue;
@@ -2863,12 +2903,14 @@ function buildTwrSeries(history) {
       if (!sm) { valid = false; break; }
       const price = priceAt(sm, date);
       if (price == null) { valid = false; break; }
-      val += qty * price;
+      equity += qty * price;
     }
 
-    /* N'emettre un point que si au moins un ticker est detenu ET tous ont un prix */
-    const hasTickers = Object.values(qtys).some(q => q >= 0.0001);
-    if (valid && hasTickers) {
+    /* Valeur totale = titres + especes (clampe a >= 0, cf. computeCash).
+       On emet meme les jours sans titre (apres une revente totale) : la valeur
+       devient alors le seul solde espece, et la courbe reste continue. */
+    if (valid) {
+      const val = equity + Math.max(0, cash);
       dayValues.push({date, val: Math.round(val * 100) / 100});
     }
   }
@@ -2941,109 +2983,99 @@ function filterByRange(series, range) {
 
 /* ─────────────────────────────────────────────────────────────────────────
    CALCUL P&L SUR LA PLAGE
-   Deux modes selon que la plage couvre tout l'historique ou non :
+   La serie `series` porte deja la VALEUR TOTALE (titres + especes), donc les
+   achats, ventes et dividendes sont des mouvements INTERNES : ils ne changent
+   pas la valeur totale et ne comptent pas comme flux. Les seuls flux externes
+   sont les VERSEMENTS / RETRAITS (S.depots).
 
    MODE HISTORIQUE COMPLET (MAX, ou portefeuille plus jeune que la plage) :
-     P&L € = valeur finale - capital net total deploye (prix d'achat réels)
-     P&L % = P&L € / capital net deploye
-     → Cohérent à l'euro près avec l'onglet Positions.
+     P&L € = valeur totale finale − total des versements nets
+     P&L % = valeur finale / versements nets − 1
+     → Coherent a l'euro pres avec l'onglet "Mes comptes".
+     Repli si aucun versement saisi : capital net deploye via les transactions.
 
-   MODE PLAGE PARTIELLE (1S, 1M, YTD, 1A) :
-     P&L € = valeur finale - valeur debut - flux nets de la periode
-     P&L % = TWR (Time-Weighted Return) : produit des sous-periodes
-             separees par chaque injection/retrait de capital.
-             La valeur "juste avant un flux" est le dernier point
-             STRICTEMENT AVANT la date du flux (p.date < bDate),
-             pour ne pas inclure le nouveau capital dans le rendement
-             de la sous-periode precedente.
+   MODE PLAGE PARTIELLE (1S, 1M, 6M, YTD) :
+     P&L € = valeur finale − valeur debut − versements nets de la periode
+     P&L % = TWR (Time-Weighted Return) : produit des sous-periodes separees
+             par chaque versement/retrait. La valeur "juste avant un flux" est
+             le dernier point STRICTEMENT AVANT la date du flux (p.date < bDate),
+             pour ne pas inclure le nouveau capital dans le rendement.
 ───────────────────────────────────────────────────────────────────────── */
-function computePnl(series, allTxs, divs, range) {
+function computePnl(series, range) {
   if (!series || series.length < 2) return {pnlEur: null, pnlPct: null};
 
-  const startDate   = series[0].date;
-  const endDate     = series[series.length - 1].date;
-  const vEnd        = series[series.length - 1].val;
-  const firstTxDate = allTxs.length > 0 ? allTxs[0].date : null;
-  const allDivs     = divs || [];
+  const cutToday  = todayISO();
+  const startDate = normDate(series[0].date);
+  const endDate   = normDate(series[series.length - 1].date);
+  const vStart    = series[0].val;
+  const vEnd      = series[series.length - 1].val;
 
-  /* Détecter si la plage couvre tout l'historique :
-     - range explicitement MAX, OU
-     - la serie commence avant (ou le jour de) la premiere transaction
-       (cas d'un portefeuille plus jeune que la plage demandée) */
-  const isFullHistory = range === "MAX" || !firstTxDate || startDate <= firstTxDate;
+  /* Versements / retraits (flux de capital externes), tries par date */
+  const deps = (S.depots || [])
+    .filter(d => d.date && (d.amount || 0) !== 0 && normDate(d.date) <= cutToday)
+    .map(d => ({date: normDate(d.date), amount: d.amount || 0}))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  /* Plage couvrant tout l'historique : MAX, aucun versement, ou serie
+     commencant avant (ou avec) le premier versement */
+  const isFullHistory = range === "MAX" || !deps.length || startDate <= deps[0].date;
 
   /* ── MODE HISTORIQUE COMPLET ─────────────────────────────────────────── */
   if (isFullHistory) {
-    const netCapital = allTxs.reduce((s, t) => {
+    const netDeposits = deps.reduce((s, d) => s + d.amount, 0);
+    if (netDeposits > 0) {
+      return {
+        pnlEur: Math.round((vEnd - netDeposits) * 100) / 100,
+        pnlPct: Math.round((vEnd / netDeposits - 1) * 10000) / 100,
+      };
+    }
+    /* Repli : aucun versement saisi → capital net deploye via les transactions */
+    const netCapital = (S.transactions || []).reduce((s, t) => {
+      if (normDate(t.date) > cutToday) return s;
       if (t.type === "Achat") return s + t.qty * t.cours + (t.frais || 0);
       if (t.type === "Vente") return s - (t.qty * t.cours - (t.frais || 0));
       return s;
     }, 0);
     if (netCapital <= 0) return {pnlEur: null, pnlPct: null};
-    const divsTotal = allDivs.reduce((s, d) => s + (d.montant || 0), 0);
-    const pnlEur = Math.round((vEnd - netCapital + divsTotal) * 100) / 100;
-    const pnlPct = Math.round(((vEnd + divsTotal) / netCapital - 1) * 10000) / 100;
-    return {pnlEur, pnlPct};
+    return {
+      pnlEur: Math.round((vEnd - netCapital) * 100) / 100,
+      pnlPct: Math.round((vEnd / netCapital - 1) * 10000) / 100,
+    };
   }
 
   /* ── MODE PLAGE PARTIELLE ────────────────────────────────────────────── */
-  const vStart = series[0].val;
   if (!vStart || vStart <= 0) return {pnlEur: null, pnlPct: null};
 
-  /* Transactions dans la fenêtre, APRES startDate */
-  const windowTxs = allTxs.filter(t =>
-    (t.type === "Achat" || t.type === "Vente") &&
-    t.date > startDate && t.date <= endDate
-  );
+  /* Flux nets de la fenetre = versements/retraits APRES startDate (≤ endDate) */
+  const windowDeps = deps.filter(d => d.date > startDate && d.date <= endDate);
+  const fluxNet    = windowDeps.reduce((s, d) => s + d.amount, 0);
 
-  /* Flux net = capital supplementaire injecte dans la fenetre */
-  const fluxNet = windowTxs.reduce((s, t) => {
-    if (t.type === "Achat") return s + t.qty * t.cours + (t.frais || 0);
-    if (t.type === "Vente") return s - (t.qty * t.cours - (t.frais || 0));
-    return s;
-  }, 0);
+  /* P&L EUR = ΔValeur totale − flux de capital externes */
+  const pnlEur = Math.round((vEnd - vStart - fluxNet) * 100) / 100;
 
-  /* Dividendes recus dans la plage (startDate exclu, endDate inclus) */
-  const windowDivs = allDivs.filter(d => d.date && d.date > startDate && d.date <= endDate);
-  const divsPlage  = windowDivs.reduce((s, d) => s + (d.montant || 0), 0);
-
-  /* P&L EUR sur la plage = ΔValeur − FluxNet + Dividendes reçus dans la plage */
-  const pnlEur = Math.round((vEnd - vStart - fluxNet + divsPlage) * 100) / 100;
-
-  /* Dates de rupture TWR (flux) - sans doublon, sans depasser endDate */
-  const breakDates = [...new Set(windowTxs.map(t => t.date))]
+  /* Dates de rupture TWR = chaque versement (sans doublon, < endDate) */
+  const breakDates = [...new Set(windowDeps.map(d => d.date))]
     .filter(d => d < endDate)
     .sort();
 
   if (!breakDates.length) {
-    /* Aucun flux dans la plage → TWR simple incluant les dividendes :
-       (V_end + dividendes reçus) / V_start − 1 */
-    return {pnlEur, pnlPct: Math.round(((vEnd + divsPlage) / vStart - 1) * 10000) / 100};
+    return {pnlEur, pnlPct: Math.round((vEnd / vStart - 1) * 10000) / 100};
   }
 
-  /* Produit TWR — dividendes traites comme gains intra-segment (pas comme flux) */
+  /* Produit TWR — un seul type de rupture : les versements de capital */
   let twrProduct = 1;
   let prevEnd    = vStart;
-  let segStart   = startDate;
-  const allBreaks = [...breakDates, endDate];   /* breakDates déjà < endDate */
 
-  for (const bDate of allBreaks) {
+  for (const bDate of [...breakDates, endDate]) {
     /* Dernier point STRICTEMENT avant bDate (valeur avant le flux) */
-    const pts = series.filter(p => p.date < bDate);
+    const pts = series.filter(p => normDate(p.date) < bDate);
     if (!pts.length || prevEnd <= 0) continue;
     const vBefore = pts[pts.length - 1].val;
-
-    /* Dividendes recus pendant ce segment (segStart, bDate] */
-    const segDivs = windowDivs
-      .filter(d => d.date > segStart && d.date <= bDate)
-      .reduce((s, d) => s + (d.montant || 0), 0);
-
-    twrProduct *= (vBefore + segDivs) / prevEnd;
+    twrProduct *= vBefore / prevEnd;
 
     /* Premier point >= bDate = valeur apres flux applique */
-    const ptsAfter = series.filter(p => p.date >= bDate);
-    prevEnd  = ptsAfter.length ? ptsAfter[0].val : vBefore;
-    segStart = bDate;
+    const ptsAfter = series.filter(p => normDate(p.date) >= bDate);
+    prevEnd = ptsAfter.length ? ptsAfter[0].val : vBefore;
   }
 
   return {pnlEur, pnlPct: Math.round((twrProduct - 1) * 10000) / 100};
@@ -3284,18 +3316,11 @@ function drawPerfChart() {
   const depVals  = buildDepositSeries(dates);       /* versements cumules J   */
 
   /* ── Calcul P&L pour la plage selectionnee (via computePnl)
-     - MAX : V_end − netCapital + Σ dividendes reçus
-     - Plage partielle : ΔValeur − FluxNet + dividendes de la plage ; % = TWR */
-  const _cutToday = todayISO();
-  const _allDivs  = [
-    ...(S.divReceived || []),
-    ...(S.divFuture   || []).filter(d => d.date && normDate(d.date) <= _cutToday)
-  ].map(d => ({...d, date: normDate(d.date)}));
-  const _allTxs = [...(S.transactions || [])]
-    .filter(t => (t.type === "Achat" || t.type === "Vente") && normDate(t.date) <= _cutToday)
-    .map(t => ({...t, date: normDate(t.date)}))
-    .sort((a, b) => a.date.localeCompare(b.date));
-  const _pnl = computePnl(series, _allTxs, _allDivs, _perfRange);
+     La serie porte la valeur totale (titres + especes) ; computePnl lit les
+     versements (S.depots) directement pour mesurer le P&L vs capital injecte.
+     - MAX : valeur finale − versements nets
+     - Plage partielle : ΔValeur − versements de la plage ; % = TWR */
+  const _pnl = computePnl(series, _perfRange);
   const pnlEur = _pnl.pnlEur;
   const pnlPct = _pnl.pnlPct;
   const isPos  = pnlEur == null ? true : pnlEur >= 0;
