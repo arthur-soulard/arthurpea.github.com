@@ -291,6 +291,13 @@ td:first-child { text-align: left; padding-left: 2px; font-family: var(--font); 
 .bw{background:var(--r2);color:var(--r)}
 .pos { color: var(--g); font-weight: 600; }
 .neg { color: var(--r); font-weight: 600; }
+
+/* — Carte « Plus/moins-values réalisées » (onglet Performance) — */
+.realized-year > summary { list-style: none; }
+.realized-year > summary::-webkit-details-marker { display: none; }
+.realized-year > summary::marker { content: ""; }
+.rz-chev { display: inline-block; font-size: 10px; color: var(--txt3); transition: transform .15s ease; }
+.realized-year[open] .rz-chev { transform: rotate(90deg); }
 .neu { color: var(--txt2); }
 .pb  { display: inline-block; vertical-align: middle; width: 44px; height: 3px; background: var(--bg4); border-radius: 2px; margin-left: 5px; overflow: hidden; }
 .pb-f{ height: 100%; border-radius: 2px; background: var(--b); }
@@ -1171,6 +1178,18 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       </div>
       <div style="position:relative;height:300px"><canvas id="c-perf"></canvas></div>
     </div>
+  </div>
+
+  <!-- Plus/moins-values réalisées -->
+  <div class="card" id="card-realized">
+    <div class="card-h" style="flex-wrap:wrap;gap:.6rem">
+      <span class="card-t">Plus/moins-values réalisées</span>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-left:auto">
+        <span style="font-size:10px;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em">Total réalisé</span>
+        <span id="realized-total" style="font-family:var(--mono);font-weight:800;font-size:18px;letter-spacing:-.5px">—</span>
+      </div>
+    </div>
+    <div class="card-b" id="realized-body" style="padding:.75rem 1rem 1rem"></div>
   </div>
 
   <!-- Camemberts -->
@@ -3513,6 +3532,9 @@ async function renderPerf() {
     if (["1W","1M","6M","YTD","MAX"].includes(savedRange)) _perfRange = savedRange;
   } catch(e) {}
 
+  // PV réalisées : données issues uniquement des transactions, rendu immédiat
+  renderRealizedPnl();
+
   const cutToday = todayISO();
   const txs = S.transactions.filter(t =>
     (t.type === "Achat" || t.type === "Vente") && normDate(t.date) <= cutToday
@@ -4126,6 +4148,114 @@ function pvAtSale(vente) {
     }
   }
   return null;
+}
+
+/* ─── Toutes les ventes réalisées (FIFO), enrichies ───
+   Réplique exactement la logique de pvAtSale (PRU FIFO reconstruit) mais en un
+   seul passage par actif, et renvoie pour chaque vente le détail complet. */
+function realizedSales() {
+  const cut = todayISO();
+  const byAsset = {};
+  (S.transactions || []).forEach(t => {
+    if (!t.asset || normDate(t.date) > cut) return;          // ignore les ordres futurs
+    (byAsset[t.asset] = byAsset[t.asset] || []).push(t);
+  });
+  const nameOf = (ticker) => {
+    const p = (S.positions || []).find(x => x.ticker === ticker);
+    if (p && p.name) return p.name;
+    const c = (S.closedPositions || []).find(x => x.ticker === ticker);
+    return (c && c.name) ? c.name : ticker;
+  };
+  const sales = [];
+  Object.keys(byAsset).forEach(asset => {
+    const txs = byAsset[asset].sort((a,b)=>normDate(a.date).localeCompare(normDate(b.date)));
+    let qty = 0, cost = 0;
+    txs.forEach(t => {
+      if (t.type === "Achat") {
+        cost += t.cours*t.qty + (t.frais||0);
+        qty  += t.qty;
+      } else if (t.type === "Vente") {
+        const pru      = qty > 0 ? cost/qty : 0;
+        const basis    = pru * t.qty;
+        const proceeds = t.cours*t.qty - (t.frais||0);
+        const pv       = Math.round((proceeds - basis) * 100) / 100;
+        sales.push({
+          id: t.id, date: t.date, asset, name: nameOf(asset),
+          qty: t.qty, sellPrice: t.cours, frais: t.frais||0,
+          pru, proceeds, pv,
+          pvPct: basis > 0 ? (pv / basis) * 100 : null,
+          year: (normDate(t.date) || "").slice(0, 4)
+        });
+        cost -= basis;
+        qty  -= t.qty;
+        if (qty < 0.0001) { qty = 0; cost = 0; }
+      }
+    });
+  });
+  return sales;
+}
+
+/* ─── Carte « Plus/moins-values réalisées » (onglet Performance) ───
+   Total global + ventilation par année (accordéon) + détail des lignes vendues. */
+function renderRealizedPnl() {
+  const body  = document.getElementById("realized-body");
+  const totEl = document.getElementById("realized-total");
+  if (!body) return;
+
+  const sales    = realizedSales();
+  const globalPv = Math.round(sales.reduce((s,x)=>s+x.pv, 0) * 100) / 100;
+
+  if (totEl) {
+    totEl.textContent = sales.length ? eur(globalPv, true) : "—";
+    totEl.className   = sales.length ? pcls(globalPv) : "";
+  }
+
+  if (!sales.length) {
+    body.innerHTML = '<div style="text-align:center;color:var(--txt2);padding:18px;font-size:12px">Aucune vente réalisée pour l’instant.<br><span style="font-size:11px;color:var(--txt3)">Les plus ou moins-values apparaîtront ici dès qu’une ligne sera vendue.</span></div>';
+    return;
+  }
+
+  // Regroupe par année (plus récente en premier)
+  const byYear = {};
+  sales.forEach(s => (byYear[s.year] = byYear[s.year] || []).push(s));
+  const years = Object.keys(byYear).sort().reverse();
+
+  body.innerHTML = years.map((y, i) => {
+    const ys    = byYear[y].sort((a,b)=>normDate(b.date).localeCompare(normDate(a.date)));
+    const yTot  = Math.round(ys.reduce((s,x)=>s+x.pv, 0) * 100) / 100;
+    const nSell = ys.length;
+    const rows  = ys.map(s => `
+      <tr>
+        <td style="font-family:var(--mono);color:var(--txt2);font-size:11px;white-space:nowrap">${s.date}</td>
+        <td style="text-align:left;font-family:var(--font);font-weight:600">${s.name}</td>
+        <td>${s.qty}</td>
+        <td>${eur(s.sellPrice)}</td>
+        <td>${eur(s.proceeds)}</td>
+        <td class="${pcls(s.pv)}">${eur(s.pv, true)}</td>
+        <td class="${pcls(s.pvPct)}">${s.pvPct == null ? "—" : pct(s.pvPct)}</td>
+      </tr>`).join("");
+    return `
+    <details class="realized-year"${i === 0 ? " open" : ""} style="border:1px solid var(--brd);border-radius:var(--rad);margin-bottom:8px;overflow:hidden">
+      <summary style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;background:var(--bg3)">
+        <span class="rz-chev">▶</span>
+        <span style="font-weight:800;font-size:14px">${y}</span>
+        <span style="font-size:10px;color:var(--txt2);font-family:var(--mono)">${nSell} vente${nSell > 1 ? "s" : ""}</span>
+        <span class="${pcls(yTot)}" style="margin-left:auto;font-family:var(--mono);font-weight:800;font-size:14px">${eur(yTot, true)}</span>
+      </summary>
+      <div class="tw" style="border-top:1px solid var(--brd)"><table>
+        <thead><tr>
+          <th>Date</th>
+          <th style="text-align:left">Titre</th>
+          <th>Qté</th>
+          <th>Prix vente</th>
+          <th>Montant net</th>
+          <th>+/− €</th>
+          <th>+/− %</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </details>`;
+  }).join("");
 }
 
 /* ─── Transactions ─── */
@@ -7465,6 +7595,7 @@ const SIDEBAR_ITEMS = [
 const CARD_ITEMS = [
   { id: "card-pos",              label: "Positions · Tableau" },
   { id: "card-twr",              label: "Performance · Évolution du capital" },
+  { id: "card-realized",         label: "Performance · Plus/moins-values réalisées" },
   { id: "card-pie-val",          label: "Performance · Camembert valeur" },
   { id: "card-pie-inv",          label: "Performance · Camembert investi" },
   { id: "card-heatmap",          label: "Performance · Carte thermique" },
