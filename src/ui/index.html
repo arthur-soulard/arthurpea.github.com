@@ -1304,6 +1304,30 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       </div>
     </div>
   </div>
+  <div class="card" id="card-geo-overview" style="margin-top:0">
+    <div class="card-h" style="flex-wrap:wrap;gap:.6rem">
+      <span class="card-t">Exposition géographique</span>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--txt2)">Seuil alerte :</span>
+        <input id="geo-threshold" type="number" min="5" max="100" value="50"
+          onchange="renderGeo()" title="% du portefeuille au-delà duquel une alerte de concentration géographique est affichée"
+          style="width:56px;font-family:var(--mono);font-size:12px;padding:3px 6px;border:1px solid var(--brd2);border-radius:var(--rad);background:var(--bg2);color:var(--txt)">
+        <span style="font-size:11px;color:var(--txt2)">%</span>
+        <button class="btn btn-sm btn-ghost" onclick="goTab('pos')" title="Aller aux positions pour ajuster les zones">✎ Modifier zones</button>
+      </div>
+    </div>
+    <div id="geo-alerts-bar" style="display:none;padding:.6rem 1rem;background:var(--r2);border-bottom:1px solid var(--brd);font-size:11px;color:var(--r);font-weight:700"></div>
+    <div class="sec-grid" style="padding:1rem;gap:1rem">
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt2);margin-bottom:.6rem">Répartition (valeur de marché)</div>
+        <canvas id="geo-chart" height="280" style="max-height:280px"></canvas>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt2);margin-bottom:.6rem">Détail par zone</div>
+        <div id="geo-detail-list"></div>
+      </div>
+    </div>
+  </div>
   <div class="card" id="card-sector-positions" style="margin-top:0">
     <div class="card-h" style="flex-wrap:wrap;gap:.6rem">
       <span class="card-t">Positions par secteur</span>
@@ -1991,6 +2015,16 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
           <option value="autre">○ Autre</option>
         </select>
       </div>
+      <div class="fg"><label>Zone géographique</label>
+        <select id="f-geo" style="background:var(--bg2)" title="« Auto » détecte la zone via le ticker (actions) ou le nom (ETF). Choisissez une zone pour forcer.">
+          <option value="">🌐 Auto (détecté)</option>
+          <option value="am_nord">🌎 Amérique du Nord</option>
+          <option value="euro">🇪🇺 Europe</option>
+          <option value="asie_dev">🗾 Asie développée</option>
+          <option value="emergents">📈 Émergents</option>
+          <option value="autre">○ Autre / Diversifié</option>
+        </select>
+      </div>
     </div>
     <div class="fg-row">
       <div class="fg"><label>Prix d'achat (EUR / part)</label><input id="f-prix" type="number" step="0.0001" placeholder=""></div>
@@ -2259,6 +2293,71 @@ function sectorBadgeHtml(id) {
   const bg = s.color + "22";
   return `<span class="sector-badge" style="background:${bg};color:${s.color}">${s.icon} ${s.label}</span>`;
 }
+
+/* ─── Référentiel des zones géographiques ─── */
+const GEOS = [
+  { id: "am_nord",   label: "Amérique du Nord",   icon: "🌎", color: "#2563eb" },
+  { id: "euro",      label: "Europe",             icon: "🇪🇺", color: "#16a34a" },
+  { id: "asie_dev",  label: "Asie développée",    icon: "🗾", color: "#db2777" },
+  { id: "emergents", label: "Émergents",          icon: "📈", color: "#f97316" },
+  { id: "autre",     label: "Autre / Diversifié", icon: "○",  color: "#a1a1aa" },
+];
+function geoById(id) {
+  return GEOS.find(g => g.id === id) || { id: "autre", label: "Autre / Diversifié", icon: "○", color: "#a1a1aa" };
+}
+function geoBadgeHtml(id) {
+  if (!id) return '<span style="color:var(--txt3);font-size:10px">—</span>';
+  const g = geoById(id);
+  return `<span class="sector-badge" style="background:${g.color}22;color:${g.color}">${g.icon} ${g.label}</span>`;
+}
+
+/* Suffixe de place de cotation → zone (heuristique, surchargeable par l'utilisateur) */
+const EXCHANGE_GEO = {
+  EPA:"euro", PAR:"euro", AMS:"euro", EAM:"euro", EBR:"euro", BRU:"euro",
+  ELI:"euro", LIS:"euro", ETR:"euro", FRA:"euro", GER:"euro", XETRA:"euro",
+  BIT:"euro", MIL:"euro", BME:"euro", MCE:"euro", MAD:"euro", VIE:"euro",
+  WBO:"euro", HEL:"euro", DUB:"euro", ISE:"euro",
+  LON:"euro", LSE:"euro", SWX:"euro", VTX:"euro", EBS:"euro",
+  STO:"euro", CPH:"euro", OSL:"euro",
+  NYSE:"am_nord", NASDAQ:"am_nord", NMS:"am_nord", NYQ:"am_nord", PCX:"am_nord",
+  TSE:"am_nord", TOR:"am_nord", CVE:"am_nord",
+  TYO:"asie_dev", TKS:"asie_dev", HKG:"emergents", SHA:"emergents", SHE:"emergents",
+};
+function detectGeoZone(ticker) {
+  if (!ticker) return "euro";
+  const m = String(ticker).toUpperCase().match(/^([A-Z]+)\s*:/);
+  return EXCHANGE_GEO[m ? m[1] : ""] || "euro";
+}
+
+/* Répartitions pré-câblées pour ETF courants (somme = 1). Première correspondance gagnante. */
+const ETF_GEO_PRESETS = [
+  { re:/s\s*&?\s*p\s*500|sp\s*500/i,                       mix:{ am_nord:1 } },
+  { re:/nasdaq|\bndx\b/i,                                   mix:{ am_nord:1 } },
+  { re:/msci\s*usa|\busa\b|\bus\b|états[- ]?unis|etats[- ]?unis/i, mix:{ am_nord:1 } },
+  { re:/emerging|émergent|emergent|pays\s*émergent|\bem\b/i, mix:{ emergents:1 } },
+  { re:/euro\s*stoxx|stoxx\s*50|msci\s*emu|zone\s*euro/i,   mix:{ euro:1 } },
+  { re:/stoxx\s*600|msci\s*europe|\beurope\b/i,             mix:{ euro:1 } },
+  { re:/cac\s*40|\bsbf\b|\bfrance\b/i,                      mix:{ euro:1 } },
+  { re:/\bdax\b|allemagne|germany/i,                        mix:{ euro:1 } },
+  { re:/japan|japon|topix|nikkei/i,                         mix:{ asie_dev:1 } },
+  { re:/pacific|pacifique|\basia\b|\basie\b/i,              mix:{ asie_dev:0.7, emergents:0.3 } },
+  { re:/all\s*country|\bacwi\b|\bimi\b|monde\s*entier/i,    mix:{ am_nord:0.62, euro:0.18, asie_dev:0.10, emergents:0.10 } },
+  { re:/world|monde|\bwld\b/i,                              mix:{ am_nord:0.70, euro:0.20, asie_dev:0.10 } },
+];
+function detectEtfMix(p) {
+  const hay = `${p.name||""} ${p.ticker||""}`;
+  for (const preset of ETF_GEO_PRESETS) if (preset.re.test(hay)) return { ...preset.mix };
+  return { autre: 1 };
+}
+
+/* Résout la répartition géo d'une position → { zoneId: poids } (somme = 1).
+   p.geo absent → auto (détection) ; p.geo = "<id>" → override forcé 100% cette zone. */
+function resolveGeoMix(p) {
+  if (p && p.geo) return { [p.geo]: 1 };
+  if (p && p.type === "etf") return detectEtfMix(p);
+  return { [detectGeoZone(p && p.ticker)]: 1 };
+}
+
 let _gsTimer  = null;
 let _wsVar    = {};
 let _wsAnalysts = {};   // {ticker: {targetMean, numAnalysts, recoMean, recoKey, ...}}
@@ -4476,6 +4575,114 @@ function renderSectors() {
   }
 
   renderSectorPositions();
+  renderGeo();
+}
+
+/* ─── Exposition géographique ─── */
+let _geoChart = null;
+
+function renderGeo() {
+  const positions = (S.positions || []);
+  const dl       = document.getElementById("geo-detail-list");
+  const canvas   = document.getElementById("geo-chart");
+  const alertBar = document.getElementById("geo-alerts-bar");
+
+  if (!positions.length) {
+    if (dl) dl.innerHTML = '<div class="sec-empty">Aucune position — ajoutez des positions pour voir l\'exposition géographique.</div>';
+    if (_geoChart) { _geoChart.destroy(); _geoChart = null; }
+    if (alertBar) alertBar.style.display = "none";
+    return;
+  }
+
+  const threshold = parseFloat((document.getElementById("geo-threshold")||{}).value || 50);
+
+  const byZone = {};
+  positions.forEach(p => {
+    const e   = computePos(p);
+    const val = e.val != null ? e.val : e.inv;
+    const mix = resolveGeoMix(p);
+    Object.entries(mix).forEach(([zid, w]) => {
+      if (!byZone[zid]) byZone[zid] = { val: 0, inv: 0, pv: 0 };
+      byZone[zid].val += val * w;
+      byZone[zid].inv += e.inv * w;
+      byZone[zid].pv  += (e.pv || 0) * w;
+    });
+  });
+
+  const totalVal = Object.values(byZone).reduce((s, x) => s + x.val, 0);
+  const sorted = Object.entries(byZone)
+    .map(([zid, d]) => ({ zid, ...d, geo: geoById(zid), pct: totalVal > 0 ? d.val / totalVal * 100 : 0 }))
+    .sort((a, b) => b.val - a.val);
+
+  if (alertBar) {
+    const over = sorted.filter(x => x.pct >= threshold);
+    if (over.length) {
+      alertBar.style.display = "";
+      alertBar.innerHTML = "⚠ Concentration géographique : "
+        + over.map(x => `${x.geo.icon} ${x.geo.label} (${x.pct.toFixed(1)}%)`).join(" · ");
+    } else {
+      alertBar.style.display = "none";
+    }
+  }
+
+  if (canvas) {
+    if (_geoChart) { _geoChart.destroy(); _geoChart = null; }
+    _geoChart = new Chart(canvas.getContext("2d"), {
+      type: "doughnut",
+      data: {
+        labels: sorted.map(x => x.geo.label),
+        datasets: [{
+          data: sorted.map(x => x.val),
+          backgroundColor: sorted.map(x => x.geo.color + "cc"),
+          borderColor: sorted.map(x => x.geo.color),
+          borderWidth: 1.5,
+          hoverOffset: 6,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        cutout: "62%",
+        plugins: {
+          legend: { position: "bottom", labels: { font: { size: 11 }, boxWidth: 12, padding: 10 } },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const x = sorted[ctx.dataIndex];
+                return ` ${x.pct.toFixed(1)}% · ${x.val.toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0})} €`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  if (dl) {
+    dl.innerHTML = sorted.map(x => {
+      const alertCls = x.pct >= threshold ? "sec-alert-danger" : x.pct >= threshold * 0.75 ? "sec-alert-warn" : "sec-alert-ok";
+      const alertTxt = x.pct >= threshold ? "⚠ Concentré" : x.pct >= threshold * 0.75 ? "⚡ Attention" : "✓ OK";
+      const pvSign   = x.pv >= 0 ? "+" : "−";
+      const pvCls    = x.pv >= 0 ? "pos" : "neg";
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--brd)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="font-size:18px">${x.geo.icon}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:13px">${x.geo.label}</div>
+          </div>
+          <span class="sec-alert ${alertCls}" style="font-size:10px">${alertTxt}</span>
+          <span style="font-family:var(--mono);font-weight:800;font-size:14px;color:${x.geo.color}">${x.pct.toFixed(1)}%</span>
+        </div>
+        <div class="sec-bar-wrap" style="margin-bottom:6px">
+          <div class="sec-bar-fill" style="width:${Math.min(x.pct,100).toFixed(1)}%;background:${x.geo.color}"></div>
+        </div>
+        <div style="display:flex;gap:16px;font-size:11px;font-family:var(--mono);color:var(--txt2);flex-wrap:wrap">
+          <span>Valeur : <strong style="color:var(--txt)">${x.val.toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0})} €</strong></span>
+          <span>Investi : <strong style="color:var(--txt)">${x.inv.toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0})} €</strong></span>
+          <span class="${pvCls}">PV : <strong>${pvSign}${Math.abs(x.pv).toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0})} €</strong></span>
+        </div>
+      </div>`;
+    }).join("");
+  }
 }
 
 function renderSectorPositions() {
@@ -5528,6 +5735,8 @@ function closeOv(id) {
     if(tkEl){ tkEl.readOnly=false; tkEl.style.opacity=""; }
     const secEl=document.getElementById("f-sector");
     if(secEl){ secEl.value=""; }
+    const geoEl=document.getElementById("f-geo");
+    if(geoEl){ geoEl.value=""; }
     const btn=document.querySelector("#ov-pos .btn-primary");
     if(btn){ btn.textContent="Enregistrer"; btn.onclick=savePos; }
   }
@@ -5724,6 +5933,7 @@ function savePos() {
       name: name || ticker,
       type:      document.getElementById("f-type").value,
       sector:    document.getElementById("f-sector").value || null,
+      geo:       document.getElementById("f-geo").value || null,
       cours:     null,
       dividende: parseFloat(document.getElementById("f-div").value)||0,
       exdiv:     document.getElementById("f-exdiv").value.trim()||null,
@@ -5758,6 +5968,7 @@ function editPos(id) {
   document.getElementById("f-name").value   = p.name||"";
   document.getElementById("f-type").value   = p.type||"action";
   document.getElementById("f-sector").value = p.sector||"";
+  document.getElementById("f-geo").value    = p.geo||"";
   document.getElementById("f-div").value    = p.dividende||"";
   document.getElementById("f-exdiv").value  = p.exdiv||"";
   /* Ticker figé */
@@ -5782,6 +5993,7 @@ function saveEditPos(id) {
   p.name      = document.getElementById("f-name").value.trim()||p.name;
   p.type      = document.getElementById("f-type").value;
   p.sector    = document.getElementById("f-sector").value || null;
+  p.geo       = document.getElementById("f-geo").value || null;
   p.dividende = parseFloat(document.getElementById("f-div").value)||0;
   p.exdiv     = document.getElementById("f-exdiv").value.trim()||null;
   persist(); closeOv("ov-pos"); renderPositions(); renderDividends();
@@ -7582,7 +7794,7 @@ const SIDEBAR_ITEMS = [
   { id: "dash",     icon: "⊞", label: "Vue d'ensemble", section: "Suivi PEA" },
   { id: "pos",      icon: "■", label: "Positions",      section: "Suivi PEA" },
   { id: "perf",     icon: "↗", label: "Performance",    section: "Suivi PEA" },
-  { id: "sector",   icon: "⬡", label: "Secteurs",       section: "Suivi PEA" },
+  { id: "sector",   icon: "⬡", label: "Expositions",    section: "Suivi PEA" },
   { id: "div",      icon: "€", label: "Dividendes",     section: "Suivi PEA" },
   { id: "tx",       icon: "⇄", label: "Transactions",   section: "Suivi PEA" },
   { id: "wish",     icon: "☆", label: "Wishlist",       section: "Suivi PEA" },
@@ -7599,8 +7811,9 @@ const CARD_ITEMS = [
   { id: "card-pie-val",          label: "Performance · Camembert valeur" },
   { id: "card-pie-inv",          label: "Performance · Camembert investi" },
   { id: "card-heatmap",          label: "Performance · Carte thermique" },
-  { id: "card-sector-overview",  label: "Secteurs · Analyse exposition" },
-  { id: "card-sector-positions", label: "Secteurs · Positions par secteur" },
+  { id: "card-sector-overview",  label: "Expositions · Analyse sectorielle" },
+  { id: "card-geo-overview",     label: "Expositions · Analyse géographique" },
+  { id: "card-sector-positions", label: "Expositions · Positions par secteur" },
   { id: "card-div-chart",        label: "Dividendes · Graphique" },
   { id: "card-div-list",         label: "Dividendes · Tableau reçus" },
   { id: "card-tx",               label: "Transactions · Tableau" },
