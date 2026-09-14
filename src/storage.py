@@ -228,6 +228,9 @@ def ensure_migrated() -> None:
         except Exception:
             pass
 
+    # Le PIN, jusqu'ici global, revient a l'utilisateur d'origine
+    migrate_legacy_pin()
+
 
 def get_users_state() -> dict:
     """Retourne {active: 'slug', users: [{slug, label, emoji, color}]}."""
@@ -266,6 +269,46 @@ def save_users_state(state: dict) -> None:
         except Exception:
             pass
         raise
+
+
+PIN_FILE = "pin.hash"
+
+
+def user_pin_path(slug: str = None) -> Path:
+    """Hash du PIN d'un utilisateur (un fichier dans SON dossier)."""
+    return get_user_dir(slug) / PIN_FILE
+
+
+def user_has_pin(slug: str) -> bool:
+    try:
+        p = _users_root() / slug / PIN_FILE
+        return p.exists() and p.stat().st_size > 0
+    except Exception:
+        return False
+
+
+def migrate_legacy_pin() -> None:
+    """
+    Avant la v4.1.3, le PIN etait unique pour toute l'app (<app_dir>/pin.hash).
+    Il devient propre a chaque utilisateur : on attribue l'ancien PIN au
+    PREMIER utilisateur (celui d'origine), et les nouveaux comptes demarrent
+    sans PIN. Idempotent.
+    """
+    legacy = get_app_dir() / PIN_FILE
+    if not legacy.exists():
+        return
+    try:
+        state = get_users_state()
+        first = state["users"][0]["slug"]
+        target = get_user_dir(first) / PIN_FILE
+        if target.exists():
+            # L'utilisateur a deja son propre PIN : l'ancien ne sert plus a rien
+            legacy.rename(get_app_dir() / "pin.hash.legacy")
+        else:
+            shutil.move(str(legacy), str(target))
+        print(f"[storage] PIN global repris pour l'utilisateur '{first}'", flush=True)
+    except Exception as e:
+        print(f"[storage] migration PIN KO : {e}", flush=True)
 
 
 def get_active_user() -> dict:

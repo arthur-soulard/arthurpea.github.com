@@ -31,7 +31,7 @@ et événements datés, statistiques d'heures et carte de régularité.
 - **Multi-utilisateurs** : chacun a son propre PEA, ses comptes, son prêt et son sport —
   on change d'utilisateur directement depuis l'accueil
 - **Cours auto-actualisés** toutes les 3 min via Yahoo Finance (zéro clé API)
-- **Sécurité** : code PIN à 4 chiffres optionnel (il verrouille l'app entière)
+- **Sécurité** : un code PIN à 4 chiffres par utilisateur, demandé à l'ouverture de son espace
 - **Personnalisation** : couleur d'accent libre, thèmes clair / sombre — l'icône de la
   fenêtre et de la barre des tâches prend la couleur choisie
 - **Paramètres par domaine** : une section par onglet (Général, Utilisateurs, Navigation,
@@ -100,15 +100,16 @@ Pilote/
     │       ├── pea_data.json # PEA              (+ backups/)
     │       ├── finances.json # Mes comptes      (+ backups_finances/)
     │       ├── sports.json   # Sports           (+ backups_sports/)
-    │       └── pret.json     # Prêt étudiant    (+ backups_pret/)
-    ├── icones/               # icônes générées à la couleur d'accent
-    └── pin.hash              # hash du code PIN (si configuré), commun à l'app
+    │       ├── pret.json     # Prêt étudiant    (+ backups_pret/)
+    │       └── pin.hash      # hash du code PIN de cet utilisateur (si configuré)
+    └── icones/               # icônes générées à la couleur d'accent
 ```
 
 Migration automatique : une installation antérieure à la 4.1.2 (`profiles.json` +
 fichiers de modules à la racine) est déplacée au premier lancement vers
 `users/<slug>/`, sans perte. L'ancien `profiles.json` est conservé sous le nom
-`profiles.legacy.json`.
+`profiles.legacy.json`. Le code PIN, global jusqu'à la 4.1.3, est attribué au
+premier utilisateur ; les comptes créés ensuite démarrent sans code.
 
 Sur installation via Setup.exe : `%LocalAppData%\Programs\Pilote\Donnees\`
 

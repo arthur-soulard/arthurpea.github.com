@@ -2736,7 +2736,12 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
             </p>
           </div>
           <div class="fg">
-            <label>Code PIN à 4 chiffres <span style="color:var(--txt3);font-weight:400">(optionnel, demandé à l'ouverture)</span></label>
+            <label>Code PIN de <span id="cfg-pin-who">cet utilisateur</span>
+              <span style="color:var(--txt3);font-weight:400">(optionnel, 4 chiffres)</span></label>
+            <p class="set-lead" style="margin:2px 0 8px">
+              Chaque utilisateur a son propre code. Il est demandé à l'ouverture de
+              son espace ; les autres comptes gardent le leur.
+            </p>
             <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
               <div id="cfg-pin-boxes" style="display:flex;gap:14px">
                 <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-i="0">
@@ -7190,8 +7195,10 @@ async function renderHomeUsers() {
     const active = u.slug === state.active;
     return `<button class="home-user${active ? " active" : ""}"
       onclick="${active ? `openUserModal('${u.slug}')` : `switchUser('${u.slug}')`}"
-      title="${active ? "Modifier cet utilisateur" : "Basculer sur " + escHtml(u.label)}">
+      title="${active ? "Modifier cet utilisateur" : "Basculer sur " + escHtml(u.label)
+              + (u.hasPin ? " (code PIN demand\u00e9)" : "")}">
       ${userAvatarHtml(u)}<span>${escHtml(u.label)}</span>
+      ${u.hasPin ? '<span style="font-size:11px;opacity:.75">\u{1F512}</span>' : ""}
     </button>`;
   }).join("") +
   `<button class="home-user home-user-add" onclick="openUserModal(null)"
@@ -7298,7 +7305,8 @@ async function renderUsersList() {
                  border:1px solid ${active ? "var(--accent)" : "var(--brd)"};border-radius:var(--rad);padding:7px 10px">
       ${userAvatarHtml(u, "home-user-av")}
       <span style="flex:1;font-size:12px;font-weight:${active ? 700 : 500}">${escHtml(u.label)}
-        ${active ? '<span class="m-tag">actif</span>' : ""}</span>
+        ${active ? '<span class="m-tag">actif</span>' : ""}
+        ${u.hasPin ? '<span class="m-tag" title="Prot\u00e9g\u00e9 par un code PIN">\u{1F512} PIN</span>' : ""}</span>
       ${active ? "" : `<button type="button" class="btn btn-ghost btn-sm" onclick="switchUser('${u.slug}')"
                         style="font-size:10px;padding:3px 8px">Basculer</button>`}
       <button type="button" class="btn btn-ghost btn-sm" onclick="openUserModal('${u.slug}')"
@@ -7502,28 +7510,33 @@ async function disablePinNow() {
   }
 }
 
-/* ─── PIN ultra-simple via endpoints HTTP /pin/* ─── */
-async function _isPinRequired() {
+/* ─── PIN via endpoints HTTP /pin/* ───
+   Chaque utilisateur a SON code : les endpoints acceptent ?user=<slug>,
+   et sans ce parametre ils repondent pour l'utilisateur actif. */
+
+function _pinUserQS(slug) { return slug ? "&user=" + encodeURIComponent(slug) : ""; }
+
+async function _isPinRequired(slug) {
   try {
-    const r = await fetch(`http://127.0.0.1:${_PEA_PORT}/pin/required?t=` + Date.now(), {cache: "no-store"});
+    const r = await fetch(`http://127.0.0.1:${_PEA_PORT}/pin/required?t=` + Date.now() + _pinUserQS(slug), {cache: "no-store"});
     if (!r.ok) return false;
     const d = await r.json();
     return !!d.required;
   } catch (e) { return false; }
 }
 
-async function _verifyPin(pin) {
+async function _verifyPin(pin, slug) {
   try {
-    const r = await fetch(`http://127.0.0.1:${_PEA_PORT}/pin/check?pin=` + encodeURIComponent(pin) + "&t=" + Date.now(), {cache: "no-store"});
+    const r = await fetch(`http://127.0.0.1:${_PEA_PORT}/pin/check?pin=` + encodeURIComponent(pin) + "&t=" + Date.now() + _pinUserQS(slug), {cache: "no-store"});
     if (!r.ok) return false;
     const d = await r.json();
     return !!d.match;
   } catch (e) { return false; }
 }
 
-async function _setPinServer(pin) {
+async function _setPinServer(pin, slug) {
   try {
-    const r = await fetch(`http://127.0.0.1:${_PEA_PORT}/pin/set?pin=` + encodeURIComponent(pin) + "&t=" + Date.now(), {cache: "no-store"});
+    const r = await fetch(`http://127.0.0.1:${_PEA_PORT}/pin/set?pin=` + encodeURIComponent(pin) + "&t=" + Date.now() + _pinUserQS(slug), {cache: "no-store"});
     if (!r.ok) return false;
     const d = await r.json();
     return !!d.ok;
@@ -7533,21 +7546,51 @@ async function _setPinServer(pin) {
 async function _checkPinLock() {
   const required = await _isPinRequired();
   if (!required) return true;
+
+  // Qui est verrouille, et vers qui peut-on basculer sans son code ?
+  let me = null, others = [];
+  try {
+    const st = await _loadUsers(true);
+    if (st) {
+      me = st.users.find(u => u.slug === st.active) || null;
+      others = st.users.filter(u => u.slug !== st.active);
+    }
+  } catch (e) {}
+  const canSwitch = !!(window.pywebview && window.pywebview.api && window.pywebview.api.set_active_user);
+
   return new Promise(resolve => {
     const ov = document.createElement("div");
     ov.style.cssText = "position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem";
     ov.innerHTML = `
       <div style="font-size:64px;line-height:1">🔒</div>
-      <div style="font-size:20px;font-weight:700">Pilote</div>
-      <div style="font-size:13px;color:var(--txt2)">Entrez votre code PIN</div>
+      ${me ? `<div style="display:flex;align-items:center;gap:10px">
+                ${userAvatarHtml(me)}
+                <span style="font-size:20px;font-weight:700">${escHtml(me.label)}</span>
+              </div>`
+           : `<div style="font-size:20px;font-weight:700">Pilote</div>`}
+      <div style="font-size:13px;color:var(--txt2)">Entrez le code PIN de cet utilisateur</div>
       <div id="lock-boxes" style="display:flex;gap:14px">
         <input class="pin-digit lock-digit" type="password" inputmode="numeric" maxlength="1" data-i="0">
         <input class="pin-digit lock-digit" type="password" inputmode="numeric" maxlength="1" data-i="1">
         <input class="pin-digit lock-digit" type="password" inputmode="numeric" maxlength="1" data-i="2">
         <input class="pin-digit lock-digit" type="password" inputmode="numeric" maxlength="1" data-i="3">
       </div>
-      <div id="lock-err" style="font-size:12px;color:var(--r);height:18px;font-weight:600"></div>`;
+      <div id="lock-err" style="font-size:12px;color:var(--r);height:18px;font-weight:600"></div>
+      ${(canSwitch && others.length) ? `
+        <div style="display:flex;flex-direction:column;align-items:center;gap:9px;margin-top:.6rem">
+          <span style="font-size:11px;color:var(--txt3)">ou ouvrir un autre compte</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+            ${others.map(u => `
+              <button class="home-user" data-lock-user="${u.slug}">
+                ${userAvatarHtml(u)}<span>${escHtml(u.label)}</span>
+                ${u.hasPin ? '<span title="Prot\u00e9g\u00e9 par un code">\u{1F512}</span>' : ""}
+              </button>`).join("")}
+          </div>
+        </div>` : ""}`;
     document.body.appendChild(ov);
+    ov.querySelectorAll("[data-lock-user]").forEach(b => {
+      b.onclick = () => switchUser(b.dataset.lockUser);
+    });
     const boxes = ov.querySelectorAll(".lock-digit");
     const err   = ov.querySelector("#lock-err");
     setTimeout(() => boxes[0].focus(), 60);
@@ -7672,43 +7715,81 @@ async function _showWelcomeIfFirstRun() {
       </div>`;
   }
 
+  const welcomeTitle = (typeof homeDisplayName === "function" && homeDisplayName())
+    ? "Bienvenue, " + escHtml(homeDisplayName())
+    : "Bienvenue sur Pilote";
+
   const ov = document.createElement("div");
   ov.id = "ov-welcome";
   ov.style.cssText = "position:fixed;inset:0;z-index:99997;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto";
   ov.innerHTML = `
-    <div style="max-width:560px;width:100%;background:var(--bg2);border-radius:var(--radxl);box-shadow:var(--sh-md);padding:2.2rem 2.4rem;text-align:center;margin:auto">
+    <div style="max-width:620px;width:100%;background:var(--bg2);border-radius:var(--radxl);box-shadow:var(--sh-md);padding:2.2rem 2.4rem;text-align:center;margin:auto">
       <div style="font-size:56px;line-height:1;margin-bottom:.6rem">👋</div>
-      <h2 style="font-size:24px;font-weight:800;margin-bottom:.4rem">Bienvenue sur Pilote</h2>
+      <h2 style="font-size:24px;font-weight:800;margin-bottom:.4rem">${welcomeTitle}</h2>
       <p style="color:var(--txt2);font-size:13px;margin-bottom:1.4rem">
-        Un outil simple pour suivre ton PEA, ton portefeuille et ta performance dans le temps.
+        Quatre suivis dans une seule application, enti\u00e8rement sur ton ordinateur.
       </p>
       ${identitySection}
       ${recoverySection}
-      <div style="text-align:left;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:1.2rem;margin-bottom:1.2rem;font-size:12px;line-height:1.8">
-        <strong style="font-size:13px">Pour démarrer :</strong><br>
-        <span style="font-family:var(--mono);color:var(--accent);font-weight:700">①</span> Configure ton PEA dans <strong>⚙ Paramètres</strong>, sur la page d'accueil<br>
-        <span style="font-family:var(--mono);color:var(--accent);font-weight:700">②</span> Saisis tes <strong>versements</strong> dans l'onglet <strong>Dépôts</strong><br>
-        <span style="font-family:var(--mono);color:var(--accent);font-weight:700">③</span> Ajoute tes <strong>positions</strong> (actions / ETF) et tes <strong>transactions</strong> achat/vente<br>
-        <span style="font-family:var(--mono);color:var(--accent);font-weight:700">④</span> Les cours se mettent à jour <strong>automatiquement</strong> toutes les 3 min via Yahoo Finance
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left;margin-bottom:1.2rem">
+        <div style="background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:.85rem .95rem">
+          <div style="font-size:12.5px;font-weight:800;margin-bottom:3px">\u2197\ufe0f PEA</div>
+          <div style="font-size:11px;color:var(--txt2);line-height:1.5">
+            Positions, transactions, dividendes, performance compar\u00e9e aux indices, simulateurs.
+          </div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:.85rem .95rem">
+          <div style="font-size:12.5px;font-weight:800;margin-bottom:3px">\u{1F4B3} Mes comptes</div>
+          <div style="font-size:11px;color:var(--txt2);line-height:1.5">
+            Budget mois par mois, cat\u00e9gories \u00e0 emoji, pr\u00e9l\u00e8vements r\u00e9currents, r\u00e9cap annuel.
+          </div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:.85rem .95rem">
+          <div style="font-size:12.5px;font-weight:800;margin-bottom:3px">\u{1F393} Pr\u00eat \u00e9tudiant</div>
+          <div style="font-size:11px;color:var(--txt2);line-height:1.5">
+            \u00c9ch\u00e9ances, PEA d\u00e9di\u00e9, assurance vie multi-contrats, livret A, frais.
+          </div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:.85rem .95rem">
+          <div style="font-size:12.5px;font-weight:800;margin-bottom:3px">\u{1F3C3} Sports</div>
+          <div style="font-size:11px;color:var(--txt2);line-height:1.5">
+            Agenda des s\u00e9ances, tes propres sports, objectifs dat\u00e9s, heures cumul\u00e9es.
+          </div>
+        </div>
       </div>
-      <div style="text-align:left;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:1rem;margin-bottom:1.2rem;font-size:11px;line-height:1.7;color:var(--txt2)">
-        <strong style="color:var(--txt)">Aussi :</strong><br>
-        💡 Tu peux <strong>importer</strong> des données depuis un JSON (bouton ⤒ Importer en haut)<br>
-        🔒 Tu peux protéger l'accès avec un <strong>code PIN à 4 chiffres</strong> dans Paramètres<br>
-        🌙 Choisis un <strong>thème clair ou sombre</strong> et la couleur d'accent de ton choix<br>
-        📈 Compare ta performance vs <strong>CAC 40, S&P 500, ETF World</strong> dans l'onglet Performance<br>
-        🧮 Simulateurs de projection long terme dans l'onglet <strong>Simulateurs</strong>
+
+      <div style="text-align:left;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:1.1rem 1.2rem;margin-bottom:1rem;font-size:12px;line-height:1.9">
+        <strong style="font-size:13px">Pour d\u00e9marrer :</strong><br>
+        <span style="font-family:var(--mono);color:var(--accent);font-weight:700">\u2460</span>
+          Ouvre <strong>\u2699 Param\u00e8tres</strong> depuis l'accueil : th\u00e8me, couleur, code PIN, et les r\u00e9glages de chaque onglet<br>
+        <span style="font-family:var(--mono);color:var(--accent);font-weight:700">\u2461</span>
+          Choisis une section dans la barre de gauche et commence par ce qui t'int\u00e9resse \u2014
+          rien n'est obligatoire, chaque module est ind\u00e9pendant<br>
+        <span style="font-family:var(--mono);color:var(--accent);font-weight:700">\u2462</span>
+          Pour le PEA : saisis tes <strong>d\u00e9p\u00f4ts</strong>, puis tes <strong>positions</strong> ;
+          les cours se mettent \u00e0 jour tout seuls toutes les 3 min
       </div>
+
+      <div style="text-align:left;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:1rem;margin-bottom:1.2rem;font-size:11px;line-height:1.8;color:var(--txt2)">
+        <strong style="color:var(--txt)">Bon \u00e0 savoir :</strong><br>
+        \u{1F465} Plusieurs <strong>utilisateurs</strong> peuvent cohabiter : chacun a ses propres donn\u00e9es, rien n'est partag\u00e9<br>
+        \u{1F512} Chaque utilisateur peut poser son <strong>code PIN \u00e0 4 chiffres</strong>, demand\u00e9 \u00e0 l'ouverture de son espace<br>
+        \u{1F4BE} Tout reste <strong>sur ce PC</strong>, en clair dans le dossier Donnees, avec une sauvegarde par jour sur 7 jours<br>
+        \u{1F5A5}\ufe0f L'ic\u00f4ne de l'app prend la <strong>couleur d'accent</strong> que tu choisis<br>
+        \u2b07\ufe0f Tu peux <strong>importer</strong> un fichier JSON existant, et les mises \u00e0 jour arrivent toutes seules
+      </div>
+
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <button class="btn btn-primary" id="welcome-config">⚙ Configurer mon PEA</button>
-        <button class="btn btn-ghost"   id="welcome-import">⤒ J'ai un fichier à importer</button>
-        <button class="btn btn-ghost"   id="welcome-skip">Plus tard</button>
+        <button class="btn btn-primary" id="welcome-config">\u2699 Ouvrir les param\u00e8tres</button>
+        <button class="btn btn-ghost"   id="welcome-import">\u2912 Importer un fichier</button>
+        <button class="btn btn-ghost"   id="welcome-skip">Commencer</button>
       </div>
     </div>`;
   document.body.appendChild(ov);
   const close = () => ov.remove();
   ov.querySelector("#welcome-skip").onclick   = close;
-  ov.querySelector("#welcome-config").onclick = () => { close(); openSettings("pea"); };
+  ov.querySelector("#welcome-config").onclick = () => { close(); openSettings("general"); };
   ov.querySelector("#welcome-import").onclick = () => {
     close();
     const inp = document.getElementById("import-file");
@@ -7899,6 +7980,11 @@ async function openConfig() {
   _wirePinDigits();
   const pinState  = document.getElementById("cfg-pin-state");
   const disableBtn = document.getElementById("btn-disable-pin");
+  const pinWho    = document.getElementById("cfg-pin-who");
+  if (pinWho) {
+    const n = (typeof homeDisplayName === "function") ? homeDisplayName() : "";
+    pinWho.textContent = n || "cet utilisateur";
+  }
   if (pinState) {
     pinState.textContent = "…";
     const required = await _isPinRequired();

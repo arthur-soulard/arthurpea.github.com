@@ -285,24 +285,26 @@ def _ensure_yahoo_session():
 _PIN_SALT = "Suivi_PEA_pin_salt_v2"
 
 
-def _pin_path():
-    """Chemin du hash PIN. Volontairement global : le PIN verrouille l'app
-    entiere, pas un utilisateur en particulier."""
+def _pin_path(slug=None):
+    """
+    Chemin du hash PIN de l'utilisateur (slug=None -> utilisateur actif).
+    Depuis la v4.1.3 chaque utilisateur a le sien, dans son propre dossier.
+    """
     import storage as _storage
-    return _storage.get_app_dir() / "pin.hash"
+    return _storage.user_pin_path(slug)
 
 
 def _pin_hash(pin_str: str) -> str:
     return hashlib.sha256((_PIN_SALT + "::" + pin_str).encode()).hexdigest()
 
 
-def pin_required() -> bool:
-    p = _pin_path()
+def pin_required(slug=None) -> bool:
+    p = _pin_path(slug)
     return p.exists() and p.stat().st_size > 0
 
 
-def pin_set(pin_str: str) -> None:
-    p = _pin_path()
+def pin_set(pin_str: str, slug=None) -> None:
+    p = _pin_path(slug)
     p.parent.mkdir(parents=True, exist_ok=True)
     if not pin_str:
         # Suppression du PIN
@@ -314,8 +316,17 @@ def pin_set(pin_str: str) -> None:
         f.write(_pin_hash(pin_str))
 
 
-def pin_check(pin_str: str) -> bool:
-    p = _pin_path()
+def with_pin_flags(state: dict) -> dict:
+    """Ajoute hasPin a chaque utilisateur (copie : users.json n'est pas touche)."""
+    import storage as _storage
+    out = dict(state or {})
+    out["users"] = [dict(u, hasPin=_storage.user_has_pin(u.get("slug", "")))
+                    for u in (state or {}).get("users") or []]
+    return out
+
+
+def pin_check(pin_str: str, slug=None) -> bool:
+    p = _pin_path(slug)
     if not p.exists():
         return True  # pas de PIN → toujours OK
     try:
@@ -898,25 +909,30 @@ class _Handler(http.server.BaseHTTPRequestHandler):
         if parsed.path == "/users":
             try:
                 import storage as _storage
-                return self._json(200, {"ok": True, "state": _storage.get_users_state()})
+                return self._json(200, {"ok": True,
+                                        "state": with_pin_flags(_storage.get_users_state())})
             except Exception as e:
                 return self._json(500, {"ok": False, "error": str(e)})
 
         # ─── PIN endpoints (ultra-simples, fichier dedie) ─────────────────
+        # Les endpoints PIN acceptent ?user=<slug> ; sans lui, utilisateur actif
         if parsed.path == "/pin/required":
-            return self._json(200, {"ok": True, "required": pin_required()})
+            who = (params.get("user", [""])[0] or "").strip() or None
+            return self._json(200, {"ok": True, "required": pin_required(who)})
 
         if parsed.path == "/pin/set":
             pin = (params.get("pin", [""])[0] or "").strip()
+            who = (params.get("user", [""])[0] or "").strip() or None
             try:
-                pin_set(pin)
-                return self._json(200, {"ok": True, "required": pin_required()})
+                pin_set(pin, who)
+                return self._json(200, {"ok": True, "required": pin_required(who)})
             except Exception as e:
                 return self._json(500, {"ok": False, "error": str(e)})
 
         if parsed.path == "/pin/check":
             pin = (params.get("pin", [""])[0] or "").strip()
-            return self._json(200, {"ok": True, "match": pin_check(pin)})
+            who = (params.get("user", [""])[0] or "").strip() or None
+            return self._json(200, {"ok": True, "match": pin_check(pin, who)})
 
         if parsed.path == "/scan-orphan-data":
             try:

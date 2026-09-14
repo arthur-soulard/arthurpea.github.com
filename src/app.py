@@ -32,7 +32,7 @@ import notifications
 
 
 APP_NAME    = "Pilote"
-APP_VERSION = "4.1.2"
+APP_VERSION = "4.1.3"
 SINGLE_INSTANCE_PORT = 50317          # port arbitraire pour le verrou single-instance
 WINDOW_DEFAULT_SIZE  = (1280, 800)
 WINDOW_MIN_SIZE      = (960, 640)
@@ -367,7 +367,7 @@ class Api:
 
     def get_users(self) -> dict:
         try:
-            return {"ok": True, "state": storage.get_users_state()}
+            return {"ok": True, "state": server.with_pin_flags(storage.get_users_state())}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
@@ -611,6 +611,12 @@ def _startup_audit() -> None:
 
 def main() -> int:
     install_crash_handler()
+
+    # Le PIN, global jusqu'a la v4.1.3, devient propre a chaque utilisateur
+    try:
+        storage.migrate_legacy_pin()
+    except Exception as e:
+        print(f"[app] migration PIN KO : {e}", flush=True)
     # _startup_audit() retire — n'est plus necessaire
 
     # Lance la verification de mise a jour en arriere-plan (silencieux)
