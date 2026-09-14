@@ -1,11 +1,11 @@
 """
-storage.py — Gestion du stockage JSON pour Suivi PEA.
+storage.py — Gestion du stockage JSON pour Pilote.
 
 Toutes les donnees vivent dans :
-    %APPDATA%\\Suivi PEA\\pea_data.json
+    %APPDATA%\\Pilote\\pea_data.json
 
 Avec une rotation de backups quotidiens (7 derniers jours) dans :
-    %APPDATA%\\Suivi PEA\\backups\\pea_data_YYYY-MM-DD.json
+    %APPDATA%\\Pilote\\backups\\pea_data_YYYY-MM-DD.json
 
 Ecriture atomique : on ecrit dans un .tmp puis on renomme, pour ne jamais
 corrompre le fichier en cas de coupure.
@@ -22,7 +22,8 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 
-APP_NAME = "Suivi PEA"
+APP_NAME = "Pilote"
+LEGACY_APP_NAME = "Suivi PEA"   # nom avant la v4.1.0
 DATA_FILE = "pea_data.json"
 BACKUP_DIR = "backups"
 BACKUP_KEEP_DAYS = 7
@@ -50,7 +51,12 @@ def get_app_dir() -> Path:
             fallback = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
         else:
             fallback = Path.home() / ".local" / "share"
+        legacy = fallback / LEGACY_APP_NAME
         fallback = fallback / APP_NAME
+        # Repli historique : si l'app tournait deja sous son ancien nom, on
+        # continue d'utiliser ce dossier plutot que d'en creer un vide.
+        if legacy.exists() and not fallback.exists():
+            return legacy
         fallback.mkdir(parents=True, exist_ok=True)
         return fallback
 
@@ -115,6 +121,9 @@ def scan_orphan_data() -> list:
         home / "Desktop",
         home / "Documents",
         home / "Downloads",
+        home / "AppData" / "Local" / "Programs" / "Pilote",
+        home / "AppData" / "Roaming" / "Pilote",
+        # Anciennes installations, avant le renommage en Pilote (v4.1.0)
         home / "AppData" / "Local" / "Programs" / "Suivi PEA",
         home / "AppData" / "Roaming" / "Suivi PEA",
     ]

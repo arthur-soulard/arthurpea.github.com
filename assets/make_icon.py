@@ -1,5 +1,5 @@
 """
-make_icon.py — Genere l'icone Suivi PEA en .ico multi-resolution HQ.
+make_icon.py — Genere l'icone Pilote en .ico multi-resolution HQ.
 
 PROBLEME RESOLU : PIL en mode ICO fait du resize automatique (pas LANCZOS),
 ce qui produit des icones flous aux petites tailles. On contourne en

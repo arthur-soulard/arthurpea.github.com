@@ -1,7 +1,7 @@
 @echo off
 REM ============================================================
-REM  Suivi PEA — script de build (PyInstaller)
-REM  Produit : dist\Suivi_PEA.exe
+REM  Pilote — script de build (PyInstaller)
+REM  Produit : dist\Pilote.exe
 REM ============================================================
 
 setlocal
@@ -9,7 +9,7 @@ cd /d "%~dp0\.."
 
 echo.
 echo  ============================================================
-echo   Suivi PEA — Build  (PyInstaller)
+echo   Pilote — Build  (PyInstaller)
 echo  ============================================================
 echo.
 
@@ -56,13 +56,13 @@ if errorlevel 1 (
 
 echo.
 echo  ============================================================
-echo   OK : dist\Suivi_PEA.exe est pret.
+echo   OK : dist\Pilote.exe est pret.
 echo  ============================================================
 echo.
 echo  Pour creer l'installateur Setup.exe :
 echo    1. Installe Inno Setup : https://jrsoftware.org/isdl.php
 echo    2. Ouvre build\installer.iss avec Inno Setup
 echo    3. Menu Build -^> Compile (F9)
-echo    4. Le Suivi_PEA_Setup.exe sera dans le dossier dist\.
+echo    4. Le Pilote_Setup.exe sera dans le dossier dist\.
 echo.
 pause

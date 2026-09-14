@@ -280,6 +280,8 @@ def _ensure_yahoo_session():
 
 # ─── PIN (fichier dedie ultra-simple) ────────────────────────────────────────
 
+# Ne JAMAIS modifier cette valeur, meme au renommage de l'app : elle sert au
+# hash du code PIN deja enregistre par les utilisateurs.
 _PIN_SALT = "Suivi_PEA_pin_salt_v2"
 
 

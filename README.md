@@ -1,28 +1,44 @@
-# Suivi PEA
+# Pilote
 
-Application Windows de suivi de Plan d'Épargne en Actions (PEA) — entièrement locale, données chiffrées sur votre machine, cours actualisés automatiquement via Yahoo Finance.
+Application Windows de suivi personnel — bourse, budget, sport et prêt étudiant réunis
+dans une seule app entièrement locale. Cours actualisés automatiquement via Yahoo Finance.
 
 ![icon](assets/icon_512.png)
 
-## ✨ Fonctionnalités
+## ✨ Les quatre univers
 
-- **Suivi complet** : positions, transactions (achats/ventes), dépôts, dividendes, wishlist
+**PEA** — positions, transactions, dépôts, dividendes, wishlist, expositions sectorielle
+et géographique, performance TWR comparée au CAC 40 / S&P 500 / ETF World, simulateurs
+(projection DCA, objectifs, comparateur d'actifs), règles de stratégie vérifiées
+automatiquement, rapport annuel imprimable.
+
+**Mes comptes** — budget perso mois par mois : dépenses et revenus catégorisés, sources,
+échéances récurrentes à valider, récap annuel.
+
+**Prêt étudiant** — suivi d'un prêt à 0 % utilisé comme capital d'investissement :
+versements et remboursements, PEA dédié (achats, ventes, PRU, plus-values latentes et
+réalisées), assurance vie multi-contrats à capitalisation annuelle, livret A, frais
+ponctuels et récurrents.
+
+**Sports** — agenda mensuel des séances (course, vélo, natation, muscu, foot…), objectifs
+de performance et événements datés, statistiques d'heures et carte de régularité.
+
+## ⚙ Transverse
+
+- **Page d'accueil** avec les chiffres qui comptent, et une salutation selon l'heure
 - **Cours auto-actualisés** toutes les 3 min via Yahoo Finance (zéro clé API)
-- **Performance TWR** comparée à CAC 40, S&P 500 et ETF World
-- **Simulateurs** : projection DCA, objectifs long terme, comparateur d'actifs (1m / 6m / YTD / 3-5-15 ans)
-- **Stratégie** : règles personnalisables avec vérification automatique (concentration, allocation, frais...)
 - **Sécurité** : code PIN à 4 chiffres optionnel
-- **Personnalisation** : 7 couleurs d'accent, thèmes clair/sombre/auto
-- **Multi-PEA** : gestion de plusieurs profils dans la même app
-- **Rapport annuel** imprimable / exportable en PDF
-- **100% local** : aucune donnée envoyée nulle part (sauf à Yahoo pour les cours publics)
+- **Personnalisation** : 7 couleurs d'accent, thèmes clair / sombre / auto
+- **Multi-profils** pour le PEA
+- **Mise à jour automatique** depuis les releases GitHub
+- **100 % local** : aucune donnée envoyée nulle part (sauf à Yahoo pour les cours publics)
 
 ## 📦 Installation
 
 ### Pour les utilisateurs
 
 1. Télécharger la dernière version : [Releases](../../releases/latest)
-2. Lancer **`Suivi_PEA_Setup.exe`**
+2. Lancer **`Pilote_Setup.exe`**
 3. Si Windows SmartScreen affiche un avertissement : "Plus d'infos" → "Exécuter quand même"
 4. Suivre l'assistant d'installation
 5. Lancer depuis le menu Démarrer ou le raccourci bureau
@@ -59,7 +75,7 @@ python assets/make_icon.py
 python -m PyInstaller build/suivi_pea.spec --clean --noconfirm
 
 # Build l'installateur (nécessite Inno Setup 6)
-"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build/suivi_pea.iss
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build/installer.iss
 ```
 
 Les fichiers générés sont dans `dist/`.
@@ -69,25 +85,33 @@ Les fichiers générés sont dans `dist/`.
 Les données utilisateur sont stockées localement dans le dossier `Donnees/` à côté de l'exécutable :
 
 ```
-Suivi PEA/
-├── Suivi_PEA.exe
+Pilote/
+├── Pilote.exe
 └── Donnees/
     ├── default/
-    │   ├── pea_data.json     # données du profil actif
+    │   ├── pea_data.json     # données PEA du profil actif
     │   └── backups/          # backup quotidien (rotation 7 jours)
+    ├── finances.json         # Mes comptes      (+ backups_finances/)
+    ├── sports.json           # Sports           (+ backups_sports/)
+    ├── pret.json             # Prêt étudiant    (+ backups_pret/)
     ├── pin.hash              # hash du code PIN (si configuré)
     └── profiles.json         # liste des profils (multi-PEA)
 ```
 
-Sur installation via Setup.exe : `%LocalAppData%\Programs\Suivi PEA\Donnees\`
+Sur installation via Setup.exe : `%LocalAppData%\Programs\Pilote\Donnees\`
 
 ## 🏗 Architecture
 
 ```
 src/
-├── app.py              # Point d'entrée pywebview, fenêtre native
-├── server.py           # Serveur HTTP local (Yahoo proxy + endpoints data)
-├── storage.py          # Lecture/écriture JSON, multi-profils, backups
+├── app.py              # Point d'entrée pywebview, fenêtre native, bridge Python/JS
+├── server.py           # Serveur HTTP local (proxy Yahoo + endpoints data)
+├── storage.py          # Données PEA, multi-profils, backups
+├── finances.py         # Module Mes comptes
+├── sports.py           # Module Sports (+ catalogue des sports)
+├── pret.py             # Module Prêt étudiant
+├── jsonstore.py        # Socle commun : écriture atomique + backup quotidien
+├── updater.py          # Mise à jour automatique
 ├── notifications.py    # Notifications Windows natives
 └── ui/
     └── index.html      # UI complète (HTML + CSS + JS)

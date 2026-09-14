@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Suivi PEA 4 — v4</title>
+<title>Pilote</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -1281,6 +1281,56 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 @media (max-width: 980px) { .pr-split { grid-template-columns: 1fr; } }
 .pr-chart { position: relative; height: 290px; }
 
+/* ══════════════════════════════════════════════════
+   Page d'accueil
+   ══════════════════════════════════════════════════ */
+.home-hero { margin: .4rem 0 1.6rem; }
+.home-greet {
+  font-size: 30px; font-weight: 800; letter-spacing: -.8px; line-height: 1.15;
+}
+.home-date {
+  font-size: 12px; color: var(--txt2); font-family: var(--mono);
+  margin-top: 6px;
+}
+.home-cards {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;
+}
+.home-card {
+  background: var(--bg2); border: 1px solid var(--brd);
+  border-radius: var(--radl); padding: 1.3rem 1.4rem; box-shadow: var(--sh);
+  display: flex; flex-direction: column; gap: 6px; cursor: pointer;
+  transition: border-color .12s, transform .12s, box-shadow .12s;
+}
+.home-card:hover {
+  border-color: var(--brd3); transform: translateY(-2px); box-shadow: var(--sh-md);
+}
+.home-card-lbl {
+  font-size: 9px; font-weight: 700; color: var(--txt2);
+  text-transform: uppercase; letter-spacing: .09em;
+}
+.home-card-val {
+  font-family: var(--mono); font-size: 27px; font-weight: 800;
+  letter-spacing: -.8px; line-height: 1.1;
+}
+.home-card-sub { font-size: 12px; color: var(--txt3); font-family: var(--mono); }
+.home-card-go {
+  margin-top: auto; padding-top: 8px; font-size: 11px;
+  color: var(--txt3); font-weight: 600;
+}
+.home-card:hover .home-card-go { color: var(--accent); }
+
+/* Bouton Accueil, seul au-dessus des sections */
+.sb-home { font-weight: 700; margin-bottom: 8px; }
+
+.pea-bank {
+  font-size: 11px; color: var(--txt2); font-family: var(--mono); margin-top: 6px;
+}
+.home-hero {
+  display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap;
+}
+.home-hero-txt { flex: 1; min-width: 220px; }
+.home-actions { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 6px; }
+
 </style>
 </head>
 <body>
@@ -1292,8 +1342,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   <div class="topbar-brand">
     <div class="topbar-logo">P</div>
     <div>
-      <div class="topbar-title" id="topbar-title">Suivi PEA</div>
-      <div class="topbar-sub" id="topbar-sub">PEA <span style="opacity:.5;font-size:9px">build 1626</span></div>
+      <div class="topbar-title" id="topbar-title">Pilote</div>
     </div>
   </div>
   <div class="topbar-right">
@@ -1301,7 +1350,6 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       <span class="refresh-lbl" id="stext">Dernière actualisation —</span>
       <button class="btn btn-ghost btn-sm" onclick="manualRefresh()" title="Actualiser les cours Yahoo Finance (Ctrl+R)">↻ Actualiser</button>
     </div>
-    <button class="btn btn-ghost btn-sm" onclick="openConfig()" title="Paramètres du PEA">⚙ Paramètres</button>
     <button class="btn btn-ghost btn-sm" id="btn-undo" onclick="undoLast()" disabled title="Annuler la dernière action">↩ Retour</button>
     <button class="btn btn-ghost btn-sm" onclick="openCours()">✎ Cours manuels</button>
   </div>
@@ -1312,6 +1360,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   <div>
     <div class="pea-days-lbl">Avantage fiscal PEA</div>
     <div class="pea-days" id="f-days"></div>
+    <div class="pea-bank" id="pea-bank-line"></div>
   </div>
   <div class="pea-fill-section">
     <div class="pea-fill-lbl">
@@ -1345,6 +1394,21 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 </div>
 
 <!-- ═══════════════════ POSITIONS ═══════════════════ -->
+<div class="pane" id="pane-home">
+  <div class="home-hero">
+    <div class="home-hero-txt">
+      <div class="home-greet" id="home-greet">Bonjour</div>
+      <div class="home-date"  id="home-date"></div>
+    </div>
+    <div class="home-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openConfig()" title="Paramètres de l'application">⚙ Paramètres</button>
+      <button class="btn btn-ghost btn-sm" onclick="doExport()"       title="Exporter mes données (Ctrl+E)">↓ Exporter</button>
+      <button class="btn btn-ghost btn-sm" onclick="doImportDialog()" title="Importer des données (Ctrl+I)">↑ Importer</button>
+    </div>
+  </div>
+  <div class="home-cards" id="home-cards"></div>
+</div>
+
 <div class="pane active" id="pane-pos">
   <div class="card" id="card-pos">
     <div class="card-h">
@@ -3115,7 +3179,7 @@ function normalizeTicker(raw) {
 function updateGreeting() {
   const el = document.getElementById("topbar-title");
   if (!el) return;
-  el.textContent = S.prenom ? "Bonjour " + S.prenom + " \uD83D\uDC4B" : "Suivi PEA";
+  el.textContent = "Pilote";
 }
 
 const MNS  = ["Jan","Fév","Mar","Avr","Mai","Jun","Juil","Aoû","Sep","Oct","Nov","Déc"];
@@ -3194,7 +3258,7 @@ function renderPeaInfo() {
   const banque = S.banque || "Ma banque";
   const ouvStr = ouv ? ouv.toLocaleDateString("fr-FR", {day:"2-digit", month:"long", year:"numeric"}) : "—";
   const fiscStr = target ? target.toLocaleDateString("fr-FR", {day:"2-digit", month:"long", year:"numeric"}) : "—";
-  const sub = document.getElementById("topbar-sub");
+  const sub = document.getElementById("pea-bank-line");
   if (sub) sub.textContent = banque + " · Ouvert " + ouvStr + " · Avantage fiscal " + fiscStr;
   const depSum  = (S.depots||[]).reduce((s,d)=>s+(d.amount||0),0);
   const fillPct = Math.min(100, depSum/150000*100);
@@ -3269,6 +3333,9 @@ function renderMetrics() {
   pvEl.className   = "mc-val " + (pv==null ? "" : pv>=0 ? "c-g" : "c-r");
   document.getElementById("m-pv-sub").textContent = pvP!=null ? pct(pvP) : "";
   document.getElementById("mc-pv-acc").style.background = pv==null ? "transparent" : pv>=0 ? "var(--g)" : "var(--r)";
+  // Partage avec la page d'accueil pour qu'elle affiche exactement le meme chiffre
+  window._peaPv = { eur: pv, pct: pvP };
+  if (typeof homeRender === "function") homeRender();
   document.getElementById("m-fees").textContent = fees>0 ? eur(fees) : "—";
   document.getElementById("m-div").textContent  = divRec>0 ? eur(divRec) : "—";
 }
@@ -6855,7 +6922,7 @@ function openAnnualReport() {
     const e = computePos(p); return e.val != null ? s + e.val : s;
   }, 0);
   const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
-<title>Rapport annuel ${year} — ${S.prenom || "Suivi PEA"}</title>
+<title>Rapport annuel ${year} — ${S.prenom || "Pilote"}</title>
 <style>
   @page { size: A4; margin: 18mm; }
   body { font-family: Arial, Helvetica, sans-serif; color:#18181b; max-width:780px; margin:auto; }
@@ -6901,7 +6968,7 @@ ${txs.length ? txs.sort((a,b)=>a.date.localeCompare(b.date)).map(t=>`<tr><td>${t
 ${divs.length ? divs.sort((a,b)=>a.date.localeCompare(b.date)).map(d=>`<tr><td>${d.date}</td><td>${d.ticker}</td><td>${d.qty}</td><td>${(d.ppa||0).toFixed(2)} €</td><td>${(d.montant||0).toFixed(2)} €</td></tr>`).join("") : '<tr><td colspan="5" style="text-align:center;color:#9ca3af">Aucun dividende</td></tr>'}
 </tbody></table>
 
-<div class="ftr">Suivi PEA — Rapport généré le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</div>
+<div class="ftr">Pilote — Rapport généré le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</div>
 <div class="noprint" style="text-align:center;margin-top:20px">
   <button onclick="window.print()" style="padding:10px 20px;font-size:14px;cursor:pointer;background:#d97706;color:#fff;border:0;border-radius:6px">🖨 Imprimer / Sauvegarder en PDF</button>
 </div>
@@ -7029,7 +7096,7 @@ async function _checkPinLock() {
     ov.style.cssText = "position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem";
     ov.innerHTML = `
       <div style="font-size:64px;line-height:1">🔒</div>
-      <div style="font-size:20px;font-weight:700">Suivi PEA</div>
+      <div style="font-size:20px;font-weight:700">Pilote</div>
       <div style="font-size:13px;color:var(--txt2)">Entrez votre code PIN</div>
       <div id="lock-boxes" style="display:flex;gap:14px">
         <input class="pin-digit lock-digit" type="password" inputmode="numeric" maxlength="1" data-i="0">
@@ -7122,7 +7189,7 @@ async function _showWelcomeIfFirstRun() {
           ✨ Données existantes détectées
         </div>
         <div style="font-size:11px;color:var(--txt2);margin-bottom:.7rem">
-          Tu as déjà utilisé Suivi PEA ailleurs sur cet ordinateur. Récupérer ces données ?
+          Tu as déjà utilisé Pilote ailleurs sur cet ordinateur. Récupérer ces données ?
         </div>
         <div style="display:flex;flex-direction:column;gap:6px">
           ${candidates.map((c, i) => `
@@ -7148,7 +7215,7 @@ async function _showWelcomeIfFirstRun() {
   ov.innerHTML = `
     <div style="max-width:560px;width:100%;background:var(--bg2);border-radius:var(--radxl);box-shadow:var(--sh-md);padding:2.2rem 2.4rem;text-align:center;margin:auto">
       <div style="font-size:56px;line-height:1;margin-bottom:.6rem">👋</div>
-      <h2 style="font-size:24px;font-weight:800;margin-bottom:.4rem">Bienvenue sur Suivi PEA</h2>
+      <h2 style="font-size:24px;font-weight:800;margin-bottom:.4rem">Bienvenue sur Pilote</h2>
       <p style="color:var(--txt2);font-size:13px;margin-bottom:1.4rem">
         Un outil simple pour suivre ton PEA, ton portefeuille et ta performance dans le temps.
       </p>
@@ -7394,7 +7461,7 @@ async function openConfig() {
     const vEl = document.getElementById("cfg-version");
     if (vEl && window.pywebview && window.pywebview.api) {
       const info = await window.pywebview.api.app_info();
-      if (info) vEl.textContent = "Suivi PEA v" + info.version;
+      if (info) vEl.textContent = "Pilote v" + info.version;
     }
   } catch(e) {}
   document.getElementById("ov-config").classList.add("open");
@@ -8430,7 +8497,7 @@ function _injectTitlebar() {
     <div class="titlebar" id="pea-titlebar">
       <div class="titlebar-brand">
         <div class="titlebar-logo">P</div>
-        <div class="titlebar-title">Suivi PEA</div>
+        <div class="titlebar-title">Pilote</div>
       </div>
       <div class="titlebar-spacer"></div>
       <div class="titlebar-btns">
@@ -8458,7 +8525,8 @@ function _injectSidebar() {
   const openId = (S.uiPrefs && S.uiPrefs.navOpen !== undefined)
     ? S.uiPrefs.navOpen                 // "" = toutes repliees
     : NAV_SECTIONS[0].id;               // premier lancement : PEA deplie
-  let html = `<aside class="sidebar" id="pea-sidebar">`;
+  let html = `<aside class="sidebar" id="pea-sidebar">
+    <button class="sb-item sb-home" data-tab="home"><span>Accueil</span></button>`;
 
   NAV_SECTIONS.forEach(sec => {
     const kids = sec.children.filter(c => !hidden.includes(c.id));
@@ -8681,7 +8749,7 @@ applyGsData = async function(opts) {
       const prefs = (window.__peaPrefs && window.__peaPrefs.notifs) || {};
       if (prefs.yahooDown) {
         window.pywebview.api.notify(
-          "Suivi PEA",
+          "Pilote",
           "Yahoo Finance injoignable — cours en cache utilisés.",
           "yahooDown"
         );
@@ -8758,7 +8826,7 @@ function _checkBigMoves() {
         if (sessionStorage.getItem(seenKey)) return;
         sessionStorage.setItem(seenKey, "1");
         window.pywebview.api.notify(
-          "Suivi PEA — mouvement marqué",
+          "Pilote — mouvement marqué",
           `${p.name} (${p.ticker}) : ${v.w1 > 0 ? "+" : ""}${v.w1}% sur la semaine`,
           "bigMove"
         );
@@ -8880,33 +8948,20 @@ function installShellEnhancements() {
   _injectTitlebar();
   _injectDashboardPane();
   _injectSidebar();
-  _setActiveSidebar("dash");
+  goTab("home");
+  _setActiveSidebar("home");
   _applyHiddenCards();
   _injectCardEyeBtns();
   _installShortcuts();
   // Pill profil PEA en bas de sidebar (cache si un seul profil)
   if (typeof _renderProfilePill === "function") _renderProfilePill();
 
-  // Cacher le bouton "Cours manuels" (legacy GS) et ajouter Import/Export
+  // Cacher le bouton "Cours manuels" (legacy GS) : la saisie passe par les positions
   const right = document.querySelector(".topbar-right");
   if (right) {
     const coursBtn = Array.from(right.querySelectorAll("button"))
       .find(b => /Cours manuels/i.test(b.textContent));
     if (coursBtn) coursBtn.style.display = "none";
-
-    const expBtn = document.createElement("button");
-    expBtn.className = "btn btn-ghost btn-sm";
-    expBtn.textContent = "⤓ Exporter";
-    expBtn.title = "Exporter mes données (Ctrl+E)";
-    expBtn.onclick = doExport;
-    right.appendChild(expBtn);
-
-    const impBtn = document.createElement("button");
-    impBtn.className = "btn btn-ghost btn-sm";
-    impBtn.textContent = "⤒ Importer";
-    impBtn.title = "Importer des données (Ctrl+I)";
-    impBtn.onclick = doImportDialog;
-    right.appendChild(impBtn);
   }
 
   _setCoursHealth("warn", "Chargement…");
@@ -11074,6 +11129,7 @@ async function spBootstrap() {
   const ok = await spLoad();
   if (!ok || !SP) return;
   _spBootstrapped = true;
+  if (typeof homeRender === "function") homeRender();
   spGoToday();
   spRenderGoals();
   spRenderStats();
@@ -12140,6 +12196,99 @@ async function prBootstrap() {
   };
 })();
 
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PAGE D'ACCUEIL — salutation + les trois chiffres qui comptent
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/** "Bonjour" avant 18 h, "Bonsoir" apres. */
+function homeGreeting() {
+  return new Date().getHours() < 18 ? "Bonjour" : "Bonsoir";
+}
+
+/** Prochain objectif sportif : l'evenement le plus proche, sinon la derniere perf visee. */
+function homeNextGoal() {
+  if (typeof SP === "undefined" || !SP) return null;
+  const today  = spDateISO(new Date());
+  const active = spGoals().filter(g => g.status === "active");
+  const events = active.filter(g => g.kind === "event" && g.date && g.date >= today)
+                       .sort((a, b) => a.date.localeCompare(b.date));
+  if (events.length) return events[0];
+  const perfs = active.filter(g => g.kind === "perf")
+                      .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  return perfs[0] || active[0] || null;
+}
+
+function homeRender() {
+  const greetEl = document.getElementById("home-greet");
+  if (!greetEl) return;
+
+  const prenom = (typeof S !== "undefined" && S && S.prenom) ? S.prenom : "";
+  greetEl.textContent = homeGreeting() + (prenom ? " " + prenom : "");
+  const d = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  document.getElementById("home-date").textContent = d.charAt(0).toUpperCase() + d.slice(1);
+
+  // 1. Rendement total du PEA (exactement la valeur de la vue d'ensemble)
+  const pv = window._peaPv || {};
+  const pvTxt = (pv.eur != null) ? eur(pv.eur, true) : "\u2014";
+  const pvCls = (pv.eur == null) ? "" : (pv.eur >= 0 ? "c-g" : "c-r");
+  const pvSub = (pv.pct != null) ? pct(pv.pct) : "En attente des cours";
+
+  // 2. Heures de sport du mois en cours
+  let hTxt = "\u2014", hSub = "Module sport non charg\u00e9";
+  if (typeof SP !== "undefined" && SP) {
+    const now = new Date();
+    const t = spTotals(spMonthSessions(now.getFullYear(), now.getMonth()));
+    hTxt = spFmtDur(t.min);
+    hSub = t.n ? t.n + " s\u00e9ance" + (t.n > 1 ? "s" : "") + " en " + SP_MONTHS[now.getMonth()]
+               : "Aucune s\u00e9ance ce mois-ci";
+  }
+
+  // 3. Prochain objectif sportif
+  let gTxt = "\u2014", gSub = "Aucun objectif en cours";
+  const g = homeNextGoal();
+  if (g) {
+    if (g.kind === "event" && g.date) {
+      const days = Math.round((spParseISO(g.date) - spParseISO(spDateISO(new Date()))) / 86400000);
+      gTxt = days === 0 ? "Aujourd'hui" : "J\u2212" + days;
+      gSub = g.title;
+    } else {
+      gTxt = "\u25CE";
+      gSub = g.title;
+    }
+  }
+
+  document.getElementById("home-cards").innerHTML = `
+    <div class="home-card" onclick="goTab('perf');_setActiveSidebar('perf')">
+      <span class="home-card-lbl">Rendement total du PEA</span>
+      <span class="home-card-val ${pvCls}">${pvTxt}</span>
+      <span class="home-card-sub">${escHtml(pvSub)}</span>
+      <span class="home-card-go">Voir la performance \u2192</span>
+    </div>
+    <div class="home-card" onclick="goTab('sp-agenda');_setActiveSidebar('sp-agenda')">
+      <span class="home-card-lbl">Sport ce mois-ci</span>
+      <span class="home-card-val">${hTxt}</span>
+      <span class="home-card-sub">${escHtml(hSub)}</span>
+      <span class="home-card-go">Ouvrir l'agenda \u2192</span>
+    </div>
+    <div class="home-card" onclick="goTab('sp-goals');_setActiveSidebar('sp-goals')">
+      <span class="home-card-lbl">Prochain objectif</span>
+      <span class="home-card-val">${gTxt}</span>
+      <span class="home-card-sub">${escHtml(gSub)}</span>
+      <span class="home-card-go">Voir les objectifs \u2192</span>
+    </div>`;
+}
+
+// Rafraichit l'accueil a chaque fois qu'on y revient
+(function patchGoTabHome() {
+  const _prev = window.goTab;
+  if (typeof _prev !== "function") return;
+  window.goTab = function(n) {
+    _prev.call(this, n);
+    if (n === "home") homeRender();
+  };
+})();
 
 (async function boot() {
   try {

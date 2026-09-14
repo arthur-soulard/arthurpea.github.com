@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-PyInstaller spec : Suivi PEA -> un seul Suivi_PEA.exe (onefile, sans console).
+PyInstaller spec : Pilote -> un seul Pilote.exe (onefile, sans console).
 
 Usage :
     pyinstaller build/suivi_pea.spec --clean --noconfirm
@@ -55,7 +55,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name="Suivi_PEA",
+    name="Pilote",
     icon=str(ICON),
     debug=False,
     bootloader_ignore_signals=False,

@@ -1,7 +1,7 @@
 """
 updater.py — Verifieur et installateur de mise a jour avec progression et logs.
 
-Tous les evenements sont logges dans %APPDATA%\\Suivi PEA\\update.log
+Tous les evenements sont logges dans %APPDATA%\\Pilote\\update.log
 pour permettre de diagnostiquer toute panne d'auto-update.
 """
 from __future__ import annotations
@@ -36,7 +36,7 @@ _progress: dict = {"step": "idle", "pct": 0, "error": None}
 
 def _log_path() -> Path:
     base = os.environ.get("APPDATA") or os.path.expanduser("~")
-    p = Path(base) / "Suivi PEA"
+    p = Path(base) / "Pilote"
     try:
         p.mkdir(parents=True, exist_ok=True)
     except Exception:
@@ -145,7 +145,7 @@ def _do_install() -> None:
 
         tmp_dir = Path(tempfile.gettempdir()) / "suivi_pea_update"
         tmp_dir.mkdir(exist_ok=True)
-        setup_path = tmp_dir / "Suivi_PEA_Setup.exe"
+        setup_path = tmp_dir / "Pilote_Setup.exe"
         _log(f"INSTALL: setup_path={setup_path}")
 
         # Supprime un résidu d'une tentative précédente pour éviter Permission denied
@@ -193,12 +193,15 @@ def _do_install() -> None:
         # ── Étape 2 : Préparation batch (70 → 80%) ───────────────────────────
         _set_progress("installing", 75)
 
+        # Nom reel du binaire en cours : survit a un renommage de l'app
+        exe_name = Path(exe_path).name if getattr(sys, "frozen", False) else "Pilote.exe"
+
         bat_path = tmp_dir / "update.bat"
         bat_content = (
             f'@echo off\r\n'
             f'echo [%TIME%] Update batch started >> "{tmp_dir / "update_bat.log"}"\r\n'
             f':wait\r\n'
-            f'tasklist /FI "IMAGENAME eq Suivi_PEA.exe" 2>nul | find /I "Suivi_PEA.exe" > nul\r\n'
+            f'tasklist /FI "IMAGENAME eq {exe_name}" 2>nul | find /I "{exe_name}" > nul\r\n'
             f'if not errorlevel 1 ( timeout /t 1 /nobreak > nul & goto wait )\r\n'
             f'echo [%TIME%] App process gone, waiting 5s for file handle release >> "{tmp_dir / "update_bat.log"}"\r\n'
             f'timeout /t 5 /nobreak > nul\r\n'

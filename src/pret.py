@@ -3,7 +3,7 @@ pret.py — Stockage du module "Pret etudiant".
 
 Reprend le modele de l'ancienne application standalone Pret_Etudiant.exe
 (localStorage cle "pret_v1", schema 6), mais persiste sur disque comme le
-reste de Suivi PEA. Le fichier est COMMUN a tous les profils PEA.
+reste de Pilote. Le fichier est COMMUN a tous les profils PEA.
 
 Emplacement : <app_dir>/pret.json
 Backup quotidien : <app_dir>/backups_pret/pret_YYYY-MM-DD.json

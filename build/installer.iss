@@ -1,13 +1,13 @@
 ; ============================================================
-;  Suivi PEA - Inno Setup script
+;  Pilote - Inno Setup script
 ;  Compile avec Inno Setup 6+ (https://jrsoftware.org/isdl.php)
-;  Produit : dist\Suivi_PEA_Setup.exe
+;  Produit : dist\Pilote_Setup.exe
 ; ============================================================
 
-#define AppName       "Suivi PEA"
-#define AppVersion    "4.0.0"
+#define AppName       "Pilote"
+#define AppVersion    "4.1.0"
 #define AppPublisher  "Arthur"
-#define AppExeName    "Suivi_PEA.exe"
+#define AppExeName    "Pilote.exe"
 
 [Setup]
 AppId={{E1B6F4D2-7C8E-4B5A-9D3F-1A2B3C4D5E6F}
@@ -18,7 +18,7 @@ DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
 OutputDir=..\dist
-OutputBaseFilename=Suivi_PEA_Setup
+OutputBaseFilename=Pilote_Setup
 SetupIconFile=..\assets\icon.ico
 UninstallDisplayIcon={app}\{#AppExeName}
 UninstallDisplayName={#AppName}
@@ -40,8 +40,17 @@ Name: "desktopicon";  Description: "{cm:CreateDesktopIcon}"; GroupDescription: "
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "..\dist\Suivi_PEA.exe";   DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist\Pilote.exe";      DestDir: "{app}"; Flags: ignoreversion
 Source: "..\assets\icon.ico";      DestDir: "{app}"; Flags: ignoreversion
+
+; L'AppId est un GUID fixe : une installation "Suivi PEA" existante est
+; reconnue et mise a jour dans son dossier actuel (Donnees/ est conserve).
+; On y efface simplement les traces de l'ancien nom.
+[InstallDelete]
+Type: files; Name: "{app}\Suivi_PEA.exe"
+Type: files; Name: "{autoprograms}\Suivi PEA.lnk"
+Type: files; Name: "{autodesktop}\Suivi PEA.lnk"
+Type: files; Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\Suivi PEA.lnk"
 
 [Icons]
 Name: "{autoprograms}\{#AppName}";          Filename: "{app}\{#AppExeName}"; IconFilename: "{app}\icon.ico"

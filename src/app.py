@@ -1,5 +1,5 @@
 """
-app.py — Point d'entree de Suivi PEA.
+app.py — Point d'entree de Pilote.
 
 Lance :
   - le serveur Yahoo Finance en arriere-plan (server.py)
@@ -31,8 +31,8 @@ import pret
 import notifications
 
 
-APP_NAME    = "Suivi PEA"
-APP_VERSION = "4.0.0"
+APP_NAME    = "Pilote"
+APP_VERSION = "4.1.0"
 SINGLE_INSTANCE_PORT = 50317          # port arbitraire pour le verrou single-instance
 WINDOW_DEFAULT_SIZE  = (1280, 800)
 WINDOW_MIN_SIZE      = (960, 640)
@@ -538,7 +538,7 @@ def install_crash_handler() -> None:
 
 def _startup_audit() -> None:
     """
-    Ecrit un audit IMMEDIAT au demarrage dans %APPDATA%\\Suivi PEA\\startup_audit.log
+    Ecrit un audit IMMEDIAT au demarrage dans %APPDATA%\\Pilote\\startup_audit.log
     pour voir EXACTEMENT ce que voit le process au moment du lancement.
     """
     try:
