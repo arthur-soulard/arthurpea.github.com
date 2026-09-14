@@ -1038,6 +1038,249 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   .fin-top-row { grid-template-columns: 26px 16px 1fr 70px; }
   .fin-top-bar-wrap, .fin-top-pct { display: none; }
 }
+/* ══════════════════════════════════════════════════
+   Sidebar en accordeon : 4 sections -> sous-onglets
+   ══════════════════════════════════════════════════ */
+.sb-sec { display: flex; flex-direction: column; }
+.sb-sec-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 7px;
+  font-size: 13px; font-weight: 700; color: var(--txt2);
+  cursor: pointer; border: 0; background: transparent; text-align: left;
+  font-family: var(--font); transition: background .12s, color .12s;
+  width: 100%;
+}
+.sb-sec-btn:hover { background: var(--bg3); color: var(--txt); }
+.sb-sec.open > .sb-sec-btn,
+.sb-sec.has-active > .sb-sec-btn { color: var(--txt); }
+.sb-chev {
+  margin-left: auto; order: 2; font-size: 9px; color: var(--txt3);
+  transition: transform .18s ease; line-height: 1;
+}
+.sb-sec.open > .sb-sec-btn .sb-chev { transform: rotate(90deg); }
+.sb-dot {
+  margin-left: 7px; width: 5px; height: 5px; border-radius: 999px;
+  background: var(--accent); display: none; flex-shrink: 0;
+}
+.sb-sec.has-active > .sb-sec-btn .sb-dot { display: block; }
+.sb-sec.open > .sb-sec-btn .sb-dot { display: none; }
+.sb-sub {
+  display: none; flex-direction: column; gap: 2px;
+  margin: 2px 0 8px 19px; padding-left: 9px;
+  border-left: 1px solid var(--brd);
+}
+.sb-sec.open > .sb-sub { display: flex; }
+.sb-sub .sb-item { padding: 7px 10px; font-size: 12px; font-weight: 600; }
+.sb-sub .sb-item > span:first-child { flex: 1; }
+.sb-sub .sb-item.active { box-shadow: inset 2px 0 0 var(--accent); }
+
+/* ══════════════════════════════════════════════════
+   Primitives partagees par les modules Sports / Pret
+   ══════════════════════════════════════════════════ */
+.mkpis {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px; margin-bottom: 1rem;
+}
+.mkpi {
+  background: var(--bg2); border: 1px solid var(--brd);
+  border-radius: var(--radl); padding: 1rem 1.2rem;
+  box-shadow: var(--sh); display: flex; flex-direction: column; gap: 4px;
+}
+.mkpi-lbl {
+  font-size: 9px; font-weight: 700; color: var(--txt2);
+  text-transform: uppercase; letter-spacing: .09em;
+}
+.mkpi-val {
+  font-family: var(--mono); font-size: 20px; font-weight: 800;
+  letter-spacing: -.4px; line-height: 1.15;
+}
+.mkpi-sub { font-size: 11px; color: var(--txt3); font-family: var(--mono); }
+.mkpi.pos .mkpi-val { color: var(--g); }
+.mkpi.neg .mkpi-val { color: var(--r); }
+.mkpi.accent { background: var(--accent); border-color: var(--accent); }
+.mkpi.accent .mkpi-lbl, .mkpi.accent .mkpi-sub { color: rgba(255,255,255,.82); }
+.mkpi.accent .mkpi-val { color: #fff; }
+
+.m-head {
+  display: flex; align-items: center; gap: 12px;
+  flex-wrap: wrap; margin-bottom: 1rem;
+}
+.m-head .m-spacer { flex: 1; }
+.m-nav { display: flex; align-items: center; gap: 6px; }
+.m-nav-lbl {
+  font-size: 15px; font-weight: 700; min-width: 168px; text-align: center;
+  letter-spacing: -.3px; text-transform: capitalize;
+}
+.m-empty { text-align: center; padding: 34px 20px; color: var(--txt2); font-size: 12px; }
+.m-note {
+  background: var(--a2); border-left: 3px solid var(--accent);
+  padding: 11px 14px; border-radius: var(--rad);
+  font-size: 12px; color: var(--txt2); margin-bottom: 1rem; line-height: 1.55;
+}
+.m-tag {
+  display: inline-block; padding: 2px 8px; background: var(--bg3);
+  border-radius: 999px; font-size: 10px; color: var(--txt2);
+  font-family: var(--mono); font-weight: 600;
+}
+.m-tag.accent { background: var(--a2); color: var(--accent); }
+.m-tag.pos { background: var(--g2); color: var(--g); }
+.m-tag.neg { background: var(--r2); color: var(--r); }
+.m-acts { display: flex; gap: 4px; justify-content: flex-end; }
+.m-iconbtn {
+  border: 0; background: transparent; cursor: pointer;
+  color: var(--txt3); font-size: 13px; padding: 3px 5px;
+  border-radius: 4px; transition: color .12s, background .12s;
+}
+.m-iconbtn:hover { color: var(--txt); background: var(--bg3); }
+.m-iconbtn.danger:hover { color: var(--r); background: var(--r2); }
+.fg textarea {
+  width: 100%; background: var(--bg3); border: 1px solid var(--brd2);
+  border-radius: var(--rad); padding: 9px 11px; color: var(--txt);
+  font-size: 12px; font-family: var(--font); resize: vertical; min-height: 62px;
+}
+.fg textarea:focus { outline: none; border-color: var(--accent); }
+.fg-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+/* Ligne de champs a largeur variable : les champs masques ne laissent pas de trou */
+.sp-frow { display: flex; flex-wrap: wrap; gap: 10px; }
+.sp-frow > .fg { flex: 1 1 150px; margin-bottom: .8rem; }
+@media (max-width: 620px) { .fg-row, .fg-row3 { grid-template-columns: 1fr; } }
+
+/* ══════════════════════════════════════════════════
+   Sports — agenda
+   ══════════════════════════════════════════════════ */
+.sp-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.sp-dow {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .09em; color: var(--txt3); text-align: center; padding-bottom: 2px;
+}
+.sp-day {
+  min-height: 98px; background: var(--bg2); border: 1px solid var(--brd);
+  border-radius: var(--rad); padding: 6px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 3px;
+  transition: border-color .12s, background .12s;
+}
+.sp-day:hover { border-color: var(--brd3); background: var(--bg3); }
+.sp-day.out { opacity: .32; }
+.sp-day.today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.sp-day-n {
+  font-size: 11px; font-weight: 700; font-family: var(--mono); color: var(--txt2);
+}
+.sp-day.today .sp-day-n { color: var(--accent); }
+.sp-bubs { display: flex; flex-wrap: wrap; gap: 3px; }
+.sp-bub {
+  width: 22px; height: 22px; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; line-height: 1; border: 1px solid transparent;
+}
+.sp-bub-more {
+  background: var(--bg4); border-color: var(--brd2); color: var(--txt2);
+  font-size: 9px; font-weight: 700; font-family: var(--mono);
+}
+.sp-day-dur {
+  margin-top: auto; font-size: 9px; font-family: var(--mono);
+  color: var(--txt3); font-weight: 600;
+}
+.sp-snote {
+  font-size: 11px; color: var(--txt2); margin-top: 3px;
+  font-style: italic; overflow-wrap: anywhere;
+}
+@media (max-width: 760px) { .sp-day { min-height: 74px; } .sp-day-dur { display: none; } }
+
+/* Liste des seances d'un jour (modale) */
+.sp-slist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+.sp-srow {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg3); border: 1px solid var(--brd);
+  border-radius: var(--rad); padding: 9px 11px;
+}
+.sp-sicon {
+  width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 15px;
+}
+.sp-sname { font-size: 13px; font-weight: 700; }
+.sp-smeta { font-size: 11px; color: var(--txt2); font-family: var(--mono); margin-top: 1px; }
+
+/* Selecteur de sport */
+.sp-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+@media (max-width: 520px) { .sp-picker { grid-template-columns: repeat(2, 1fr); } }
+.sp-pick {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 13px 8px; border-radius: var(--radl); cursor: pointer;
+  border: 1px solid var(--brd2); background: var(--bg3);
+  font-size: 11px; font-weight: 700; color: var(--txt2);
+  font-family: var(--font); transition: all .12s;
+}
+.sp-pick:hover { border-color: var(--brd3); color: var(--txt); }
+.sp-pick.active { border-color: var(--accent); background: var(--a2); color: var(--accent); }
+.sp-pick-ico { font-size: 21px; line-height: 1; }
+
+/* Groupes musculaires */
+.sp-groups { display: flex; flex-wrap: wrap; gap: 6px; }
+.sp-group {
+  padding: 5px 11px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--brd2); background: var(--bg3);
+  font-size: 11px; font-weight: 600; color: var(--txt2);
+  font-family: var(--font); transition: all .12s;
+}
+.sp-group.active { border-color: var(--accent); background: var(--a2); color: var(--accent); }
+
+/* ══════════════════════════════════════════════════
+   Sports — objectifs
+   ══════════════════════════════════════════════════ */
+.sp-goals {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(305px, 1fr)); gap: 14px;
+}
+.sp-goal {
+  background: var(--bg2); border: 1px solid var(--brd);
+  border-radius: var(--radl); padding: 1.1rem 1.2rem; box-shadow: var(--sh);
+  display: flex; flex-direction: column; gap: 9px; position: relative;
+}
+.sp-goal.done { opacity: .62; }
+.sp-goal.done .sp-goal-t { text-decoration: line-through; }
+.sp-goal.urgent { border-color: var(--a); }
+.sp-goal-t { font-size: 14px; font-weight: 700; letter-spacing: -.2px; padding-right: 48px; }
+.sp-goal-meta { font-size: 11px; color: var(--txt2); font-family: var(--mono); }
+.sp-goal-acts { position: absolute; top: 12px; right: 12px; display: flex; gap: 2px; }
+.sp-cd {
+  font-family: var(--mono); font-size: 27px; font-weight: 800; letter-spacing: -1px; line-height: 1;
+}
+.sp-cd.past { color: var(--txt3); }
+.sp-cd-u { font-size: 12px; font-weight: 600; color: var(--txt2); margin-left: 4px; letter-spacing: 0; }
+.sp-bar { height: 6px; background: var(--bg4); border-radius: 999px; overflow: hidden; }
+.sp-bar-in { height: 100%; background: var(--accent); border-radius: 999px; transition: width .35s ease; }
+
+/* ══════════════════════════════════════════════════
+   Sports — statistiques
+   ══════════════════════════════════════════════════ */
+.sp-hm-wrap { overflow-x: auto; padding-bottom: 8px; }
+.sp-hm {
+  display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 12px);
+  gap: 3px; width: max-content;
+}
+.sp-hm-c { width: 12px; height: 12px; border-radius: 2px; background: var(--bg4); }
+.sp-hm-c.l1 { background: rgba(217,119,6,.28); }
+.sp-hm-c.l2 { background: rgba(217,119,6,.52); }
+.sp-hm-c.l3 { background: rgba(217,119,6,.76); }
+.sp-hm-c.l4 { background: var(--accent); }
+.sp-hm-legend {
+  display: flex; align-items: center; gap: 5px; justify-content: flex-end;
+  font-size: 10px; color: var(--txt3); font-family: var(--mono); margin-top: 6px;
+}
+.sp-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 980px) { .sp-charts { grid-template-columns: 1fr; } }
+
+/* ══════════════════════════════════════════════════
+   Pret etudiant
+   ══════════════════════════════════════════════════ */
+.pr-lock {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10px; color: var(--a); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+}
+.pr-split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 980px) { .pr-split { grid-template-columns: 1fr; } }
+.pr-chart { position: relative; height: 290px; }
+
 </style>
 </head>
 <body>
@@ -1510,7 +1753,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 </div>
 
 <!-- ═══════════════════ MES COMPTES (FINANCES PERSO) ═══════════════════ -->
-<div class="pane" id="pane-finances">
+<div class="pane" id="pane-fin-month">
 
   <!-- Header : navigateur mois + bilan + actions -->
   <div class="fin-header">
@@ -1582,6 +1825,31 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
     </div>
   </div>
 
+  <!-- Liste transactions -->
+  <div class="card" id="card-fin-tx">
+    <div class="card-h" style="flex-wrap:wrap;gap:8px">
+      <span class="card-t">Transactions du mois</span>
+      <div class="fin-tx-filters">
+        <input id="fin-search" type="text" placeholder="Rechercher…" class="fin-input-sm" oninput="finRenderTxList()">
+        <select id="fin-filter-cat" class="fin-input-sm" onchange="finRenderTxList()">
+          <option value="">Toutes catégories</option>
+        </select>
+        <select id="fin-filter-src" class="fin-input-sm" onchange="finRenderTxList()">
+          <option value="">Toutes sources</option>
+        </select>
+      </div>
+    </div>
+    <div class="fin-tx-head">
+      <span>Date</span><span>Libellé</span><span>Catégorie</span><span>Source</span><span style="text-align:right">Montant</span><span></span>
+    </div>
+    <div class="card-b" style="padding:0 1rem">
+      <div id="fin-tx-list"><div class="fin-empty">Aucune transaction ce mois-ci.</div></div>
+    </div>
+  </div>
+
+</div><!-- /pane-fin-month -->
+
+<div class="pane" id="pane-fin-year">
   <!-- ──────────── RÉCAP DE L'ANNÉE ──────────── -->
   <div class="fin-year-header">
     <div class="fin-year-nav">
@@ -1632,32 +1900,295 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
     </div>
   </div>
 
-  <!-- Liste transactions -->
-  <div class="card" id="card-fin-tx">
-    <div class="card-h" style="flex-wrap:wrap;gap:8px">
-      <span class="card-t">Transactions du mois</span>
-      <div class="fin-tx-filters">
-        <input id="fin-search" type="text" placeholder="Rechercher…" class="fin-input-sm" oninput="finRenderTxList()">
-        <select id="fin-filter-cat" class="fin-input-sm" onchange="finRenderTxList()">
-          <option value="">Toutes catégories</option>
-        </select>
-        <select id="fin-filter-src" class="fin-input-sm" onchange="finRenderTxList()">
-          <option value="">Toutes sources</option>
-        </select>
-      </div>
-    </div>
-    <div class="fin-tx-head">
-      <span>Date</span><span>Libellé</span><span>Catégorie</span><span>Source</span><span style="text-align:right">Montant</span><span></span>
-    </div>
-    <div class="card-b" style="padding:0 1rem">
-      <div id="fin-tx-list"><div class="fin-empty">Aucune transaction ce mois-ci.</div></div>
-    </div>
-  </div>
 
 </div>
 <!-- ═══════════════════ /MES COMPTES ═══════════════════ -->
 
+
+<!-- ════════════════════════ SPORTS ════════════════════════ -->
+
+<div class="pane" id="pane-sp-agenda">
+  <div class="m-head">
+    <div class="m-nav">
+      <button class="btn btn-sm btn-ghost" onclick="spChangeMonth(-1)" title="Mois précédent">←</button>
+      <span class="m-nav-lbl" id="sp-month-lbl">—</span>
+      <button class="btn btn-sm btn-ghost" onclick="spChangeMonth(1)" title="Mois suivant">→</button>
+      <button class="btn btn-sm btn-ghost" onclick="spGoToday()" style="margin-left:6px">Aujourd'hui</button>
+    </div>
+    <div class="m-spacer"></div>
+    <button class="btn btn-primary" onclick="spOpenSession(null, null)">+ Séance</button>
+    <button class="btn btn-ghost"   onclick="spOpenRoutines()">Routines</button>
+  </div>
+
+  <div class="mkpis" id="sp-month-kpis"></div>
+
+  <div class="card" id="card-sp-cal">
+    <div class="card-h"><span class="card-t">Agenda</span>
+      <span class="card-t" id="sp-cal-legend" style="font-weight:600;letter-spacing:0;text-transform:none"></span>
+    </div>
+    <div class="card-b">
+      <div class="sp-cal" id="sp-cal-dows"></div>
+      <div class="sp-cal" id="sp-cal-grid" style="margin-top:6px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="pane" id="pane-sp-goals">
+  <div class="m-head">
+    <div class="m-nav-lbl" style="min-width:auto;text-align:left;text-transform:none">Objectifs</div>
+    <div class="m-spacer"></div>
+    <button class="btn btn-primary" onclick="spOpenGoal(null)">+ Objectif</button>
+  </div>
+
+  <div class="card" id="card-sp-goals-active">
+    <div class="card-h"><span class="card-t">En cours <span id="sp-goals-count">(0)</span></span></div>
+    <div class="card-b"><div class="sp-goals" id="sp-goals-list"></div></div>
+  </div>
+
+  <div class="card" id="card-sp-goals-done">
+    <div class="card-h"><span class="card-t">Atteints &amp; archivés</span></div>
+    <div class="card-b"><div class="sp-goals" id="sp-goals-done-list"></div></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-sp-stats">
+  <div class="m-head">
+    <div class="m-nav">
+      <button class="btn btn-sm btn-ghost" onclick="spChangeStatsYear(-1)" title="Année précédente">←</button>
+      <span class="m-nav-lbl" id="sp-stats-year-lbl">—</span>
+      <button class="btn btn-sm btn-ghost" onclick="spChangeStatsYear(1)" title="Année suivante">→</button>
+    </div>
+  </div>
+
+  <div class="mkpis" id="sp-stats-kpis"></div>
+
+  <div class="sp-charts">
+    <div class="card" id="card-sp-chart-month">
+      <div class="card-h"><span class="card-t">Heures par mois</span>
+        <div class="fin-toggle" style="transform:scale(.92)">
+          <button type="button" class="fin-toggle-btn active" id="sp-unit-h"  onclick="spSetStatsUnit('h')">Heures</button>
+          <button type="button" class="fin-toggle-btn"        id="sp-unit-km" onclick="spSetStatsUnit('km')">Km</button>
+        </div>
+      </div>
+      <div class="card-b"><div style="position:relative;height:280px"><canvas id="sp-chart-month"></canvas></div></div>
+    </div>
+    <div class="card" id="card-sp-chart-sport">
+      <div class="card-h"><span class="card-t">Heures par sport</span></div>
+      <div class="card-b">
+        <div style="position:relative;height:280px"><canvas id="sp-chart-sport"></canvas></div>
+        <div class="m-empty" id="sp-chart-sport-empty" style="display:none">Aucune séance cette année.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="card-sp-heatmap">
+    <div class="card-h"><span class="card-t">Régularité</span>
+      <span class="m-tag" id="sp-streak">—</span>
+    </div>
+    <div class="card-b">
+      <div class="sp-hm-wrap"><div class="sp-hm" id="sp-hm"></div></div>
+      <div class="sp-hm-legend">
+        Moins <span class="sp-hm-c"></span><span class="sp-hm-c l1"></span><span class="sp-hm-c l2"></span><span class="sp-hm-c l3"></span><span class="sp-hm-c l4"></span> Plus
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ PRÊT ÉTUDIANT ════════════════════ -->
+
+<div class="pane" id="pane-pr-overview"><div id="pr-overview-body"></div></div>
+<div class="pane" id="pane-pr-pea"><div id="pr-pea-body"></div></div>
+<div class="pane" id="pane-pr-av"><div id="pr-av-body"></div></div>
+<div class="pane" id="pane-pr-liv"><div id="pr-liv-body"></div></div>
+<div class="pane" id="pane-pr-params"><div id="pr-params-body"></div></div>
+
 </div><!-- /wrap -->
+
+<!-- ════════════════════ MODALES SPORTS ════════════════════ -->
+
+<!-- ════════════════════ MODALES SPORTS ════════════════════ -->
+
+<!-- Séances d'un jour -->
+<div class="ov" id="ov-sp-day" onclick="if(event.target===this)closeOv('ov-sp-day')">
+  <div class="modal" style="max-width:520px">
+    <h2 id="sp-day-title">Séances</h2>
+    <div class="sp-slist" id="sp-day-list"></div>
+    <div class="mact">
+      <button class="btn btn-ghost" onclick="closeOv('ov-sp-day')">Fermer</button>
+      <button class="btn btn-primary" id="sp-day-add">+ Ajouter une séance</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ajout / édition d'une séance -->
+<div class="ov" id="ov-sp-session" onclick="if(event.target===this)closeOv('ov-sp-session')">
+  <div class="modal" style="max-width:560px">
+    <h2 id="sp-session-title">Nouvelle séance</h2>
+
+    <div class="fg">
+      <label>Sport</label>
+      <div class="sp-picker" id="sp-f-picker"></div>
+    </div>
+
+    <div class="fg-row">
+      <div class="fg"><label>Date</label><input id="sp-f-date" type="date"></div>
+      <div class="fg"><label>Heure</label><input id="sp-f-time" type="time"></div>
+    </div>
+
+    <div class="sp-frow">
+      <div class="fg" id="sp-w-dur">
+        <label>Durée (min)</label>
+        <input id="sp-f-dur" type="number" step="1" placeholder="0">
+      </div>
+      <div class="fg" id="sp-w-dist">
+        <label id="sp-l-dist">Distance (km)</label>
+        <input id="sp-f-dist" type="number" step="0.01" placeholder="0">
+      </div>
+      <div class="fg" id="sp-w-elev">
+        <label>Dénivelé + (m)</label>
+        <input id="sp-f-elev" type="number" step="1" placeholder="0">
+      </div>
+    </div>
+
+    <div class="sp-frow">
+      <div class="fg" id="sp-w-subtype">
+        <label style="display:flex;align-items:center;gap:8px">Type de séance
+          <button type="button" class="m-iconbtn" style="margin-left:auto" title="Gérer les types" onclick="spOpenSubtypes()">✎</button>
+        </label>
+        <select id="sp-f-subtype"></select>
+      </div>
+      <div class="fg" id="sp-w-kind">
+        <label>Type</label>
+        <select id="sp-f-kind">
+          <option value="entrainement">Entraînement</option>
+          <option value="match">Match</option>
+        </select>
+      </div>
+      <div class="fg" id="sp-w-lieu">
+        <label>Lieu</label>
+        <select id="sp-f-lieu">
+          <option value="libre">Eau libre</option>
+          <option value="25">Bassin 25 m</option>
+          <option value="50">Bassin 50 m</option>
+        </select>
+      </div>
+      <div class="fg" id="sp-w-routine">
+        <label style="display:flex;align-items:center;gap:8px">Routine
+          <button type="button" class="m-iconbtn" style="margin-left:auto" title="Gérer les routines" onclick="spOpenRoutines()">✎</button>
+        </label>
+        <select id="sp-f-routine"></select>
+      </div>
+    </div>
+
+    <div class="fg" id="sp-w-groups">
+      <label>Groupes musclés</label>
+      <div class="sp-groups" id="sp-f-groups"></div>
+    </div>
+
+    <div class="fg">
+      <label>Note</label>
+      <textarea id="sp-f-note" placeholder="Sensations, météo, partenaire…"></textarea>
+    </div>
+
+    <div class="mact">
+      <button class="btn btn-ghost danger" id="sp-f-del" style="margin-right:auto;display:none" onclick="spDeleteSession()">Supprimer</button>
+      <button class="btn btn-ghost" onclick="closeOv('ov-sp-session')">Annuler</button>
+      <button class="btn btn-primary" onclick="spSaveSession()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Routines (simples libellés réutilisables) -->
+<div class="ov" id="ov-sp-routines" onclick="if(event.target===this)closeOv('ov-sp-routines')">
+  <div class="modal" style="max-width:480px">
+    <h2>Routines</h2>
+    <div class="m-note">Un nom de circuit que tu réutilises d'une séance de muscu à l'autre — « Circuit abdos », « Gainage », « Haut du corps »…</div>
+    <div id="sp-routines-list" style="margin-bottom:1rem"></div>
+    <div class="fg">
+      <label>Nouvelle routine</label>
+      <div style="display:flex;gap:8px">
+        <input id="sp-r-name" type="text" placeholder="Ex. Circuit abdos" style="flex:1"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();spAddRoutine();}">
+        <button class="btn btn-primary" onclick="spAddRoutine()">Ajouter</button>
+      </div>
+    </div>
+    <div class="mact">
+      <button class="btn btn-ghost" onclick="closeOv('ov-sp-routines')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Types de séance (course à pied) -->
+<div class="ov" id="ov-sp-subtypes" onclick="if(event.target===this)closeOv('ov-sp-subtypes')">
+  <div class="modal" style="max-width:480px">
+    <h2 id="sp-subtypes-title">Types de séance</h2>
+    <div id="sp-subtypes-list" style="margin-bottom:1rem"></div>
+    <div class="fg">
+      <label>Nouveau type</label>
+      <div style="display:flex;gap:8px">
+        <input id="sp-st-name" type="text" placeholder="Ex. Seuil, Sortie club…" style="flex:1"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();spAddSubtype();}">
+        <button class="btn btn-primary" onclick="spAddSubtype()">Ajouter</button>
+      </div>
+    </div>
+    <div class="mact">
+      <button class="btn btn-ghost" onclick="closeOv('ov-sp-subtypes')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Objectif -->
+<div class="ov" id="ov-sp-goal" onclick="if(event.target===this)closeOv('ov-sp-goal')">
+  <div class="modal" style="max-width:500px">
+    <h2 id="sp-goal-title">Nouvel objectif</h2>
+
+    <div class="fg">
+      <label>Type</label>
+      <div class="fin-toggle">
+        <button type="button" class="fin-toggle-btn active" id="sp-g-kind-perf"  onclick="spSetGoalKind('perf')">Performance</button>
+        <button type="button" class="fin-toggle-btn"        id="sp-g-kind-event" onclick="spSetGoalKind('event')">Événement à date</button>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Intitulé</label>
+      <input id="sp-g-title" type="text" placeholder="Ex. 10 km en moins de 45 min">
+    </div>
+
+    <div class="fg-row">
+      <div class="fg">
+        <label>Sport</label>
+        <select id="sp-g-sport"></select>
+      </div>
+      <div class="fg" id="sp-g-w-date">
+        <label>Date de l'événement</label>
+        <input id="sp-g-date" type="date">
+      </div>
+    </div>
+
+    <div class="fg"><label>Note</label><textarea id="sp-g-note" placeholder="Plan, objectif intermédiaire…"></textarea></div>
+
+    <div class="mact">
+      <button class="btn btn-ghost danger" id="sp-g-del" style="margin-right:auto;display:none" onclick="spDeleteGoal()">Supprimer</button>
+      <button class="btn btn-ghost" onclick="closeOv('ov-sp-goal')">Annuler</button>
+      <button class="btn btn-primary" onclick="spSaveGoal()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════════ MODALE PRÊT ÉTUDIANT ═════════════════ -->
+
+<div class="ov" id="ov-pr-form" onclick="if(event.target===this)closeOv('ov-pr-form')">
+  <form class="modal" id="pr-form" style="max-width:520px" onsubmit="return prSubmit(event)">
+    <h2 id="pr-form-title">Titre</h2>
+    <div id="pr-form-body"></div>
+    <div class="mact">
+      <button type="button" class="btn btn-ghost" onclick="closeOv('ov-pr-form')">Annuler</button>
+      <button type="submit" class="btn btn-primary" id="pr-form-submit">Valider</button>
+    </div>
+  </form>
+</div>
+
 
 <!-- ════════════ MODALES MES COMPTES ════════════ -->
 
@@ -7790,19 +8321,46 @@ document.addEventListener("DOMContentLoaded", ()=>{
    Shell desktop : titlebar + sidebar + raccourcis + theme
 ══════════════════════════════════════════════════ */
 
-const SIDEBAR_ITEMS = [
-  { id: "dash",     icon: "⊞", label: "Vue d'ensemble", section: "Suivi PEA" },
-  { id: "pos",      icon: "■", label: "Positions",      section: "Suivi PEA" },
-  { id: "perf",     icon: "↗", label: "Performance",    section: "Suivi PEA" },
-  { id: "sector",   icon: "⬡", label: "Expositions",    section: "Suivi PEA" },
-  { id: "div",      icon: "€", label: "Dividendes",     section: "Suivi PEA" },
-  { id: "tx",       icon: "⇄", label: "Transactions",   section: "Suivi PEA" },
-  { id: "wish",     icon: "☆", label: "Wishlist",       section: "Suivi PEA" },
-  { id: "dep",      icon: "⊕", label: "Dépôts",         section: "Suivi PEA" },
-  { id: "strat",    icon: "≡", label: "Stratégie",      section: "Suivi PEA" },
-  { id: "sim",      icon: "ƒ", label: "Simulateurs",    section: "Suivi PEA" },
-  { id: "finances", icon: "◈", label: "Mes comptes",    section: "Finances perso" },
+const NAV_SECTIONS = [
+  { id: "sec-pea", label: "PEA", children: [
+    { id: "dash",   label: "Vue d'ensemble" },
+    { id: "pos",    label: "Positions"      },
+    { id: "perf",   label: "Performance"    },
+    { id: "sector", label: "Expositions"    },
+    { id: "div",    label: "Dividendes"     },
+    { id: "tx",     label: "Transactions"   },
+    { id: "wish",   label: "Wishlist"       },
+    { id: "dep",    label: "Dépôts"         },
+    { id: "strat",  label: "Stratégie"      },
+    { id: "sim",    label: "Simulateurs"    },
+  ]},
+  { id: "sec-comptes", label: "Mes comptes", children: [
+    { id: "fin-month", label: "Mois"   },
+    { id: "fin-year",  label: "Année"  },
+  ]},
+  { id: "sec-pret", label: "Prêt étudiant", children: [
+    { id: "pr-overview", label: "Vue d'ensemble" },
+    { id: "pr-pea",      label: "PEA"            },
+    { id: "pr-av",       label: "Assurance Vie"  },
+    { id: "pr-liv",      label: "Livret A"       },
+    { id: "pr-params",   label: "Paramètres"     },
+  ]},
+  { id: "sec-sport", label: "Sports", children: [
+    { id: "sp-agenda", label: "Agenda"       },
+    { id: "sp-goals",  label: "Objectifs"    },
+    { id: "sp-stats",  label: "Statistiques" },
+  ]},
 ];
+
+// Liste plate : conserve l'API historique (onglets masques, Ctrl+1..7, config)
+const SIDEBAR_ITEMS = NAV_SECTIONS.reduce(
+  (acc, sec) => acc.concat(sec.children.map(c => Object.assign({ section: sec.label }, c))),
+  []
+);
+
+function _navSectionOf(tabId) {
+  return NAV_SECTIONS.find(sec => sec.children.some(c => c.id === tabId)) || null;
+}
 
 const CARD_ITEMS = [
   { id: "card-pos",              label: "Positions · Tableau" },
@@ -7839,7 +8397,33 @@ function _setActiveSidebar(id) {
   document.querySelectorAll(".sb-item[data-tab]").forEach(el => {
     el.classList.toggle("active", el.dataset.tab === id);
   });
+  const sec = _navSectionOf(id);
+  document.querySelectorAll(".sb-sec").forEach(el => {
+    el.classList.toggle("has-active", !!(sec && el.dataset.sec === sec.id));
+  });
 }
+
+/* Section depliee : une seule a la fois, memorisee entre deux lancements */
+function _navSaveOpen(secId) {
+  S.uiPrefs = S.uiPrefs || {};
+  if (S.uiPrefs.navOpen === secId) return;   // secId vide = toutes repliees
+  S.uiPrefs.navOpen = secId;
+  try { persist(false); } catch(e) {}
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.save_ui_prefs) {
+    try { window.pywebview.api.save_ui_prefs(S.uiPrefs); } catch(e) {}
+  }
+}
+
+function _navToggleSection(secId) {
+  const el = document.querySelector(`.sb-sec[data-sec="${secId}"]`);
+  if (!el) return;
+  const wasOpen = el.classList.contains("open");
+  // Accordeon : une seule section depliee, et un second clic la referme
+  document.querySelectorAll(".sb-sec").forEach(x => x.classList.remove("open"));
+  if (!wasOpen) el.classList.add("open");
+  _navSaveOpen(wasOpen ? "" : secId);
+}
+
 
 function _injectTitlebar() {
   const html = `
@@ -7871,21 +8455,31 @@ function _injectTitlebar() {
 
 function _injectSidebar() {
   const hidden = (S.uiPrefs && S.uiPrefs.hiddenSidebar) || [];
+  const openId = (S.uiPrefs && S.uiPrefs.navOpen !== undefined)
+    ? S.uiPrefs.navOpen                 // "" = toutes repliees
+    : NAV_SECTIONS[0].id;               // premier lancement : PEA deplie
   let html = `<aside class="sidebar" id="pea-sidebar">`;
-  let lastSection = null;
-  SIDEBAR_ITEMS.forEach(it => {
-    if (hidden.includes(it.id)) return;
-    const sec = it.section || "Suivi";
-    if (sec !== lastSection) {
-      html += `<div class="sb-section-lbl"${lastSection ? ' style="margin-top:8px"' : ''}>${sec}</div>`;
-      lastSection = sec;
-    }
-    html += `<button class="sb-item" data-tab="${it.id}">
-               <span class="sb-icon">${it.icon}</span>
-               <span>${it.label}</span>
-               <span class="sb-eye-btn" data-hide="${it.id}" title="Masquer cette section">⊘</span>
-             </button>`;
+
+  NAV_SECTIONS.forEach(sec => {
+    const kids = sec.children.filter(c => !hidden.includes(c.id));
+    if (!kids.length) return;
+    const isOpen = (sec.id === openId);
+    html += `<div class="sb-sec${isOpen ? " open" : ""}" data-sec="${sec.id}">
+      <button class="sb-sec-btn" data-sec-btn="${sec.id}">
+        <span>${sec.label}</span>
+        <span class="sb-chev">▶</span>
+        <span class="sb-dot"></span>
+      </button>
+      <div class="sb-sub">`;
+    kids.forEach(it => {
+      html += `<button class="sb-item" data-tab="${it.id}">
+                 <span>${it.label}</span>
+                 <span class="sb-eye-btn" data-hide="${it.id}" title="Masquer cet onglet">⊘</span>
+               </button>`;
+    });
+    html += `</div></div>`;
   });
+
   html += `
     <div class="sb-bottom">
       <button class="sb-item" id="sb-theme">
@@ -7897,6 +8491,10 @@ function _injectSidebar() {
     </div>
   </aside>`;
   document.body.insertAdjacentHTML("afterbegin", html);
+
+  document.querySelectorAll(".sb-sec-btn[data-sec-btn]").forEach(el => {
+    el.onclick = () => _navToggleSection(el.dataset.secBtn);
+  });
 
   document.querySelectorAll(".sb-item[data-tab]").forEach(el => {
     el.onclick = e => {
@@ -7926,11 +8524,19 @@ function _hideSidebarItem(id) {
   // Retire visuellement de la sidebar sans rechargement
   const el = document.querySelector(`.sb-item[data-tab="${id}"]`);
   if (el) el.remove();
-  // Si cet onglet était actif, basculer sur pos
+  // Si cet onglet etait actif, basculer sur un voisin de la meme section
   const activePane = document.querySelector(".pane.active");
   if (activePane && activePane.id === "pane-" + id) {
-    goTab("pos"); _setActiveSidebar("pos");
+    const hid  = (S.uiPrefs && S.uiPrefs.hiddenSidebar) || [];
+    const sec  = _navSectionOf(id);
+    const next = (sec && sec.children.find(c => c.id !== id && !hid.includes(c.id)))
+              || SIDEBAR_ITEMS.find(c => c.id !== id && !hid.includes(c.id))
+              || { id: "pos" };
+    goTab(next.id); _setActiveSidebar(next.id);
   }
+  // La section peut etre devenue vide
+  const secEl = document.querySelector(`.sb-sec[data-sec="${(_navSectionOf(id)||{}).id}"]`);
+  if (secEl && !secEl.querySelector(".sb-item[data-tab]")) secEl.remove();
   const label = SIDEBAR_ITEMS.find(x => x.id === id)?.label || id;
   if (typeof showToastModern === "function")
     showToastModern(`« ${label} » masqué — restaurable dans ⚙ Paramètres`, "info");
@@ -9563,7 +10169,7 @@ async function finBootstrap() {
   if (typeof _origGoTab !== "function") return;
   window.goTab = function(n) {
     _origGoTab.call(this, n);
-    if (n === "finances") {
+    if (n === "fin-month" || n === "fin-year") {
       if (!_finBootstrapped) {
         // Tentative tardive si pywebview est dispo entre temps
         finBootstrap().then(() => { if (F) finRenderAll(); });
@@ -9574,6 +10180,1966 @@ async function finBootstrap() {
     }
   };
 })();
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MODULE SPORTS — agenda, routines, objectifs, statistiques
+   Donnees : <app_dir>/sports.json via pywebview (load_sports / save_sports)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+let SP = null;                       // etat sportif charge depuis le disque
+let _spBootstrapped = false;
+let _spMonth      = { year: new Date().getFullYear(), month: new Date().getMonth() };
+let _spStatsYear  = new Date().getFullYear();
+let _spStatsUnit  = "h";
+let _spCharts     = { month: null, sport: null };
+
+// Edition en cours
+let _spEditingId   = null;
+let _spSport       = "course";
+let _spGroups      = [];
+let _spGoalKind    = "perf";
+let _spEditingGoal = null;
+
+// Catalogue par defaut (ecrase par celui renvoye par Python au chargement)
+let SP_CATALOG = [
+  { id: "course",   label: "Course à pied / Trail", icon: "🏃", color: "#d97706", fields: ["distance_km","duration","elevation","subtype"] },
+  { id: "velo",     label: "Vélo / Home trainer",   icon: "🚴", color: "#2563eb", fields: ["distance_km","duration","elevation"] },
+  { id: "natation", label: "Natation",              icon: "🏊", color: "#0891b2", fields: ["distance_m","duration","lieu"] },
+  { id: "muscu",    label: "Musculation / Renfo",   icon: "💪", color: "#7c3aed", fields: ["duration","groups","routine"] },
+  { id: "foot",     label: "Football",              icon: "⚽", color: "#16a34a", fields: ["duration","kind"] },
+  { id: "autre",    label: "Autre",                 icon: "🥋", color: "#71717a", fields: ["duration"] },
+];
+
+const SP_GROUPS = ["Pectoraux","Dos","Épaules","Bras","Abdos","Jambes","Fessiers","Gainage","Full body"];
+const SP_MONTHS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+const SP_DOWS   = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+const SP_LIEUX  = { libre: "Eau libre", "25": "Bassin 25 m", "50": "Bassin 50 m" };
+
+/* ── Helpers ─────────────────────────────────────────────────────────────── */
+
+function spSportById(id) { return SP_CATALOG.find(s => s.id === id) || SP_CATALOG[SP_CATALOG.length - 1]; }
+function spHasField(sportId, f) { return (spSportById(sportId).fields || []).includes(f); }
+function spNum(v) { const n = Number(v); return isFinite(n) ? n : 0; }
+
+function spDateISO(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function spParseISO(iso) {
+  const p = String(iso || "").split("-");
+  return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+}
+function spFmtDur(min) {
+  min = Math.round(spNum(min));
+  if (!min) return "—";
+  const h = Math.floor(min / 60), m = min % 60;
+  return h ? (m ? h + " h " + String(m).padStart(2, "0") : h + " h") : m + " min";
+}
+function spFmtNum(n, dec) {
+  return spNum(n).toLocaleString("fr-FR", { minimumFractionDigits: dec || 0, maximumFractionDigits: dec || 0 });
+}
+/** Distance d'une seance ramenee en km (la natation est saisie en metres). */
+function spDistKm(s) {
+  if (!s) return 0;
+  return s.sport === "natation" ? spNum(s.distance) / 1000 : spNum(s.distance);
+}
+function spSessions() { return (SP && Array.isArray(SP.sessions)) ? SP.sessions : []; }
+function spSessionsOn(iso) {
+  return spSessions().filter(s => s.date === iso)
+    .sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"));
+}
+function spRoutines() { return (SP && Array.isArray(SP.routines)) ? SP.routines : []; }
+function spRoutineName(id) {
+  const r = spRoutines().find(x => String(x.id) === String(id));
+  return r ? r.name : "";
+}
+/** Types de seance modifiables, par sport. */
+function spSubtypes(sportId) {
+  if (!SP) return [];
+  SP.subtypes = SP.subtypes || {};
+  if (!Array.isArray(SP.subtypes[sportId])) SP.subtypes[sportId] = [];
+  return SP.subtypes[sportId];
+}
+
+/** Resume court affiche dans la liste du jour. */
+function spSummary(s) {
+  const bits = [];
+  if (spNum(s.duration)) bits.push(spFmtDur(s.duration));
+  if (s.sport === "natation" && spNum(s.distance)) bits.push(spFmtNum(s.distance) + " m");
+  else if (spNum(s.distance)) bits.push(spFmtNum(s.distance, 1) + " km");
+  if (spNum(s.elevation)) bits.push("+" + spFmtNum(s.elevation) + " m");
+  if (s.subtype) bits.push(s.subtype);
+  if (s.sport === "foot" && s.kind) bits.push(s.kind === "match" ? "Match" : "Entraînement");
+  if (s.sport === "natation" && s.lieu) bits.push(SP_LIEUX[String(s.lieu)] || s.lieu);
+  if (s.sport === "muscu" && s.routineId) {
+    const n = spRoutineName(s.routineId);
+    if (n) bits.push(n);
+  }
+  if (s.sport === "muscu" && (s.groups || []).length) bits.push(s.groups.join(", "));
+  return bits.join(" · ");
+}
+
+/** Allure (course) ou vitesse moyenne (velo), si calculable. */
+function spPace(s) {
+  const km = spDistKm(s), min = spNum(s.duration);
+  if (!km || !min) return "";
+  if (s.sport === "velo") return (km / (min / 60)).toFixed(1).replace(".", ",") + " km/h";
+  const p = min / km, pm = Math.floor(p), ps = Math.round((p - pm) * 60);
+  return pm + "'" + String(ps).padStart(2, "0") + "\"/km";
+}
+
+/* ── Chargement / sauvegarde ─────────────────────────────────────────────── */
+
+async function spLoad() {
+  if (!(window.pywebview && window.pywebview.api && window.pywebview.api.load_sports)) return false;
+  try {
+    const r = await window.pywebview.api.load_sports();
+    if (!r || !r.ok) { console.warn("[sports] load KO", r); return false; }
+    SP = r.data;
+    if (Array.isArray(r.catalog) && r.catalog.length) SP_CATALOG = r.catalog;
+    return true;
+  } catch (e) { console.warn("[sports] load KO", e); return false; }
+}
+
+async function spPersist() {
+  if (!SP) return;
+  if (!(window.pywebview && window.pywebview.api && window.pywebview.api.save_sports)) return;
+  try {
+    const r = await window.pywebview.api.save_sports(SP);
+    if (r && !r.ok) showToastModern("Sauvegarde sport échouée : " + (r.error || "?"), "err");
+  } catch (e) { showToastModern("Sauvegarde sport échouée", "err"); }
+}
+
+function spNextId(kind) {
+  SP._nid = SP._nid || {};
+  const n = spNum(SP._nid[kind]) || 1;
+  SP._nid[kind] = n + 1;
+  return n;
+}
+
+/* ── Agenda ──────────────────────────────────────────────────────────────── */
+
+function spChangeMonth(delta) {
+  let m = _spMonth.month + delta, y = _spMonth.year;
+  while (m < 0)  { m += 12; y--; }
+  while (m > 11) { m -= 12; y++; }
+  _spMonth = { year: y, month: m };
+  spRenderAgenda();
+}
+
+function spGoToday() {
+  const d = new Date();
+  _spMonth = { year: d.getFullYear(), month: d.getMonth() };
+  spRenderAgenda();
+}
+
+function spRenderAgenda() {
+  if (!SP) return;
+  const lbl = document.getElementById("sp-month-lbl");
+  if (lbl) lbl.textContent = SP_MONTHS[_spMonth.month] + " " + _spMonth.year;
+  spRenderMonthKpis();
+  spRenderCalendar();
+}
+
+function spMonthSessions(y, m) {
+  const pre = y + "-" + String(m + 1).padStart(2, "0") + "-";
+  return spSessions().filter(s => String(s.date || "").startsWith(pre));
+}
+function spYearSessions(y) {
+  return spSessions().filter(s => String(s.date || "").startsWith(String(y)));
+}
+
+function spTotals(list) {
+  return list.reduce((t, s) => {
+    t.n++;
+    t.min  += spNum(s.duration);
+    t.km   += spDistKm(s);
+    t.elev += spNum(s.elevation);
+    return t;
+  }, { n: 0, min: 0, km: 0, elev: 0 });
+}
+
+/** "+2 h 30 vs mois prec." — le delta le plus lisible possible. */
+function spDelta(cur, prev, kind, ref) {
+  if (!prev && !cur) return "—";
+  const d = cur - prev, sign = d >= 0 ? "+" : "−";
+  const v = kind === "dur" ? spFmtDur(Math.abs(d))
+          : kind === "km"  ? spFmtNum(Math.abs(d), 1) + " km"
+          :                  spFmtNum(Math.abs(d)) + (kind === "elev" ? " m" : "");
+  return sign + v + " vs " + ref;
+}
+
+function spRenderMonthKpis() {
+  const box = document.getElementById("sp-month-kpis");
+  if (!box) return;
+  const t = spTotals(spMonthSessions(_spMonth.year, _spMonth.month));
+  let pm = _spMonth.month - 1, py = _spMonth.year;
+  if (pm < 0) { pm = 11; py--; }
+  const p = spTotals(spMonthSessions(py, pm));
+  const ref = SP_MONTHS[pm].slice(0, 4) + ".";
+  const yearMin = spTotals(spYearSessions(_spMonth.year)).min;
+
+  box.innerHTML = `
+    <div class="mkpi accent"><span class="mkpi-lbl">Temps de sport</span>
+      <span class="mkpi-val">${spFmtDur(t.min)}</span>
+      <span class="mkpi-sub">${spDelta(t.min, p.min, "dur", ref)}</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Cumul ${_spMonth.year}</span>
+      <span class="mkpi-val">${spFmtDur(yearMin)}</span>
+      <span class="mkpi-sub">depuis le 1ᵉʳ janvier</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Séances</span>
+      <span class="mkpi-val">${t.n}</span>
+      <span class="mkpi-sub">${spDelta(t.n, p.n, "n", ref)}</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Distance</span>
+      <span class="mkpi-val">${spFmtNum(t.km, 1)} km</span>
+      <span class="mkpi-sub">${spDelta(t.km, p.km, "km", ref)}</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Dénivelé +</span>
+      <span class="mkpi-val">${spFmtNum(t.elev)} m</span>
+      <span class="mkpi-sub">${spDelta(t.elev, p.elev, "elev", ref)}</span></div>`;
+}
+
+function spRenderCalendar() {
+  const dows = document.getElementById("sp-cal-dows");
+  const grid = document.getElementById("sp-cal-grid");
+  if (!grid) return;
+  if (dows) dows.innerHTML = SP_DOWS.map(d => `<div class="sp-dow">${d}</div>`).join("");
+
+  const first = new Date(_spMonth.year, _spMonth.month, 1);
+  const shift = (first.getDay() + 6) % 7;            // lundi = 0
+  const start = new Date(_spMonth.year, _spMonth.month, 1 - shift);
+  const todayISO = spDateISO(new Date());
+
+  let html = "";
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+    const iso = spDateISO(d);
+    const out = (d.getMonth() !== _spMonth.month);
+    const list = spSessionsOn(iso);
+
+    // Une bulle par seance : juste l'emoji du sport, le detail est au clic
+    let bubbles = list.slice(0, 4).map(s => {
+      const sp = spSportById(s.sport);
+      return `<span class="sp-bub" style="background:${sp.color}1f;border-color:${sp.color}55"
+                    title="${escHtml(sp.label + (spSummary(s) ? " — " + spSummary(s) : ""))}">${sp.icon}</span>`;
+    }).join("");
+    if (list.length > 4) bubbles += `<span class="sp-bub sp-bub-more">+${list.length - 4}</span>`;
+
+    html += `<div class="sp-day${out ? " out" : ""}${iso === todayISO ? " today" : ""}" onclick="spOpenDay('${iso}')">
+               <span class="sp-day-n">${d.getDate()}</span>
+               <div class="sp-bubs">${bubbles}</div>
+               ${list.length ? `<span class="sp-day-dur">${spFmtDur(spTotals(list).min)}</span>` : ""}
+             </div>`;
+  }
+  grid.innerHTML = html;
+
+  const legend = document.getElementById("sp-cal-legend");
+  if (legend) {
+    const used = [...new Set(spMonthSessions(_spMonth.year, _spMonth.month).map(s => s.sport))];
+    legend.innerHTML = used.map(id => {
+      const sp = spSportById(id);
+      return `<span style="margin-left:10px;font-size:11px;color:var(--txt2)">${sp.icon} ${escHtml(sp.label)}</span>`;
+    }).join("");
+  }
+}
+
+/* ── Modale : seances d'un jour ──────────────────────────────────────────── */
+
+function spOpenDay(iso) {
+  const list = spSessionsOn(iso);
+  const d = spParseISO(iso);
+  const t = spTotals(list);
+  document.getElementById("sp-day-title").textContent =
+    d.getDate() + " " + SP_MONTHS[d.getMonth()] + " " + d.getFullYear() +
+    (list.length ? "  ·  " + spFmtDur(t.min) : "");
+
+  const box = document.getElementById("sp-day-list");
+  box.innerHTML = list.length ? list.map(s => {
+    const sp = spSportById(s.sport);
+    const pace = spPace(s);
+    return `<div class="sp-srow">
+      <div class="sp-sicon" style="background:${sp.color}22;color:${sp.color}">${sp.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div class="sp-sname">${escHtml(sp.label)}${s.time ? ` <span class="m-tag">${escHtml(s.time)}</span>` : ""}</div>
+        <div class="sp-smeta">${escHtml(spSummary(s) || "—")}${pace ? " · " + pace : ""}</div>
+        ${s.note ? `<div class="sp-snote">${escHtml(s.note)}</div>` : ""}
+      </div>
+      <div class="m-acts">
+        <button class="m-iconbtn" title="Modifier" onclick="spOpenSession(${s.id}, null)">✎</button>
+        <button class="m-iconbtn danger" title="Supprimer" onclick="spQuickDelete(${s.id}, '${iso}')">✕</button>
+      </div>
+    </div>`;
+  }).join("") : `<div class="m-empty">Aucune séance ce jour-là.</div>`;
+
+  document.getElementById("sp-day-add").onclick = () => { closeOv("ov-sp-day"); spOpenSession(null, iso); };
+  document.getElementById("ov-sp-day").classList.add("open");
+}
+
+async function spQuickDelete(id, iso) {
+  if (!confirm("Supprimer cette séance ?")) return;
+  SP.sessions = spSessions().filter(x => x.id !== id);
+  await spPersist();
+  spRenderAll();
+  spOpenDay(iso);
+  showToastModern("Séance supprimée", "ok");
+}
+
+/* ── Modale : saisie d'une seance ────────────────────────────────────────── */
+
+function spRenderPicker() {
+  document.getElementById("sp-f-picker").innerHTML = SP_CATALOG.map(sp => `
+    <button type="button" class="sp-pick${sp.id === _spSport ? " active" : ""}" onclick="spSetSport('${sp.id}')">
+      <span class="sp-pick-ico">${sp.icon}</span><span>${escHtml(sp.label)}</span>
+    </button>`).join("");
+}
+
+function spSetSport(id) {
+  _spSport = id;
+  spRenderPicker();
+  spApplyFields();
+}
+
+/** Affiche uniquement les champs du sport selectionne. */
+function spApplyFields(current) {
+  const show = (wrapId, on) => {
+    const el = document.getElementById(wrapId);
+    if (el) el.style.display = on ? "" : "none";
+  };
+  const hasM = spHasField(_spSport, "distance_m");
+  show("sp-w-dist", spHasField(_spSport, "distance_km") || hasM);
+  document.getElementById("sp-l-dist").textContent = hasM ? "Distance (m)" : "Distance (km)";
+  document.getElementById("sp-f-dist").step = hasM ? "1" : "0.01";
+  show("sp-w-dur",     spHasField(_spSport, "duration"));
+  show("sp-w-elev",    spHasField(_spSport, "elevation"));
+  show("sp-w-subtype", spHasField(_spSport, "subtype"));
+  show("sp-w-kind",    spHasField(_spSport, "kind"));
+  show("sp-w-lieu",    spHasField(_spSport, "lieu"));
+  show("sp-w-routine", spHasField(_spSport, "routine"));
+  show("sp-w-groups",  spHasField(_spSport, "groups"));
+  if (spHasField(_spSport, "subtype")) spFillSubtypeSelect(current && current.subtype);
+  if (spHasField(_spSport, "routine")) spFillRoutineSelect(current && current.routineId);
+  if (spHasField(_spSport, "groups"))  spRenderGroups();
+}
+
+function spFillSubtypeSelect(selected) {
+  const sel = document.getElementById("sp-f-subtype");
+  const list = spSubtypes(_spSport);
+  const keep = selected != null ? selected : sel.value;
+  sel.innerHTML = `<option value="">—</option>` +
+    list.map(t => `<option value="${escHtml(t)}">${escHtml(t)}</option>`).join("");
+  if (keep && list.includes(keep)) sel.value = keep;
+}
+
+function spFillRoutineSelect(selected) {
+  const sel = document.getElementById("sp-f-routine");
+  const keep = selected != null ? String(selected) : sel.value;
+  sel.innerHTML = `<option value="">Aucune</option>` +
+    spRoutines().map(r => `<option value="${r.id}">${escHtml(r.name)}</option>`).join("");
+  if (keep) sel.value = keep;
+}
+
+function spRenderGroups() {
+  document.getElementById("sp-f-groups").innerHTML = SP_GROUPS.map(g => `
+    <button type="button" class="sp-group${_spGroups.includes(g) ? " active" : ""}" onclick="spToggleGroup('${g}')">${g}</button>
+  `).join("");
+}
+
+function spToggleGroup(g) {
+  _spGroups = _spGroups.includes(g) ? _spGroups.filter(x => x !== g) : _spGroups.concat([g]);
+  spRenderGroups();
+}
+
+function spOpenSession(id, iso) {
+  if (!SP) { showToastModern("Module sport non chargé", "warn"); return; }
+  _spEditingId = id;
+  const s = id ? spSessions().find(x => x.id === id) : null;
+
+  document.getElementById("sp-session-title").textContent = s ? "Modifier la séance" : "Nouvelle séance";
+  document.getElementById("sp-f-del").style.display = s ? "" : "none";
+
+  _spSport  = s ? s.sport : "course";
+  _spGroups = (s && Array.isArray(s.groups)) ? s.groups.slice() : [];
+
+  document.getElementById("sp-f-date").value = s ? s.date : (iso || spDateISO(new Date()));
+  document.getElementById("sp-f-time").value = s ? (s.time || "") : "";
+  document.getElementById("sp-f-dist").value = (s && spNum(s.distance))  ? s.distance  : "";
+  document.getElementById("sp-f-dur").value  = (s && spNum(s.duration))  ? s.duration  : "";
+  document.getElementById("sp-f-elev").value = (s && spNum(s.elevation)) ? s.elevation : "";
+  document.getElementById("sp-f-kind").value = (s && s.kind) || "entrainement";
+  document.getElementById("sp-f-lieu").value = (s && s.lieu) ? String(s.lieu) : "libre";
+  document.getElementById("sp-f-note").value = (s && s.note) || "";
+
+  spRenderPicker();
+  spApplyFields(s || {});
+  document.getElementById("ov-sp-session").classList.add("open");
+}
+
+async function spSaveSession() {
+  const date = document.getElementById("sp-f-date").value;
+  if (!date) { showToastModern("Date obligatoire", "warn"); return; }
+
+  const dur  = spNum(document.getElementById("sp-f-dur").value);
+  const dist = spNum(document.getElementById("sp-f-dist").value);
+  if (!dur && !dist) { showToastModern("Renseigne au moins une durée ou une distance", "warn"); return; }
+
+  const s = {
+    id:        _spEditingId || spNextId("session"),
+    date:      date,
+    time:      document.getElementById("sp-f-time").value || "",
+    sport:     _spSport,
+    duration:  dur,
+    distance:  (spHasField(_spSport, "distance_km") || spHasField(_spSport, "distance_m")) ? dist : 0,
+    elevation: spHasField(_spSport, "elevation") ? spNum(document.getElementById("sp-f-elev").value) : 0,
+    note:      document.getElementById("sp-f-note").value.trim(),
+  };
+  if (spHasField(_spSport, "subtype")) s.subtype = document.getElementById("sp-f-subtype").value;
+  if (spHasField(_spSport, "kind"))    s.kind    = document.getElementById("sp-f-kind").value;
+  if (spHasField(_spSport, "lieu"))    s.lieu    = document.getElementById("sp-f-lieu").value;
+  if (spHasField(_spSport, "routine")) s.routineId = spNum(document.getElementById("sp-f-routine").value) || null;
+  if (spHasField(_spSport, "groups"))  s.groups  = _spGroups.slice();
+
+  if (_spEditingId) {
+    const i = spSessions().findIndex(x => x.id === _spEditingId);
+    if (i >= 0) SP.sessions[i] = s;
+  } else {
+    SP.sessions = spSessions().concat([s]);
+  }
+  await spPersist();
+  closeOv("ov-sp-session");
+  const d = spParseISO(date);
+  _spMonth = { year: d.getFullYear(), month: d.getMonth() };
+  spRenderAll();
+  showToastModern(_spEditingId ? "Séance modifiée" : "Séance enregistrée", "ok");
+}
+
+async function spDeleteSession() {
+  if (!_spEditingId) return;
+  if (!confirm("Supprimer cette séance ?")) return;
+  SP.sessions = spSessions().filter(x => x.id !== _spEditingId);
+  await spPersist();
+  closeOv("ov-sp-session");
+  spRenderAll();
+  showToastModern("Séance supprimée", "ok");
+}
+
+/* ── Routines : de simples libelles reutilisables ────────────────────────── */
+
+function spOpenRoutines() {
+  if (!SP) { showToastModern("Module sport non chargé", "warn"); return; }
+  spRenderRoutines();
+  document.getElementById("sp-r-name").value = "";
+  document.getElementById("ov-sp-routines").classList.add("open");
+}
+
+function spRenderRoutines() {
+  const list = spRoutines();
+  document.getElementById("sp-routines-list").innerHTML = list.length
+    ? list.map(r => `<div class="sp-srow">
+        <div style="flex:1;min-width:0"><div class="sp-sname">${escHtml(r.name)}</div></div>
+        <div class="m-acts">
+          <button class="m-iconbtn" title="Renommer" onclick="spRenameRoutine(${r.id})">✎</button>
+          <button class="m-iconbtn danger" title="Supprimer" onclick="spDeleteRoutine(${r.id})">✕</button>
+        </div></div>`).join("")
+    : `<div class="m-empty">Aucune routine pour l'instant.</div>`;
+}
+
+async function spAddRoutine() {
+  const inp = document.getElementById("sp-r-name");
+  const name = inp.value.trim();
+  if (!name) { showToastModern("Donne un nom à la routine", "warn"); return; }
+  if (spRoutines().some(r => r.name.toLowerCase() === name.toLowerCase())) {
+    showToastModern("Cette routine existe déjà", "warn"); return;
+  }
+  SP.routines = spRoutines().concat([{ id: spNextId("routine"), name: name, note: "" }]);
+  await spPersist();
+  inp.value = "";
+  spRenderRoutines();
+  spFillRoutineSelect();
+  showToastModern("Routine ajoutée", "ok");
+}
+
+async function spRenameRoutine(id) {
+  const r = spRoutines().find(x => x.id === id);
+  if (!r) return;
+  const v = prompt("Nouveau nom :", r.name);
+  if (v === null) return;
+  const name = v.trim();
+  if (!name) return;
+  r.name = name;
+  await spPersist();
+  spRenderRoutines();
+  spFillRoutineSelect();
+  spRenderAll();
+}
+
+async function spDeleteRoutine(id) {
+  const used = spSessions().filter(s => String(s.routineId) === String(id)).length;
+  const msg = used
+    ? `Cette routine est utilisée par ${used} séance${used > 1 ? "s" : ""}. La supprimer ?`
+    : "Supprimer cette routine ?";
+  if (!confirm(msg)) return;
+  SP.routines = spRoutines().filter(x => x.id !== id);
+  spSessions().forEach(s => { if (String(s.routineId) === String(id)) s.routineId = null; });
+  await spPersist();
+  spRenderRoutines();
+  spFillRoutineSelect();
+  spRenderAll();
+  showToastModern("Routine supprimée", "ok");
+}
+
+/* ── Types de seance modifiables ─────────────────────────────────────────── */
+
+function spOpenSubtypes() {
+  if (!SP) return;
+  document.getElementById("sp-subtypes-title").textContent =
+    "Types de séance — " + spSportById(_spSport).label;
+  document.getElementById("sp-st-name").value = "";
+  spRenderSubtypes();
+  document.getElementById("ov-sp-subtypes").classList.add("open");
+}
+
+function spRenderSubtypes() {
+  const list = spSubtypes(_spSport);
+  document.getElementById("sp-subtypes-list").innerHTML = list.length
+    ? list.map((t, i) => `<div class="sp-srow">
+        <div style="flex:1;min-width:0"><div class="sp-sname">${escHtml(t)}</div></div>
+        <div class="m-acts">
+          <button class="m-iconbtn" title="Renommer" onclick="spRenameSubtype(${i})">✎</button>
+          <button class="m-iconbtn danger" title="Supprimer" onclick="spDeleteSubtype(${i})">✕</button>
+        </div></div>`).join("")
+    : `<div class="m-empty">Aucun type pour ce sport.</div>`;
+}
+
+async function spAddSubtype() {
+  const inp = document.getElementById("sp-st-name");
+  const name = inp.value.trim();
+  if (!name) return;
+  const list = spSubtypes(_spSport);
+  if (list.some(t => t.toLowerCase() === name.toLowerCase())) {
+    showToastModern("Ce type existe déjà", "warn"); return;
+  }
+  list.push(name);
+  await spPersist();
+  inp.value = "";
+  spRenderSubtypes();
+  spFillSubtypeSelect();
+}
+
+async function spRenameSubtype(i) {
+  const list = spSubtypes(_spSport);
+  const v = prompt("Nouveau nom :", list[i]);
+  if (v === null) return;
+  const name = v.trim();
+  if (!name) return;
+  const old = list[i];
+  list[i] = name;
+  // Reporte le changement sur les seances deja saisies
+  spSessions().forEach(s => { if (s.sport === _spSport && s.subtype === old) s.subtype = name; });
+  await spPersist();
+  spRenderSubtypes();
+  spFillSubtypeSelect();
+  spRenderAll();
+}
+
+async function spDeleteSubtype(i) {
+  const list = spSubtypes(_spSport);
+  if (!confirm(`Supprimer le type « ${list[i]} » ?`)) return;
+  list.splice(i, 1);
+  await spPersist();
+  spRenderSubtypes();
+  spFillSubtypeSelect();
+}
+
+/* ── Objectifs ───────────────────────────────────────────────────────────── */
+
+function spGoals() { return (SP && Array.isArray(SP.goals)) ? SP.goals : []; }
+
+function spSetGoalKind(kind) {
+  _spGoalKind = kind;
+  document.getElementById("sp-g-kind-perf").classList.toggle("active",  kind === "perf");
+  document.getElementById("sp-g-kind-event").classList.toggle("active", kind === "event");
+  document.getElementById("sp-g-w-date").style.display = (kind === "event") ? "" : "none";
+}
+
+function spOpenGoal(id) {
+  if (!SP) { showToastModern("Module sport non chargé", "warn"); return; }
+  _spEditingGoal = id;
+  const g = id ? spGoals().find(x => x.id === id) : null;
+
+  document.getElementById("sp-goal-title").textContent = g ? "Modifier l'objectif" : "Nouvel objectif";
+  document.getElementById("sp-g-del").style.display = g ? "" : "none";
+  document.getElementById("sp-g-sport").innerHTML =
+    `<option value="">Tous sports</option>` +
+    SP_CATALOG.map(s => `<option value="${s.id}">${escHtml(s.label)}</option>`).join("");
+
+  document.getElementById("sp-g-title").value = g ? g.title : "";
+  document.getElementById("sp-g-sport").value = (g && g.sport) || "";
+  document.getElementById("sp-g-date").value  = (g && g.date)  || "";
+  document.getElementById("sp-g-note").value  = (g && g.note)  || "";
+  spSetGoalKind((g && g.kind) || "perf");
+
+  document.getElementById("ov-sp-goal").classList.add("open");
+}
+
+async function spSaveGoal() {
+  const title = document.getElementById("sp-g-title").value.trim();
+  if (!title) { showToastModern("Donne un intitulé à l'objectif", "warn"); return; }
+  const date = document.getElementById("sp-g-date").value;
+  if (_spGoalKind === "event" && !date) { showToastModern("Renseigne la date de l'événement", "warn"); return; }
+
+  const prev = _spEditingGoal ? spGoals().find(x => x.id === _spEditingGoal) : null;
+  const g = {
+    id:        _spEditingGoal || spNextId("goal"),
+    kind:      _spGoalKind,
+    title:     title,
+    sport:     document.getElementById("sp-g-sport").value || "",
+    date:      _spGoalKind === "event" ? date : "",
+    note:      document.getElementById("sp-g-note").value.trim(),
+    status:    prev ? prev.status : "active",
+    createdAt: prev ? prev.createdAt : spDateISO(new Date()),
+    doneAt:    prev ? prev.doneAt : null,
+  };
+  if (_spEditingGoal) {
+    const i = spGoals().findIndex(x => x.id === _spEditingGoal);
+    if (i >= 0) SP.goals[i] = g;
+  } else {
+    SP.goals = spGoals().concat([g]);
+  }
+  await spPersist();
+  closeOv("ov-sp-goal");
+  spRenderGoals();
+  showToastModern(_spEditingGoal ? "Objectif modifié" : "Objectif créé", "ok");
+}
+
+async function spDeleteGoal() {
+  if (!_spEditingGoal) return;
+  if (!confirm("Supprimer cet objectif ?")) return;
+  SP.goals = spGoals().filter(x => x.id !== _spEditingGoal);
+  await spPersist();
+  closeOv("ov-sp-goal");
+  spRenderGoals();
+  showToastModern("Objectif supprimé", "ok");
+}
+
+async function spToggleGoalDone(id) {
+  const g = spGoals().find(x => x.id === id);
+  if (!g) return;
+  if (g.status === "done") { g.status = "active"; g.doneAt = null; }
+  else { g.status = "done"; g.doneAt = spDateISO(new Date()); }
+  await spPersist();
+  spRenderGoals();
+  showToastModern(g.status === "done" ? "Objectif validé 🎉" : "Objectif rouvert", "ok");
+}
+
+/** Volume accumule depuis la creation d'un objectif (pour les evenements). */
+function spVolumeSince(iso, sport) {
+  return spTotals(spSessions().filter(s =>
+    String(s.date || "") >= iso && (!sport || s.sport === sport)));
+}
+
+function spGoalCard(g) {
+  const sp   = g.sport ? spSportById(g.sport) : null;
+  const done = g.status === "done";
+  let body = "", urgent = false;
+
+  if (g.kind === "event" && g.date) {
+    const today = spDateISO(new Date());
+    const days  = Math.round((spParseISO(g.date) - spParseISO(today)) / 86400000);
+    const t     = spVolumeSince(g.createdAt, g.sport);
+    const total = Math.max(1, Math.round((spParseISO(g.date) - spParseISO(g.createdAt)) / 86400000));
+    const pct   = Math.max(0, Math.min(100, Math.round((total - Math.max(0, days)) / total * 100)));
+    urgent = !done && days >= 0 && days <= 14;
+    body = `
+      <div>
+        <span class="sp-cd${days < 0 ? " past" : ""}">${days >= 0 ? "J−" + days : "J+" + Math.abs(days)}</span>
+        <span class="sp-cd-u">${days >= 0 ? (days === 0 ? "c'est aujourd'hui" : "avant l'échéance") : "passé"}</span>
+      </div>
+      <div class="sp-bar"><div class="sp-bar-in" style="width:${pct}%"></div></div>
+      <div class="sp-goal-meta">Préparation : ${spFmtDur(t.min)} · ${t.n} séance${t.n > 1 ? "s" : ""}${t.km ? " · " + spFmtNum(t.km, 1) + " km" : ""}</div>
+      <div class="sp-goal-meta">Échéance : ${escHtml(spParseISO(g.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }))}</div>`;
+  } else {
+    body = `
+      <div class="sp-goal-meta">Fixé le ${escHtml(spParseISO(g.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }))}</div>
+      ${done ? `<div class="sp-goal-meta" style="color:var(--g)">✓ Atteint le ${escHtml(spParseISO(g.doneAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }))}</div>` : ""}`;
+  }
+
+  return `<div class="sp-goal${done ? " done" : ""}${urgent ? " urgent" : ""}">
+    <div class="sp-goal-acts">
+      <button class="m-iconbtn" title="${done ? "Rouvrir" : "Valider"}" onclick="spToggleGoalDone(${g.id})">${done ? "↺" : "✓"}</button>
+      <button class="m-iconbtn" title="Modifier" onclick="spOpenGoal(${g.id})">✎</button>
+    </div>
+    <div class="sp-goal-t">${escHtml(g.title)}</div>
+    <div>
+      <span class="m-tag${g.kind === "event" ? " accent" : ""}">${g.kind === "event" ? "Événement" : "Performance"}</span>
+      ${sp ? `<span class="m-tag" style="margin-left:4px">${sp.icon} ${escHtml(sp.label)}</span>` : ""}
+    </div>
+    ${body}
+    ${g.note ? `<div class="sp-goal-meta" style="font-family:var(--font)">${escHtml(g.note)}</div>` : ""}
+  </div>`;
+}
+
+function spRenderGoals() {
+  if (!SP) return;
+  const all    = spGoals();
+  const active = all.filter(g => g.status === "active");
+  const rest   = all.filter(g => g.status !== "active");
+
+  const cnt = document.getElementById("sp-goals-count");
+  if (cnt) cnt.textContent = "(" + active.length + ")";
+
+  active.sort((a, b) => {
+    if (a.kind !== b.kind) return a.kind === "event" ? -1 : 1;
+    if (a.kind === "event") return String(a.date).localeCompare(String(b.date));
+    return String(b.createdAt).localeCompare(String(a.createdAt));
+  });
+
+  document.getElementById("sp-goals-list").innerHTML = active.length
+    ? active.map(spGoalCard).join("")
+    : `<div class="m-empty">Aucun objectif en cours. Clique sur « + Objectif » pour t'en fixer un.</div>`;
+
+  document.getElementById("sp-goals-done-list").innerHTML = rest.length
+    ? rest.map(spGoalCard).join("")
+    : `<div class="m-empty">Rien ici pour l'instant.</div>`;
+}
+
+/* ── Statistiques ────────────────────────────────────────────────────────── */
+
+function spChangeStatsYear(d) { _spStatsYear += d; spRenderStats(); }
+function spSetStatsUnit(u) {
+  _spStatsUnit = u;
+  document.getElementById("sp-unit-h").classList.toggle("active",  u === "h");
+  document.getElementById("sp-unit-km").classList.toggle("active", u === "km");
+  spRenderStatsCharts();
+}
+
+function spRenderStats() {
+  if (!SP) return;
+  const lbl = document.getElementById("sp-stats-year-lbl");
+  if (lbl) lbl.textContent = String(_spStatsYear);
+  spRenderStatsKpis();
+  spRenderStatsCharts();
+  spRenderHeatmap();
+}
+
+function spRenderStatsKpis() {
+  const box = document.getElementById("sp-stats-kpis");
+  if (!box) return;
+  const t = spTotals(spYearSessions(_spStatsYear));
+  const p = spTotals(spYearSessions(_spStatsYear - 1));
+  const ref = String(_spStatsYear - 1);
+
+  // Moyenne hebdomadaire sur les semaines ecoulees de l'annee
+  const now = new Date();
+  const endOfYear = new Date(_spStatsYear, 11, 31);
+  const end = (now < endOfYear) ? now : endOfYear;
+  const weeks = Math.max(1, Math.round((end - new Date(_spStatsYear, 0, 1)) / 604800000));
+
+  box.innerHTML = `
+    <div class="mkpi accent"><span class="mkpi-lbl">Heures de sport en ${_spStatsYear}</span>
+      <span class="mkpi-val">${spFmtDur(t.min)}</span>
+      <span class="mkpi-sub">${spDelta(t.min, p.min, "dur", ref)}</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Moyenne hebdo</span>
+      <span class="mkpi-val">${spFmtDur(t.min / weeks)}</span>
+      <span class="mkpi-sub">sur ${weeks} semaine${weeks > 1 ? "s" : ""}</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Séances</span>
+      <span class="mkpi-val">${t.n}</span>
+      <span class="mkpi-sub">${spDelta(t.n, p.n, "n", ref)}</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Distance</span>
+      <span class="mkpi-val">${spFmtNum(t.km, 1)} km</span>
+      <span class="mkpi-sub">${spDelta(t.km, p.km, "km", ref)}</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Dénivelé +</span>
+      <span class="mkpi-val">${spFmtNum(t.elev)} m</span>
+      <span class="mkpi-sub">${spDelta(t.elev, p.elev, "elev", ref)}</span></div>`;
+}
+
+function spRenderStatsCharts() {
+  const txtColor  = getComputedStyle(document.body).getPropertyValue("color") || "#18181b";
+  const gridColor = getComputedStyle(document.documentElement).getPropertyValue("--brd").trim() || "rgba(0,0,0,0.07)";
+  const bg2       = getComputedStyle(document.documentElement).getPropertyValue("--bg2") || "#fff";
+  const accent    = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#d97706";
+
+  const vals = [];
+  for (let m = 0; m < 12; m++) {
+    const t = spTotals(spMonthSessions(_spStatsYear, m));
+    vals.push(_spStatsUnit === "km" ? Math.round(t.km * 10) / 10 : Math.round(t.min / 60 * 10) / 10);
+  }
+  const unitLbl = _spStatsUnit === "km" ? "km" : "h";
+  const cvM = document.getElementById("sp-chart-month");
+  if (cvM) {
+    if (_spCharts.month) _spCharts.month.destroy();
+    _spCharts.month = new Chart(cvM, {
+      type: "bar",
+      data: { labels: SP_MONTHS.map(m => m.slice(0, 3)),
+              datasets: [{ data: vals, backgroundColor: accent, borderRadius: 6, maxBarThickness: 38 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false },
+                   tooltip: { callbacks: { label: ctx => spFmtNum(ctx.raw, 1) + " " + unitLbl } } },
+        scales: {
+          x: { ticks: { color: txtColor, font: { size: 10 } }, grid: { display: false } },
+          y: { ticks: { color: txtColor, callback: v => v + " " + unitLbl, font: { size: 10 } }, grid: { color: gridColor } }
+        }
+      }
+    });
+  }
+
+  const bySport = {};
+  spYearSessions(_spStatsYear).forEach(s => {
+    bySport[s.sport] = (bySport[s.sport] || 0) + spNum(s.duration);
+  });
+  const ids = Object.keys(bySport).filter(k => bySport[k] > 0);
+  const cvS = document.getElementById("sp-chart-sport");
+  const emp = document.getElementById("sp-chart-sport-empty");
+  if (!cvS) return;
+  if (!ids.length) {
+    if (_spCharts.sport) { _spCharts.sport.destroy(); _spCharts.sport = null; }
+    cvS.style.display = "none";
+    if (emp) emp.style.display = "";
+    return;
+  }
+  cvS.style.display = "";
+  if (emp) emp.style.display = "none";
+  if (_spCharts.sport) _spCharts.sport.destroy();
+  _spCharts.sport = new Chart(cvS, {
+    type: "doughnut",
+    data: {
+      labels: ids.map(id => spSportById(id).label),
+      datasets: [{ data: ids.map(id => bySport[id]),
+                   backgroundColor: ids.map(id => spSportById(id).color),
+                   borderWidth: 2, borderColor: bg2 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "right", labels: { color: txtColor, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => ctx.label + " : " + spFmtDur(ctx.raw) } }
+      }
+    }
+  });
+}
+
+function spRenderHeatmap() {
+  const box = document.getElementById("sp-hm");
+  if (!box) return;
+
+  const byDay = {};
+  spYearSessions(_spStatsYear).forEach(s => {
+    byDay[s.date] = (byDay[s.date] || 0) + spNum(s.duration);
+  });
+
+  const jan1  = new Date(_spStatsYear, 0, 1);
+  const start = new Date(_spStatsYear, 0, 1 - ((jan1.getDay() + 6) % 7));
+  const dec31 = new Date(_spStatsYear, 11, 31);
+
+  let html = "";
+  for (let d = new Date(start); d <= dec31; d.setDate(d.getDate() + 1)) {
+    const iso = spDateISO(d);
+    const min = byDay[iso] || 0;
+    const inYear = d.getFullYear() === _spStatsYear;
+    let lvl = "";
+    if (inYear) {
+      if (min >= 120) lvl = " l4";
+      else if (min >= 75) lvl = " l3";
+      else if (min >= 40) lvl = " l2";
+      else if (min > 0)   lvl = " l1";
+    }
+    html += `<div class="sp-hm-c${lvl}" title="${inYear ? iso + (min ? " · " + spFmtDur(min) : " · repos") : ""}"${inYear ? "" : ' style="opacity:.25"'}></div>`;
+  }
+  box.innerHTML = html;
+
+  const allDays = {};
+  spSessions().forEach(s => { allDays[s.date] = true; });
+  let streak = 0;
+  const cur = new Date();
+  if (!allDays[spDateISO(cur)]) cur.setDate(cur.getDate() - 1);
+  while (allDays[spDateISO(cur)]) { streak++; cur.setDate(cur.getDate() - 1); }
+
+  const tag = document.getElementById("sp-streak");
+  if (tag) {
+    const total = Object.keys(byDay).length;
+    tag.textContent = (streak ? "🔥 " + streak + " jour" + (streak > 1 ? "s" : "") + " d'affilée · " : "") +
+                      total + " jour" + (total > 1 ? "s" : "") + " actif" + (total > 1 ? "s" : "") + " en " + _spStatsYear;
+  }
+}
+
+/* ── Rendu global + bootstrap ────────────────────────────────────────────── */
+
+function spRenderAll() {
+  if (!SP) return;
+  spRenderAgenda();
+  spRenderGoals();
+  spRenderStats();
+}
+
+async function spBootstrap() {
+  if (_spBootstrapped) return;
+  const ok = await spLoad();
+  if (!ok || !SP) return;
+  _spBootstrapped = true;
+  spGoToday();
+  spRenderGoals();
+  spRenderStats();
+}
+
+// Rafraichit le pane quand on entre dans une section Sports
+(function patchGoTabSports() {
+  const _prev = window.goTab;
+  if (typeof _prev !== "function") return;
+  window.goTab = function(n) {
+    _prev.call(this, n);
+    if (n !== "sp-agenda" && n !== "sp-goals" && n !== "sp-stats") return;
+    if (!_spBootstrapped) { spBootstrap(); return; }
+    if (n === "sp-agenda") spRenderAgenda();
+    if (n === "sp-goals")  spRenderGoals();
+    if (n === "sp-stats")  spRenderStats();
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MODULE PRÊT ÉTUDIANT
+   Donnees : <app_dir>/pret.json via pywebview (load_pret / save_pret)
+   Cours   : serveur local /cours?tickers=… (meme proxy Yahoo que le PEA)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+let PR = null;
+let _prBootstrapped = false;
+let _prQuotes   = {};     // { "WPEA.PA": {prix, d1, ts} } — memoire seulement
+let _prChart    = null;
+let _prSubmitFn = null;
+
+/* ── Formatters ──────────────────────────────────────────────────────────── */
+
+const PR_EUR  = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const PR_NUM  = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const PR_NUM4 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+
+function prEur(n) { return (n == null || isNaN(n)) ? "—" : PR_EUR.format(n); }
+function prNum(n, d) { return (n == null || isNaN(n)) ? "—" : (d === 4 ? PR_NUM4 : PR_NUM).format(n); }
+function prPct(n) { return (n == null || isNaN(n)) ? "—" : (n >= 0 ? "+" : "") + PR_NUM.format(n) + " %"; }
+function prN(v) { const n = Number(v); return isFinite(n) ? n : 0; }
+function prCls(n) { return n == null ? "" : (n > 0 ? "pos" : (n < 0 ? "neg" : "")); }
+
+function prDate(iso) {
+  const m = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? m[3] + "/" + m[2] + "/" + m[1] : (iso || "—");
+}
+function prISO(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function prToday() { return prISO(new Date()); }
+function prDaysBetween(a, b) {
+  return Math.round((new Date(b + "T00:00:00Z") - new Date(a + "T00:00:00Z")) / 86400000);
+}
+/** Meme jour du mois, borne a la fin du mois (31 janvier -> 28/29 fevrier). */
+function prAddMonths(iso, n) {
+  const p = String(iso).split("-").map(Number);
+  const target = new Date(p[0], p[1] - 1 + n, 1);
+  const last = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+  target.setDate(Math.min(p[2], last));
+  return prISO(target);
+}
+function prSumBy(arr, key) { return (arr || []).reduce((s, x) => s + prN(x[key]), 0); }
+function prNewId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+/* ── Chargement / sauvegarde ─────────────────────────────────────────────── */
+
+async function prLoad() {
+  if (!(window.pywebview && window.pywebview.api && window.pywebview.api.load_pret)) return false;
+  try {
+    const r = await window.pywebview.api.load_pret();
+    if (!r || !r.ok) { console.warn("[pret] load KO", r); return false; }
+    PR = r.data;
+    return true;
+  } catch (e) { console.warn("[pret] load KO", e); return false; }
+}
+
+async function prPersist() {
+  if (!PR) return;
+  if (!(window.pywebview && window.pywebview.api && window.pywebview.api.save_pret)) return;
+  try {
+    const r = await window.pywebview.api.save_pret(PR);
+    if (r && !r.ok) showToastModern("Sauvegarde prêt échouée : " + (r.error || "?"), "err");
+  } catch (e) { showToastModern("Sauvegarde prêt échouée", "err"); }
+}
+
+async function prSave(msg) {
+  await prPersist();
+  prRenderAll();
+  if (msg) showToastModern(msg, "ok");
+}
+
+/* ── Calculs : Assurance Vie (capitalisation annuelle, par contrat) ──────── */
+
+function prAvContrats() { return (PR && PR.av && Array.isArray(PR.av.contrats)) ? PR.av.contrats : []; }
+function prAvContrat(id) { return prAvContrats().find(c => String(c.id) === String(id)); }
+
+function prRateForYear(year, schedule) {
+  if (!Array.isArray(schedule) || !schedule.length) return 0;
+  const sorted = schedule.slice().sort((a, b) => prN(a.annee) - prN(b.annee));
+  let taux = 0;
+  for (const s of sorted) {
+    if (prN(s.annee) <= year) taux = prN(s.taux);
+    else break;
+  }
+  return taux;
+}
+
+function prAVDepositInterest(depot, schedule, asOf) {
+  const start = depot.date;
+  if (!start || start >= asOf) return 0;
+  const initial = prN(depot.montant);
+  if (initial <= 0) return 0;
+  let capital = initial;
+  const y0 = parseInt(start.slice(0, 4), 10), y1 = parseInt(asOf.slice(0, 4), 10);
+  for (let y = y0; y <= y1; y++) {
+    const yStart = (y === y0) ? start : (y + "-01-01");
+    const yEnd   = (y === y1) ? asOf  : ((y + 1) + "-01-01");
+    const days = prDaysBetween(yStart, yEnd);
+    if (days <= 0) continue;
+    capital += capital * (prRateForYear(y, schedule) / 100) * days / 365;
+  }
+  return capital - initial;
+}
+
+/** Totaux d'un contrat d'assurance vie. */
+function prAvContratTotals(c) {
+  const asOf = prToday();
+  let depose = 0, interets = 0;
+  for (const d of (c.depots || [])) {
+    depose   += prN(d.montant);
+    interets += prAVDepositInterest(d, c.taux_annuels, asOf);
+  }
+  return { depose, interets, valeur: depose + interets,
+           perf: depose > 0 ? (interets / depose) * 100 : null };
+}
+
+/* ── Calculs : Livret A (taux date, capitalisation au 1er janvier) ───────── */
+
+function prRateOnDate(iso, history) {
+  if (!Array.isArray(history) || !history.length) return 0;
+  const sorted = history.slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  let taux = 0;
+  for (const h of sorted) {
+    if (h.date <= iso) taux = prN(h.taux);
+    else break;
+  }
+  return taux;
+}
+
+function prLivretState(mouvements, history, asOf) {
+  const ZERO = { capital: 0, interets_courus: 0, interets_total: 0, valeur: 0, depose: 0, retire: 0 };
+  const movs = (mouvements || []).filter(m => m.date && m.date <= asOf);
+  if (!movs.length) return ZERO;
+  const sorted = movs.slice().sort((a, b) => a.date.localeCompare(b.date));
+  const startDate = sorted[0].date;
+  if (startDate > asOf) return ZERO;
+
+  const dates = new Set(sorted.map(m => m.date));
+  for (const h of (history || [])) {
+    if (h.date && h.date >= startDate && h.date <= asOf) dates.add(h.date);
+  }
+  const y0 = parseInt(startDate.slice(0, 4), 10), y1 = parseInt(asOf.slice(0, 4), 10);
+  for (let y = y0; y < y1; y++) dates.add((y + 1) + "-01-01");
+  dates.add(asOf);
+  const events = Array.from(dates).filter(d => d >= startDate && d <= asOf).sort();
+
+  let capital = 0, pending = 0, depose = 0, retire = 0;
+  const apply = date => {
+    for (const m of sorted) {
+      if (m.date !== date) continue;
+      const amt = prN(m.montant);
+      if (m.type === "retrait") { capital -= Math.min(amt, capital); retire += amt; }
+      else { capital += amt; depose += amt; }
+    }
+  };
+
+  let cursor = events[0];
+  apply(cursor);
+  for (let i = 1; i < events.length; i++) {
+    const next = events[i];
+    const days = prDaysBetween(cursor, next);
+    if (days > 0 && capital > 0) {
+      const rate = prRateOnDate(cursor, history);
+      if (rate > 0) pending += capital * (rate / 100) * days / 365;
+    }
+    if (next.endsWith("-01-01")) { capital += pending; pending = 0; }
+    apply(next);
+    cursor = next;
+  }
+  return {
+    capital, interets_courus: pending,
+    interets_total: (capital + pending) - (depose - retire),
+    valeur: capital + pending, depose, retire
+  };
+}
+
+/* ── Calculs : frais recurrents ──────────────────────────────────────────── */
+
+function prExpandRecurrent(tpl) {
+  const out = [];
+  const n = parseInt(tpl && tpl.nb_occurrences, 10) || 0;
+  if (!tpl || !tpl.date_debut || n <= 0) return out;
+  const step = tpl.frequence === "annuelle" ? 12 : 1;
+  for (let i = 0; i < n; i++) {
+    out.push({ id: tpl.id + "::" + i, recurrent_id: tpl.id,
+               date: prAddMonths(tpl.date_debut, i * step),
+               montant: prN(tpl.montant), label: tpl.label || "",
+               virtual: true, idx: i + 1, total: n });
+  }
+  return out;
+}
+
+function prAllFrais() {
+  let all = (PR.frais || []).slice();
+  for (const tpl of (PR.frais_recurrents || [])) all = all.concat(prExpandRecurrent(tpl));
+  return all.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+}
+
+/* ── Calcul global ───────────────────────────────────────────────────────── */
+
+function prOverview() {
+  const versements   = prSumBy(PR.versements, "montant");
+  const remb_total   = prSumBy(PR.remboursements, "montant");
+  const allFrais     = prAllFrais();
+  const frais_banque = prSumBy(allFrais, "montant");
+
+  // Regroupement achats + ventes par ticker
+  const byTicker = {};
+  const slot = t => (byTicker[t] = byTicker[t] || { ticker: t, debite: 0, qteA: 0, investA: 0, qteV: 0, credite: 0 });
+  for (const a of (PR.pea.achats || [])) {
+    const e = slot((a.ticker || "").toUpperCase() || "—");
+    e.debite  += prN(a.montant);
+    e.qteA    += prN(a.quantite);
+    e.investA += prN(a.quantite) * prN(a.cours_achat);
+  }
+  for (const v of (PR.pea.ventes || [])) {
+    const e = slot((v.ticker || "").toUpperCase() || "—");
+    e.qteV    += prN(v.quantite);
+    e.credite += prN(v.montant);
+  }
+
+  const positions = [];
+  let pea_debite = 0, pea_invest = 0, pea_credite = 0, pea_realise = 0, pea_frais = 0;
+  let valSum = 0, pvSum = 0, anyVal = false;
+
+  for (const t in byTicker) {
+    const e   = byTicker[t];
+    const pru = e.qteA > 0 ? e.investA / e.qteA : null;
+    const qte = e.qteA - e.qteV;                       // parts encore detenues
+    const investRestant = (pru != null) ? qte * pru : 0;
+    const realise = (pru != null) ? e.credite - e.qteV * pru : 0;
+    const q = _prQuotes[t];
+    const cours  = q ? q.prix : null;
+    const valeur = (cours != null && qte > 0) ? qte * cours : null;
+    const pv     = (valeur != null) ? valeur - investRestant : null;
+
+    positions.push({
+      ticker: t, debite: e.debite, qte, qteV: e.qteV, invest: investRestant,
+      frais: e.debite - e.investA, pru, cours, d1: q ? q.d1 : null,
+      valeur, pv, realise, credite: e.credite,
+      pv_pct: (pv != null && investRestant > 0) ? (pv / investRestant) * 100 : null,
+      closed: qte <= 0.00001 && e.qteA > 0,
+    });
+    pea_debite  += e.debite;
+    pea_invest  += investRestant;
+    pea_credite += e.credite;
+    pea_realise += realise;
+    pea_frais   += e.debite - e.investA;   // frais d'ordre payes a l'achat
+    if (valeur != null) { valSum += valeur; anyVal = true; }
+    if (pv != null) pvSum += pv;
+  }
+  positions.sort((a, b) => (a.closed - b.closed) || a.ticker.localeCompare(b.ticker));
+
+  const pea_valeur = anyVal ? valSum : null;
+  const pea_pv     = anyVal ? pvSum : null;
+  const pea_pv_pct = (pea_pv != null && pea_invest > 0) ? (pea_pv / pea_invest) * 100 : null;
+
+  // Assurance vie : somme des contrats
+  let av_depose = 0, av_interets = 0;
+  const av_details = prAvContrats().map(c => {
+    const t = prAvContratTotals(c);
+    av_depose   += t.depose;
+    av_interets += t.interets;
+    return Object.assign({ id: c.id, label: c.label }, t);
+  });
+  const av_valeur   = av_depose + av_interets;
+  const av_perf_pct = av_depose > 0 ? (av_interets / av_depose) * 100 : null;
+
+  const liv = prLivretState(PR.liv.mouvements, PR.liv.taux_history, prToday());
+  const liv_net = liv.depose - liv.retire;
+  const liv_perf_pct = liv_net > 0 ? (liv.interets_total / liv_net) * 100 : null;
+
+  const capital_du      = Math.max(0, prN(PR.pret.montant) - remb_total);
+  const capital_attente = versements + pea_credite - pea_debite - av_depose - liv_net - remb_total - frais_banque;
+  const frais_total     = frais_banque + pea_frais;
+  const valeur_portefeuille = (pea_valeur != null ? pea_valeur : 0) + av_valeur + liv.valeur;
+  const benefice_net    = (pea_pv != null ? pea_pv : 0) + pea_realise + av_interets + liv.interets_total - frais_total;
+  const mensualite      = prN(PR.pret.mensualite);
+
+  return {
+    versements, remb_total, frais_banque, allFrais,
+    positions, pea_debite, pea_invest, pea_frais, pea_valeur, pea_pv, pea_pv_pct,
+    pea_credite, pea_realise,
+    av_details, av_depose, av_interets, av_valeur, av_perf_pct,
+    liv_depose: liv.depose, liv_retire: liv.retire, liv_net,
+    liv_capital: liv.capital, liv_interets_courus: liv.interets_courus,
+    liv_interets: liv.interets_total, liv_valeur: liv.valeur, liv_perf_pct,
+    capital_du, capital_attente, frais_total, valeur_portefeuille, benefice_net,
+    mensualites_restantes: mensualite > 0 ? Math.ceil(capital_du / mensualite) : 0,
+    mensualites_payees: (PR.remboursements || []).length,
+  };
+}
+
+/* ── Cours (proxy Yahoo du serveur local) ────────────────────────────────── */
+
+function prTickers() {
+  const set = new Set();
+  for (const a of (PR.pea.achats || [])) {
+    const t = (a.ticker || "").trim().toUpperCase();
+    if (t) set.add(t);
+  }
+  return [...set];
+}
+
+async function prRefreshQuotes(silent) {
+  const list = prTickers();
+  if (!list.length) { if (!silent) showToastModern("Aucun ticker à actualiser", "warn"); return; }
+  try {
+    const r = await fetch("/cours?tickers=" + encodeURIComponent(list.join(",")) + "&t=" + Date.now(), { cache: "no-store" });
+    const j = await r.json();
+    if (!j || !j.ok) throw new Error(j && j.error ? j.error : "réponse invalide");
+    Object.assign(_prQuotes, j.prices || {});
+    prRenderAll();
+    if (!silent) {
+      const got = Object.keys(j.prices || {}).length;
+      showToastModern(got ? "Cours actualisés (" + got + ")" : "Aucun cours récupéré", got ? "ok" : "warn");
+    }
+  } catch (e) {
+    if (!silent) showToastModern("Cours indisponibles : " + e.message, "err");
+  }
+}
+
+/* ── Modale generique ────────────────────────────────────────────────────── */
+
+function prOpenForm(title, bodyHtml, onSubmit, submitLabel) {
+  document.getElementById("pr-form-title").textContent = title;
+  document.getElementById("pr-form-body").innerHTML = bodyHtml;
+  document.getElementById("pr-form-submit").textContent = submitLabel || "Valider";
+  _prSubmitFn = onSubmit;
+  document.getElementById("ov-pr-form").classList.add("open");
+  setTimeout(() => {
+    const f = document.querySelector("#pr-form-body input, #pr-form-body select");
+    if (f) f.focus();
+  }, 80);
+}
+
+function prSubmit(ev) {
+  ev.preventDefault();
+  const data = {};
+  document.querySelectorAll("#pr-form-body [name]").forEach(el => { data[el.name] = el.value; });
+  const res = _prSubmitFn ? _prSubmitFn(data) : true;
+  if (res !== false) closeOv("ov-pr-form");
+  return false;
+}
+
+function prFg(label, name, type, value, attrs) {
+  return `<div class="fg"><label>${label}</label>
+    <input type="${type}" name="${name}" value="${value == null ? "" : escHtml(String(value))}" ${attrs || ""}></div>`;
+}
+
+/* ── Rendu ───────────────────────────────────────────────────────────────── */
+
+function prCard(id, title, bodyHtml, actionsHtml) {
+  return `<div class="card"${id ? ` id="${id}"` : ""}>
+    <div class="card-h"><span class="card-t">${title}</span>${actionsHtml || ""}</div>
+    <div class="card-b">${bodyHtml}</div>
+  </div>`;
+}
+function prEmpty(msg) { return `<div class="m-empty">${msg}</div>`; }
+
+function prRenderAll() {
+  if (!PR) return;
+  const o = prOverview();
+  prRenderOverview(o);
+  prRenderPEA(o);
+  prRenderAV(o);
+  prRenderLiv(o);
+  prRenderParams(o);
+}
+
+function prRenderOverview(o) {
+  const box = document.getElementById("pr-overview-body");
+  if (!box) return;
+
+  let html = "";
+  if (prN(PR.pret.montant) <= 0) {
+    html += `<div class="m-note">Le prêt n'est pas encore configuré. Va dans <b>Paramètres</b> pour saisir le montant, la date de déblocage et la mensualité.</div>`;
+  }
+
+  html += `<div class="mkpis">
+    <div class="mkpi accent"><span class="mkpi-lbl">Montant à rembourser</span>
+      <span class="mkpi-val">${prEur(o.capital_du)}</span>
+      <span class="mkpi-sub">sur ${prEur(prN(PR.pret.montant))} empruntés</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Montant remboursé</span>
+      <span class="mkpi-val">${prEur(o.remb_total)}</span>
+      <span class="mkpi-sub">${o.mensualites_payees} mensualité${o.mensualites_payees > 1 ? "s" : ""} · ${o.mensualites_restantes} restante${o.mensualites_restantes > 1 ? "s" : ""}</span></div>
+    <div class="mkpi ${prCls(o.benefice_net)}"><span class="mkpi-lbl">Gains nets</span>
+      <span class="mkpi-val">${prEur(o.benefice_net)}</span>
+      <span class="mkpi-sub">latents + réalisés + intérêts − frais</span></div>
+    <div class="mkpi ${prCls(o.pea_realise)}"><span class="mkpi-lbl">Déjà encaissé (ventes)</span>
+      <span class="mkpi-val">${prEur(o.pea_realise)}</span>
+      <span class="mkpi-sub">${prEur(o.pea_credite)} de ventes</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Valeur du portefeuille</span>
+      <span class="mkpi-val">${prEur(o.valeur_portefeuille)}</span>
+      <span class="mkpi-sub">PEA + AV + Livret A</span></div>
+  </div>`;
+
+  const parts = [
+    { lbl: "PEA",        val: o.pea_valeur != null ? o.pea_valeur : o.pea_invest, color: "#2563eb" },
+    { lbl: "Assurance vie", val: o.av_valeur,  color: "#7c3aed" },
+    { lbl: PR.liv.label || "Livret A", val: o.liv_valeur, color: "#0891b2" },
+    { lbl: "En attente", val: Math.max(0, o.capital_attente), color: "#a1a1aa" },
+  ].filter(p => p.val > 0.005);
+
+  html += `<div class="pr-split">
+    ${prCard("", "Répartition du capital", parts.length
+      ? `<div class="pr-chart"><canvas id="pr-chart-alloc"></canvas></div>`
+      : prEmpty("Aucun capital placé pour l'instant."))}
+    ${prCard("", "Synthèse", `<div class="tw"><table><tbody>
+        <tr><td>Versements reçus de la banque</td><td>${prEur(o.versements)}</td></tr>
+        <tr><td>Placé en PEA (débité)</td><td>${prEur(o.pea_debite)}</td></tr>
+        <tr><td>Récupéré par les ventes</td><td class="${o.pea_credite ? "pos" : ""}">${prEur(o.pea_credite)}</td></tr>
+        <tr><td>Placé en assurance vie</td><td>${prEur(o.av_depose)}</td></tr>
+        <tr><td>Placé en livret A (net)</td><td>${prEur(o.liv_net)}</td></tr>
+        <tr><td>Frais totaux</td><td class="neg">${prEur(o.frais_total)}</td></tr>
+        <tr><td><b>Liquidités en attente</b></td><td class="${prCls(o.capital_attente)}"><b>${prEur(o.capital_attente)}</b></td></tr>
+      </tbody></table></div>`)}
+  </div>`;
+
+  html += prCard("", "Performance par enveloppe", `<div class="tw"><table>
+    <thead><tr><th>Enveloppe</th><th>Investi</th><th>Valeur</th><th>Gain latent</th><th>Réalisé</th><th>Perf.</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">PEA</td><td>${prEur(o.pea_invest)}</td><td>${o.pea_valeur != null ? prEur(o.pea_valeur) : "—"}</td>
+          <td class="${prCls(o.pea_pv)}">${o.pea_pv != null ? prEur(o.pea_pv) : "—"}</td>
+          <td class="${prCls(o.pea_realise)}">${prEur(o.pea_realise)}</td>
+          <td class="${prCls(o.pea_pv_pct)}">${prPct(o.pea_pv_pct)}</td></tr>
+      <tr><td class="tk">Assurance vie</td><td>${prEur(o.av_depose)}</td><td>${prEur(o.av_valeur)}</td>
+          <td class="${prCls(o.av_interets)}">${prEur(o.av_interets)}</td><td>—</td>
+          <td class="${prCls(o.av_perf_pct)}">${prPct(o.av_perf_pct)}</td></tr>
+      <tr><td class="tk">${escHtml(PR.liv.label || "Livret A")}</td><td>${prEur(o.liv_net)}</td><td>${prEur(o.liv_valeur)}</td>
+          <td class="${prCls(o.liv_interets)}">${prEur(o.liv_interets)}</td><td>—</td>
+          <td class="${prCls(o.liv_perf_pct)}">${prPct(o.liv_perf_pct)}</td></tr>
+    </tbody></table></div>`);
+
+  box.innerHTML = html;
+
+  if (parts.length) {
+    const txtColor = getComputedStyle(document.body).getPropertyValue("color") || "#18181b";
+    const bg2 = getComputedStyle(document.documentElement).getPropertyValue("--bg2") || "#fff";
+    if (_prChart) _prChart.destroy();
+    _prChart = new Chart(document.getElementById("pr-chart-alloc"), {
+      type: "doughnut",
+      data: { labels: parts.map(p => p.lbl),
+              datasets: [{ data: parts.map(p => p.val), backgroundColor: parts.map(p => p.color), borderWidth: 2, borderColor: bg2 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "right", labels: { color: txtColor, font: { size: 11 } } },
+          tooltip: { callbacks: { label: ctx => ctx.label + " : " + prEur(ctx.raw) } }
+        }
+      }
+    });
+  }
+}
+
+function prRenderPEA(o) {
+  const box = document.getElementById("pr-pea-body");
+  if (!box) return;
+
+  const actions = `<div style="display:flex;gap:6px">
+    <button class="btn btn-sm btn-ghost" onclick="prRefreshQuotes(false)">↻ Cours</button>
+    <button class="btn btn-sm btn-primary" onclick="prPeaModal(null)">+ Achat</button>
+    <button class="btn btn-sm btn-ghost" onclick="prVenteModal(null)">− Vente</button>
+  </div>`;
+
+  const rows = o.positions.map(p => `
+    <tr${p.closed ? ' style="opacity:.55"' : ""}>
+      <td><div class="tk">${escHtml(p.ticker)}${p.closed ? ' <span class="m-tag">soldée</span>' : ""}</div>
+          <div class="tk2">${prNum(p.qte, 4)} parts</div></td>
+      <td>${prEur(p.invest)}</td>
+      <td>${prEur(p.pru)}</td>
+      <td>${p.cours != null ? prEur(p.cours) : "—"}</td>
+      <td>${p.valeur != null ? prEur(p.valeur) : "—"}</td>
+      <td class="${prCls(p.pv)}">${p.pv != null ? prEur(p.pv) : "—"}</td>
+      <td class="${prCls(p.pv_pct)}">${prPct(p.pv_pct)}</td>
+      <td class="${prCls(p.realise)}">${p.qteV ? prEur(p.realise) : "—"}</td>
+    </tr>`).join("");
+
+  let html = prCard("", "Positions", rows
+    ? `<div class="tw"><table>
+        <thead><tr><th>Position</th><th>Investi</th><th>PRU</th><th>Cours</th><th>Valeur</th><th>+/- value</th><th>Perf.</th><th>Réalisé</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr>
+          <td><b>Total</b></td><td><b>${prEur(o.pea_invest)}</b></td><td>—</td><td>—</td>
+          <td><b>${o.pea_valeur != null ? prEur(o.pea_valeur) : "—"}</b></td>
+          <td class="${prCls(o.pea_pv)}"><b>${o.pea_pv != null ? prEur(o.pea_pv) : "—"}</b></td>
+          <td class="${prCls(o.pea_pv_pct)}"><b>${prPct(o.pea_pv_pct)}</b></td>
+          <td class="${prCls(o.pea_realise)}"><b>${prEur(o.pea_realise)}</b></td>
+        </tr></tfoot>
+      </table></div>
+      <div class="mkpi-sub" style="margin-top:10px">Frais d'ordre cumulés : ${prEur(o.pea_frais)} · Débité au total : ${prEur(o.pea_debite)} · Encaissé : ${prEur(o.pea_credite)}</div>`
+    : prEmpty("Aucun achat enregistré. Clique sur « + Achat » pour commencer."), actions);
+
+  // Historique : achats et ventes fusionnes
+  const ordres = []
+    .concat((PR.pea.achats || []).map(a => ({ kind: "achat", o: a })))
+    .concat((PR.pea.ventes || []).map(v => ({ kind: "vente", o: v })))
+    .sort((x, y) => String(y.o.date).localeCompare(String(x.o.date)));
+
+  html += prCard("", "Historique des ordres", ordres.length
+    ? `<div class="tw"><table>
+        <thead><tr><th>Date</th><th>Sens</th><th>Ticker</th><th>Quantité</th><th>Cours</th><th>Montant</th><th>Frais</th><th></th></tr></thead>
+        <tbody>${ordres.map(({ kind, o: r }) => {
+          const achat = kind === "achat";
+          const brut  = prN(r.quantite) * prN(achat ? r.cours_achat : r.cours_vente);
+          const frais = achat ? prN(r.montant) - brut : brut - prN(r.montant);
+          return `<tr>
+            <td>${prDate(r.date)}</td>
+            <td><span class="m-tag ${achat ? "" : "accent"}">${achat ? "Achat" : "Vente"}</span></td>
+            <td>${escHtml((r.ticker || "").toUpperCase())}</td>
+            <td>${prNum(prN(r.quantite), 4)}</td>
+            <td>${prEur(prN(achat ? r.cours_achat : r.cours_vente))}</td>
+            <td class="${achat ? "" : "pos"}">${prEur(prN(r.montant))}</td>
+            <td class="${frais > 0.005 ? "neg" : ""}">${prEur(frais)}</td>
+            <td><div class="m-acts">
+              <button class="m-iconbtn" title="Modifier" onclick="${achat ? `prPeaModal('${r.id}')` : `prVenteModal('${r.id}')`}">✎</button>
+              <button class="m-iconbtn danger" title="Supprimer" onclick="prDelete('${achat ? "achat" : "vente"}','${r.id}')">✕</button>
+            </div></td></tr>`;
+        }).join("")}</tbody></table></div>`
+    : prEmpty("Aucun ordre."));
+
+  box.innerHTML = html;
+}
+
+function prRenderAV(o) {
+  const box = document.getElementById("pr-av-body");
+  if (!box) return;
+
+  let html = `<div class="mkpis">
+    <div class="mkpi"><span class="mkpi-lbl">Déposé (tous contrats)</span><span class="mkpi-val">${prEur(o.av_depose)}</span>
+      <span class="mkpi-sub">${o.av_details.length} contrat${o.av_details.length > 1 ? "s" : ""}</span></div>
+    <div class="mkpi pos"><span class="mkpi-lbl">Intérêts acquis</span><span class="mkpi-val">${prEur(o.av_interets)}</span>
+      <span class="mkpi-sub">${prPct(o.av_perf_pct)}</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Valeur actuelle</span><span class="mkpi-val">${prEur(o.av_valeur)}</span>
+      <span class="mkpi-sub">capitalisation annuelle</span></div>
+  </div>`;
+
+  html += `<div class="m-head" style="margin-bottom:.8rem">
+    <div class="m-spacer"></div>
+    <button class="btn btn-primary" onclick="prAvContratModal(null)">+ Contrat</button>
+  </div>`;
+
+  const contrats = prAvContrats();
+  if (!contrats.length) {
+    html += prCard("", "Contrats", prEmpty("Aucun contrat. Ajoute ton premier contrat d'assurance vie, chacun avec ses propres taux et dépôts."));
+  }
+
+  for (const c of contrats) {
+    const t = prAvContratTotals(c);
+    const taux = (c.taux_annuels || []).slice().sort((a, b) => prN(b.annee) - prN(a.annee));
+    const depots = (c.depots || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+    const head = `<div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-ghost" onclick="prAvTauxModal('${c.id}', null)">+ Taux</button>
+      <button class="btn btn-sm btn-primary" onclick="prAvDepotModal('${c.id}', null)">+ Dépôt</button>
+      <button class="m-iconbtn" title="Renommer" onclick="prAvContratModal('${c.id}')">✎</button>
+      <button class="m-iconbtn danger" title="Supprimer le contrat" onclick="prDeleteAvContrat('${c.id}')">✕</button>
+    </div>`;
+
+    const body = `
+      <div class="mkpis" style="margin-bottom:1rem">
+        <div class="mkpi"><span class="mkpi-lbl">Déposé</span><span class="mkpi-val">${prEur(t.depose)}</span></div>
+        <div class="mkpi pos"><span class="mkpi-lbl">Intérêts</span><span class="mkpi-val">${prEur(t.interets)}</span>
+          <span class="mkpi-sub">${prPct(t.perf)}</span></div>
+        <div class="mkpi"><span class="mkpi-lbl">Valeur</span><span class="mkpi-val">${prEur(t.valeur)}</span></div>
+      </div>
+      <div class="pr-split">
+        <div>
+          <div class="card-t" style="display:block;margin-bottom:8px">Taux annuels</div>
+          ${taux.length ? `<div class="tw"><table><thead><tr><th>Année</th><th>Taux</th><th></th></tr></thead>
+            <tbody>${taux.map(x => `<tr><td>${escHtml(String(x.annee))}</td><td>${prNum(prN(x.taux))} %</td>
+              <td><div class="m-acts">
+                <button class="m-iconbtn" title="Modifier" onclick="prAvTauxModal('${c.id}', ${prN(x.annee)})">✎</button>
+                <button class="m-iconbtn danger" title="Supprimer" onclick="prDeleteAvTaux('${c.id}', ${prN(x.annee)})">✕</button>
+              </div></td></tr>`).join("")}</tbody></table></div>`
+            : prEmpty("Aucun taux — les intérêts resteront à zéro.")}
+        </div>
+        <div>
+          <div class="card-t" style="display:block;margin-bottom:8px">Dépôts</div>
+          ${depots.length ? `<div class="tw"><table><thead><tr><th>Date</th><th>Montant</th><th>Intérêts</th><th></th></tr></thead>
+            <tbody>${depots.map(d => {
+              const i = prAVDepositInterest(d, c.taux_annuels, prToday());
+              return `<tr><td>${prDate(d.date)}</td><td>${prEur(prN(d.montant))}</td><td class="pos">${prEur(i)}</td>
+                <td><div class="m-acts">
+                  <button class="m-iconbtn" title="Modifier" onclick="prAvDepotModal('${c.id}', '${d.id}')">✎</button>
+                  <button class="m-iconbtn danger" title="Supprimer" onclick="prDeleteAvDepot('${c.id}', '${d.id}')">✕</button>
+                </div></td></tr>`;
+            }).join("")}</tbody></table></div>`
+            : prEmpty("Aucun dépôt.")}
+        </div>
+      </div>`;
+
+    html += prCard("", escHtml(c.label), body, head);
+  }
+
+  box.innerHTML = html;
+}
+
+function prRenderLiv(o) {
+  const box = document.getElementById("pr-liv-body");
+  if (!box) return;
+
+  let html = `<div class="mkpis">
+    <div class="mkpi"><span class="mkpi-lbl">Capital net versé</span><span class="mkpi-val">${prEur(o.liv_net)}</span>
+      <span class="mkpi-sub">${prEur(o.liv_depose)} déposés · ${prEur(o.liv_retire)} retirés</span></div>
+    <div class="mkpi pos"><span class="mkpi-lbl">Intérêts</span><span class="mkpi-val">${prEur(o.liv_interets)}</span>
+      <span class="mkpi-sub">dont ${prEur(o.liv_interets_courus)} courus</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Valeur actuelle</span><span class="mkpi-val">${prEur(o.liv_valeur)}</span>
+      <span class="mkpi-sub">${prPct(o.liv_perf_pct)}</span></div>
+  </div>`;
+
+  const hist = (PR.liv.taux_history || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  html += prCard("", "Historique des taux", hist.length
+    ? `<div class="tw"><table><thead><tr><th>À partir du</th><th>Taux</th><th></th></tr></thead>
+       <tbody>${hist.map(h => `<tr><td>${prDate(h.date)}</td><td>${prNum(prN(h.taux))} %</td>
+         <td><div class="m-acts">
+           <button class="m-iconbtn" title="Modifier" onclick="prLivTauxModal('${h.id}')">✎</button>
+           <button class="m-iconbtn danger" title="Supprimer" onclick="prDelete('liv_taux','${h.id}')">✕</button>
+         </div></td></tr>`).join("")}</tbody></table></div>`
+    : prEmpty("Aucun taux renseigné."),
+    `<button class="btn btn-sm btn-primary" onclick="prLivTauxModal(null)">+ Taux</button>`);
+
+  const movs = (PR.liv.mouvements || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  html += prCard("", "Mouvements (dépôts et retraits)", movs.length
+    ? `<div class="tw"><table><thead><tr><th>Date</th><th>Type</th><th>Montant</th><th>Note</th><th></th></tr></thead>
+       <tbody>${movs.map(m => `<tr>
+         <td>${prDate(m.date)}</td>
+         <td><span class="m-tag ${m.type === "retrait" ? "neg" : "pos"}">${m.type === "retrait" ? "Retrait" : "Dépôt"}</span></td>
+         <td class="${m.type === "retrait" ? "neg" : ""}">${prEur(prN(m.montant))}</td>
+         <td style="font-family:var(--font);text-align:left">${escHtml(m.note || "—")}</td>
+         <td><div class="m-acts">
+           <button class="m-iconbtn" title="Modifier" onclick="prLivMovModal('${m.id}')">✎</button>
+           <button class="m-iconbtn danger" title="Supprimer" onclick="prDelete('liv_mov','${m.id}')">✕</button>
+         </div></td></tr>`).join("")}</tbody></table></div>`
+    : prEmpty("Aucun mouvement."),
+    `<div style="display:flex;gap:6px">
+       <button class="btn btn-sm btn-primary" onclick="prLivMovModal(null,'depot')">+ Dépôt</button>
+       <button class="btn btn-sm btn-ghost" onclick="prLivMovModal(null,'retrait')">− Retrait</button>
+     </div>`);
+
+  box.innerHTML = html;
+}
+
+function prRenderParams(o) {
+  const box = document.getElementById("pr-params-body");
+  if (!box) return;
+  const p = PR.pret;
+
+  let html = prCard("", "Configuration du prêt", `<div class="tw"><table><tbody>
+      <tr><td>Montant emprunté</td><td>${prEur(prN(p.montant))}</td></tr>
+      <tr><td>Date de déblocage</td><td>${prDate(p.date_deblocage)}</td></tr>
+      <tr><td>Premier remboursement</td><td>${prDate(p.date_premier_remboursement)}</td></tr>
+      <tr><td>Durée de remboursement</td><td>${prN(p.duree_remboursement) || "—"} mois</td></tr>
+      <tr><td>Mensualité</td><td>${prEur(prN(p.mensualite))}</td></tr>
+      <tr><td>Capital restant dû</td><td><b>${prEur(o.capital_du)}</b></td></tr>
+    </tbody></table></div>`,
+    `<button class="btn btn-sm btn-primary" onclick="prConfigModal()">✎ Modifier</button>`);
+
+  const vers = (PR.versements || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  html += prCard("", "Versements de la banque", vers.length
+    ? `<div class="tw"><table><thead><tr><th>Date</th><th>Montant</th><th></th></tr></thead>
+       <tbody>${vers.map(v => `<tr><td>${prDate(v.date)}</td><td>${prEur(prN(v.montant))}</td>
+         <td><div class="m-acts">
+           <button class="m-iconbtn" title="Modifier" onclick="prVersModal('${v.id}')">✎</button>
+           <button class="m-iconbtn danger" title="Supprimer" onclick="prDelete('versement','${v.id}')">✕</button>
+         </div></td></tr>`).join("")}
+       </tbody><tfoot><tr><td><b>Total</b></td><td><b>${prEur(o.versements)}</b></td><td></td></tr></tfoot></table></div>`
+    : prEmpty("Aucun versement."),
+    `<button class="btn btn-sm btn-primary" onclick="prVersModal(null)">+ Versement</button>`);
+
+  const remb = (PR.remboursements || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  html += prCard("", "Remboursements", remb.length
+    ? `<div class="tw"><table><thead><tr><th>Date</th><th>Montant</th><th></th></tr></thead>
+       <tbody>${remb.map(r => `<tr><td>${prDate(r.date)}</td><td>${prEur(prN(r.montant))}</td>
+         <td><div class="m-acts">
+           <button class="m-iconbtn" title="Modifier" onclick="prRembModal('${r.id}')">✎</button>
+           <button class="m-iconbtn danger" title="Supprimer" onclick="prDelete('remboursement','${r.id}')">✕</button>
+         </div></td></tr>`).join("")}
+       </tbody><tfoot><tr><td><b>Total</b></td><td><b>${prEur(o.remb_total)}</b></td><td></td></tr></tfoot></table></div>`
+    : prEmpty("Aucun remboursement."),
+    `<button class="btn btn-sm btn-primary" onclick="prRembModal(null)">+ Remboursement</button>`);
+
+  const recs = PR.frais_recurrents || [];
+  html += prCard("", "Frais récurrents", recs.length
+    ? `<div class="tw"><table><thead><tr><th>Libellé</th><th>Montant</th><th>Fréquence</th><th>Prélevé le</th><th>Occurrences</th><th>Total</th><th></th></tr></thead>
+       <tbody>${recs.map(r => {
+         const jour = parseInt(String(r.date_debut).slice(8, 10), 10) || 1;
+         const occ = parseInt(r.nb_occurrences, 10) || 0;
+         const last = occ ? prExpandRecurrent(r).slice(-1)[0].date : null;
+         return `<tr>
+           <td class="tk">${escHtml(r.label || "—")}</td>
+           <td>${prEur(prN(r.montant))}</td>
+           <td>${r.frequence === "annuelle" ? "Annuelle" : "Mensuelle"}</td>
+           <td>${jour} du mois<div class="tk2">${prDate(r.date_debut)}${last ? " → " + prDate(last) : ""}</div></td>
+           <td>${occ}</td>
+           <td class="neg">${prEur(prN(r.montant) * occ)}</td>
+           <td><div class="m-acts">
+             <button class="m-iconbtn" title="Modifier" onclick="prRecModal('${r.id}')">✎</button>
+             <button class="m-iconbtn danger" title="Supprimer" onclick="prDelete('recurrent','${r.id}')">✕</button>
+           </div></td></tr>`;
+       }).join("")}</tbody></table></div>`
+    : prEmpty("Aucun frais récurrent."),
+    `<button class="btn btn-sm btn-primary" onclick="prRecModal(null)">+ Frais récurrent</button>`);
+
+  const frais = (PR.frais || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  html += prCard("", "Frais bancaires ponctuels", frais.length
+    ? `<div class="tw"><table><thead><tr><th>Date</th><th>Libellé</th><th>Montant</th><th></th></tr></thead>
+       <tbody>${frais.map(f => `<tr><td>${prDate(f.date)}</td>
+         <td style="font-family:var(--font);text-align:left">${escHtml(f.label || "—")}</td>
+         <td class="neg">${prEur(prN(f.montant))}</td>
+         <td><div class="m-acts">
+           <button class="m-iconbtn" title="Modifier" onclick="prFraisModal('${f.id}')">✎</button>
+           <button class="m-iconbtn danger" title="Supprimer" onclick="prDelete('frais','${f.id}')">✕</button>
+         </div></td></tr>`).join("")}
+       </tbody><tfoot><tr><td colspan="2"><b>Total (ponctuels + récurrents)</b></td><td class="neg"><b>${prEur(o.frais_banque)}</b></td><td></td></tr></tfoot></table></div>`
+    : prEmpty("Aucun frais ponctuel."),
+    `<button class="btn btn-sm btn-primary" onclick="prFraisModal(null)">+ Frais</button>`);
+
+  box.innerHTML = html;
+}
+
+/* ── Modales CRUD ────────────────────────────────────────────────────────── */
+
+function prConfigModal() {
+  const p = PR.pret;
+  prOpenForm("Configuration du prêt", `
+    ${prFg("Montant emprunté (€)", "montant", "number", p.montant || "", 'step="0.01" min="0" required')}
+    <div class="fg-row">
+      ${prFg("Date de déblocage", "date_deblocage", "date", p.date_deblocage, "")}
+      ${prFg("1er remboursement", "date_premier_remboursement", "date", p.date_premier_remboursement, "")}
+    </div>
+    <div class="fg-row">
+      ${prFg("Durée (mois)", "duree_remboursement", "number", p.duree_remboursement || "", 'step="1" min="0"')}
+      ${prFg("Mensualité (€)", "mensualite", "number", p.mensualite || "", 'step="0.01" min="0"')}
+    </div>`,
+    data => {
+      PR.pret = {
+        montant: prN(data.montant),
+        date_deblocage: data.date_deblocage || "",
+        date_premier_remboursement: data.date_premier_remboursement || "",
+        duree_remboursement: prN(data.duree_remboursement),
+        mensualite: prN(data.mensualite),
+      };
+      prSave("Configuration enregistrée");
+    }, "Enregistrer");
+}
+
+function prPeaModal(id) {
+  const a = id ? (PR.pea.achats || []).find(x => x.id === id) : null;
+  let defTicker = "";
+  if (!a && (PR.pea.achats || []).length) {
+    const s = PR.pea.achats.slice().sort((x, y) => String(x.date).localeCompare(String(y.date)));
+    defTicker = (s[s.length - 1].ticker || "").toUpperCase();
+  }
+  prOpenForm(a ? "Modifier l'achat" : "Nouvel achat PEA", `
+    <div class="fg"><label>Ticker Yahoo Finance</label>
+      <input type="text" name="ticker" value="${escHtml(a ? (a.ticker || "").toUpperCase() : defTicker)}"
+             placeholder="WPEA.PA, CW8.PA, ESE.PA…" style="text-transform:uppercase" required autocomplete="off"></div>
+    ${prFg("Date d'achat", "date", "date", a ? a.date : prToday(), "required")}
+    <div class="fg-row">
+      ${prFg("Montant débité (€)", "montant", "number", a ? a.montant : "", 'step="0.01" min="0" required')}
+      ${prFg("Quantité (parts)", "quantite", "number", a ? a.quantite : "", 'step="0.0001" min="0" required')}
+    </div>
+    ${prFg("Cours d'achat unitaire (€)", "cours_achat", "number", a ? a.cours_achat : "", 'step="0.0001" min="0" required')}
+    <div class="m-note" style="margin-bottom:0">Notation Yahoo Finance avec le suffixe de place. Les « : » sont convertis en « . » automatiquement.</div>`,
+    data => {
+      const ticker = (data.ticker || "").trim().toUpperCase().replace(/[:;\s]/g, ".");
+      const montant = prN(data.montant), quantite = prN(data.quantite), cours = prN(data.cours_achat);
+      if (!data.date || !ticker || !quantite) { showToastModern("Champs invalides", "err"); return false; }
+      if (a) Object.assign(a, { date: data.date, ticker, montant, quantite, cours_achat: cours });
+      else PR.pea.achats.push({ id: prNewId(), date: data.date, ticker, montant, quantite, cours_achat: cours });
+      prSave(a ? "Achat modifié" : "Achat ajouté");
+      prRefreshQuotes(true);
+    }, a ? "Enregistrer" : "Ajouter");
+}
+
+function prVenteModal(id) {
+  PR.pea.ventes = PR.pea.ventes || [];
+  const v = id ? PR.pea.ventes.find(x => x.id === id) : null;
+  const o = prOverview();
+  const dispo = o.positions.filter(p => p.qte > 0.00001 || (v && p.ticker === (v.ticker || "").toUpperCase()));
+  if (!dispo.length && !v) { showToastModern("Aucune position à vendre", "warn"); return; }
+
+  const cur = v ? (v.ticker || "").toUpperCase() : dispo[0].ticker;
+  const opts = dispo.map(p => `<option value="${escHtml(p.ticker)}"${p.ticker === cur ? " selected" : ""}>
+      ${escHtml(p.ticker)} — ${prNum(p.qte, 4)} parts · PRU ${prEur(p.pru)}</option>`).join("");
+
+  prOpenForm(v ? "Modifier la vente" : "Nouvelle vente", `
+    <div class="fg"><label>Position</label><select name="ticker">${opts}</select></div>
+    ${prFg("Date de vente", "date", "date", v ? v.date : prToday(), "required")}
+    <div class="fg-row">
+      ${prFg("Quantité vendue", "quantite", "number", v ? v.quantite : "", 'step="0.0001" min="0" required')}
+      ${prFg("Cours de vente (€)", "cours_vente", "number", v ? v.cours_vente : "", 'step="0.0001" min="0" required')}
+    </div>
+    ${prFg("Montant crédité (€)", "montant", "number", v ? v.montant : "", 'step="0.01" min="0" required')}
+    <div class="m-note" style="margin-bottom:0">Le montant crédité est net des frais d'ordre. La plus-value réalisée est calculée face au PRU de la position.</div>`,
+    data => {
+      const ticker = (data.ticker || "").trim().toUpperCase();
+      const qte = prN(data.quantite), cours = prN(data.cours_vente), montant = prN(data.montant);
+      if (!data.date || !ticker || !qte || !montant) { showToastModern("Champs invalides", "err"); return false; }
+      const pos = o.positions.find(p => p.ticker === ticker);
+      const dejaVendu = v && (v.ticker || "").toUpperCase() === ticker ? prN(v.quantite) : 0;
+      if (pos && qte > pos.qte + dejaVendu + 0.00001) {
+        showToastModern(`Tu ne détiens que ${prNum(pos.qte + dejaVendu, 4)} parts de ${ticker}`, "err");
+        return false;
+      }
+      if (v) Object.assign(v, { date: data.date, ticker, quantite: qte, cours_vente: cours, montant });
+      else PR.pea.ventes.push({ id: prNewId(), date: data.date, ticker, quantite: qte, cours_vente: cours, montant });
+      prSave(v ? "Vente modifiée" : "Vente enregistrée");
+    }, v ? "Enregistrer" : "Vendre");
+}
+
+function prAvContratModal(id) {
+  const c = id ? prAvContrat(id) : null;
+  prOpenForm(c ? "Renommer le contrat" : "Nouveau contrat d'assurance vie", `
+    ${prFg("Nom du contrat", "label", "text", c ? c.label : "", 'placeholder="Ex. Linxea Spirit, AV Crédit Agricole…" required')}
+    ${c ? "" : `<div class="m-note" style="margin-bottom:0">Chaque contrat a ses propres taux annuels et ses propres dépôts.</div>`}`,
+    data => {
+      const label = (data.label || "").trim();
+      if (!label) { showToastModern("Donne un nom au contrat", "err"); return false; }
+      if (c) c.label = label;
+      else {
+        PR.av.contrats = prAvContrats().concat([{ id: prNewId(), label, taux_annuels: [], depots: [] }]);
+      }
+      prSave(c ? "Contrat renommé" : "Contrat ajouté");
+    }, "Enregistrer");
+}
+
+async function prDeleteAvContrat(id) {
+  const c = prAvContrat(id);
+  if (!c) return;
+  const n = (c.depots || []).length;
+  if (!confirm(`Supprimer « ${c.label} »${n ? ` et ses ${n} dépôt${n > 1 ? "s" : ""}` : ""} ?`)) return;
+  PR.av.contrats = prAvContrats().filter(x => String(x.id) !== String(id));
+  await prSave("Contrat supprimé");
+}
+
+function prAvTauxModal(cid, annee) {
+  const c = prAvContrat(cid);
+  if (!c) return;
+  const t = annee != null ? (c.taux_annuels || []).find(x => prN(x.annee) === prN(annee)) : null;
+  prOpenForm((t ? "Modifier le taux" : "Nouveau taux annuel") + " — " + c.label, `
+    <div class="fg-row">
+      ${prFg("Année", "annee", "number", t ? t.annee : new Date().getFullYear(), 'step="1" min="1990" required')}
+      ${prFg("Taux (%)", "taux", "number", t ? t.taux : "", 'step="0.01" required')}
+    </div>`,
+    data => {
+      const y = parseInt(data.annee, 10);
+      if (!y) { showToastModern("Année invalide", "err"); return false; }
+      c.taux_annuels = (c.taux_annuels || []).filter(x => prN(x.annee) !== y).concat([{ annee: y, taux: prN(data.taux) }]);
+      prSave("Taux enregistré");
+    }, "Enregistrer");
+}
+
+async function prDeleteAvTaux(cid, annee) {
+  const c = prAvContrat(cid);
+  if (!c || !confirm("Supprimer ce taux ?")) return;
+  c.taux_annuels = (c.taux_annuels || []).filter(x => prN(x.annee) !== prN(annee));
+  await prSave("Taux supprimé");
+}
+
+function prAvDepotModal(cid, id) {
+  const c = prAvContrat(cid);
+  if (!c) return;
+  const d = id ? (c.depots || []).find(x => x.id === id) : null;
+  prOpenForm((d ? "Modifier le dépôt" : "Nouveau dépôt") + " — " + c.label, `
+    <div class="fg-row">
+      ${prFg("Date", "date", "date", d ? d.date : prToday(), "required")}
+      ${prFg("Montant (€)", "montant", "number", d ? d.montant : "", 'step="0.01" min="0" required')}
+    </div>
+    ${prFg("Note", "note", "text", d ? d.note : "", 'placeholder="Optionnel"')}`,
+    data => {
+      const m = prN(data.montant);
+      if (!data.date || !m) { showToastModern("Champs invalides", "err"); return false; }
+      if (d) Object.assign(d, { date: data.date, montant: m, note: data.note || "" });
+      else c.depots = (c.depots || []).concat([{ id: prNewId(), date: data.date, montant: m, note: data.note || "" }]);
+      prSave(d ? "Dépôt modifié" : "Dépôt ajouté");
+    }, "Enregistrer");
+}
+
+async function prDeleteAvDepot(cid, id) {
+  const c = prAvContrat(cid);
+  if (!c || !confirm("Supprimer ce dépôt ?")) return;
+  c.depots = (c.depots || []).filter(x => String(x.id) !== String(id));
+  await prSave("Dépôt supprimé");
+}
+
+function prLivTauxModal(id) {
+  const h = id ? (PR.liv.taux_history || []).find(x => x.id === id) : null;
+  prOpenForm(h ? "Modifier le taux" : "Nouveau taux", `
+    <div class="fg-row">
+      ${prFg("À partir du", "date", "date", h ? h.date : prToday(), "required")}
+      ${prFg("Taux (%)", "taux", "number", h ? h.taux : "", 'step="0.01" required')}
+    </div>`,
+    data => {
+      if (!data.date) { showToastModern("Date invalide", "err"); return false; }
+      if (h) Object.assign(h, { date: data.date, taux: prN(data.taux) });
+      else PR.liv.taux_history.push({ id: prNewId(), date: data.date, taux: prN(data.taux) });
+      prSave("Taux enregistré");
+    }, "Enregistrer");
+}
+
+function prLivMovModal(id, forcedType) {
+  const m = id ? (PR.liv.mouvements || []).find(x => x.id === id) : null;
+  const type = m ? m.type : (forcedType || "depot");
+  prOpenForm(m ? "Modifier le mouvement" : (type === "retrait" ? "Nouveau retrait" : "Nouveau dépôt"), `
+    <div class="fg"><label>Type</label>
+      <select name="type">
+        <option value="depot"${type === "depot" ? " selected" : ""}>Dépôt</option>
+        <option value="retrait"${type === "retrait" ? " selected" : ""}>Retrait</option>
+      </select></div>
+    <div class="fg-row">
+      ${prFg("Date", "date", "date", m ? m.date : prToday(), "required")}
+      ${prFg("Montant (€)", "montant", "number", m ? m.montant : "", 'step="0.01" min="0" required')}
+    </div>
+    ${prFg("Note", "note", "text", m ? m.note : "", 'placeholder="Optionnel"')}`,
+    data => {
+      const amt = prN(data.montant);
+      if (!data.date || !amt) { showToastModern("Champs invalides", "err"); return false; }
+      const payload = { date: data.date, type: data.type || "depot", montant: amt, note: data.note || "" };
+      if (m) Object.assign(m, payload);
+      else PR.liv.mouvements.push(Object.assign({ id: prNewId() }, payload));
+      prSave("Mouvement enregistré");
+    }, "Enregistrer");
+}
+
+function prVersModal(id) {
+  const v = id ? (PR.versements || []).find(x => x.id === id) : null;
+  prOpenForm(v ? "Modifier le versement" : "Nouveau versement", `
+    <div class="fg-row">
+      ${prFg("Date", "date", "date", v ? v.date : prToday(), "required")}
+      ${prFg("Montant (€)", "montant", "number", v ? v.montant : "", 'step="0.01" min="0" required')}
+    </div>`,
+    data => {
+      const m = prN(data.montant);
+      if (!data.date || !m) { showToastModern("Champs invalides", "err"); return false; }
+      if (v) Object.assign(v, { date: data.date, montant: m });
+      else PR.versements.push({ id: prNewId(), date: data.date, montant: m });
+      prSave("Versement enregistré");
+    }, "Enregistrer");
+}
+
+function prRembModal(id) {
+  const r = id ? (PR.remboursements || []).find(x => x.id === id) : null;
+  prOpenForm(r ? "Modifier le remboursement" : "Nouveau remboursement", `
+    <div class="fg-row">
+      ${prFg("Date", "date", "date", r ? r.date : prToday(), "required")}
+      ${prFg("Montant (€)", "montant", "number", r ? r.montant : (prN(PR.pret.mensualite) || ""), 'step="0.01" min="0" required')}
+    </div>`,
+    data => {
+      const m = prN(data.montant);
+      if (!data.date || !m) { showToastModern("Champs invalides", "err"); return false; }
+      if (r) Object.assign(r, { date: data.date, montant: m });
+      else PR.remboursements.push({ id: prNewId(), date: data.date, montant: m });
+      prSave("Remboursement enregistré");
+    }, "Enregistrer");
+}
+
+function prFraisModal(id) {
+  const f = id ? (PR.frais || []).find(x => x.id === id) : null;
+  prOpenForm(f ? "Modifier le frais" : "Nouveau frais bancaire", `
+    <div class="fg-row">
+      ${prFg("Date", "date", "date", f ? f.date : prToday(), "required")}
+      ${prFg("Montant (€)", "montant", "number", f ? f.montant : "", 'step="0.01" min="0" required')}
+    </div>
+    ${prFg("Libellé", "label", "text", f ? f.label : "", 'placeholder="Ex. frais de tenue de compte"')}`,
+    data => {
+      const m = prN(data.montant);
+      if (!data.date || !m) { showToastModern("Champs invalides", "err"); return false; }
+      if (f) Object.assign(f, { date: data.date, montant: m, label: data.label || "" });
+      else PR.frais.push({ id: prNewId(), date: data.date, montant: m, label: data.label || "" });
+      prSave("Frais enregistré");
+    }, "Enregistrer");
+}
+
+function prRecModal(id) {
+  const r = id ? (PR.frais_recurrents || []).find(x => x.id === id) : null;
+  prOpenForm(r ? "Modifier le frais récurrent" : "Nouveau frais récurrent", `
+    ${prFg("Libellé", "label", "text", r ? r.label : "", 'placeholder="Ex. cotisation carte"')}
+    <div class="fg-row">
+      ${prFg("Montant (€)", "montant", "number", r ? r.montant : "", 'step="0.01" min="0" required')}
+      <div class="fg"><label>Fréquence</label>
+        <select name="frequence">
+          <option value="mensuelle"${!r || r.frequence !== "annuelle" ? " selected" : ""}>Mensuelle</option>
+          <option value="annuelle"${r && r.frequence === "annuelle" ? " selected" : ""}>Annuelle</option>
+        </select></div>
+    </div>
+    <div class="fg-row">
+      ${prFg("1er prélèvement", "date_debut", "date", r ? r.date_debut : prToday(), "required")}
+      ${prFg("Nombre d'occurrences", "nb_occurrences", "number", r ? r.nb_occurrences : "", 'step="1" min="1" required')}
+    </div>
+    <div class="m-note" style="margin-bottom:0">Le prélèvement tombe le <b>même jour de chaque mois</b> que le premier (ramené au dernier jour du mois quand il n'existe pas, ex. le 31 en février).</div>`,
+    data => {
+      const m = prN(data.montant), nb = parseInt(data.nb_occurrences, 10) || 0;
+      if (!data.date_debut || !m || nb <= 0) { showToastModern("Champs invalides", "err"); return false; }
+      const payload = { date_debut: data.date_debut, montant: m, label: data.label || "",
+                        frequence: data.frequence || "mensuelle", nb_occurrences: nb };
+      if (r) Object.assign(r, payload);
+      else PR.frais_recurrents.push(Object.assign({ id: prNewId() }, payload));
+      prSave("Frais récurrent enregistré");
+    }, "Enregistrer");
+}
+
+/* ── Suppression ─────────────────────────────────────────────────────────── */
+
+async function prDelete(kind, id) {
+  if (!confirm("Supprimer cette ligne ?")) return;
+  const rm = arr => (arr || []).filter(x => String(x.id) !== String(id));
+  switch (kind) {
+    case "achat":         PR.pea.achats       = rm(PR.pea.achats); break;
+    case "vente":         PR.pea.ventes       = rm(PR.pea.ventes); break;
+    case "liv_taux":      PR.liv.taux_history = rm(PR.liv.taux_history); break;
+    case "liv_mov":       PR.liv.mouvements   = rm(PR.liv.mouvements); break;
+    case "versement":     PR.versements       = rm(PR.versements); break;
+    case "remboursement": PR.remboursements   = rm(PR.remboursements); break;
+    case "frais":         PR.frais            = rm(PR.frais); break;
+    case "recurrent":     PR.frais_recurrents = rm(PR.frais_recurrents); break;
+    default: return;
+  }
+  await prSave("Ligne supprimée");
+}
+
+/* ── Bootstrap ───────────────────────────────────────────────────────────── */
+
+async function prBootstrap() {
+  if (_prBootstrapped) return;
+  const ok = await prLoad();
+  if (!ok || !PR) return;
+  _prBootstrapped = true;
+  prRenderAll();
+  prRefreshQuotes(true);
+}
+
+(function patchGoTabPret() {
+  const _prev = window.goTab;
+  if (typeof _prev !== "function") return;
+  const PR_TABS = ["pr-overview", "pr-pea", "pr-av", "pr-liv", "pr-params"];
+  window.goTab = function(n) {
+    _prev.call(this, n);
+    if (!PR_TABS.includes(n)) return;
+    if (!_prBootstrapped) { prBootstrap(); return; }
+    prRenderAll();
+  };
+})();
+
 
 (async function boot() {
   try {
@@ -9613,6 +12179,9 @@ async function finBootstrap() {
     if (window.pywebview) setTimeout(_checkForUpdates, 5000);
     // Initialise le module Mes Comptes (en silence, sans bloquer le rendu PEA)
     if (hasPy) { try { await finBootstrap(); } catch(e) { console.warn("[fin] bootstrap KO:", e); } }
+    // Initialise les modules Sports et Pret etudiant (silencieux)
+    if (hasPy) { try { await spBootstrap(); } catch(e) { console.warn("[sports] bootstrap KO:", e); } }
+    if (hasPy) { try { await prBootstrap(); } catch(e) { console.warn("[pret] bootstrap KO:", e); } }
   } catch(e) {
     const box=document.getElementById("errbox");
     if (box) { box.style.display="block"; box.textContent="Erreur JS : "+e.message+" — Cliquez sur Reset."; }

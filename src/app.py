@@ -26,11 +26,13 @@ import webview                        # pywebview
 import server
 import storage
 import finances
+import sports
+import pret
 import notifications
 
 
 APP_NAME    = "Suivi PEA"
-APP_VERSION = "3.5.9"
+APP_VERSION = "4.0.0"
 SINGLE_INSTANCE_PORT = 50317          # port arbitraire pour le verrou single-instance
 WINDOW_DEFAULT_SIZE  = (1280, 800)
 WINDOW_MIN_SIZE      = (960, 640)
@@ -157,6 +159,36 @@ class Api:
     def save_finances(self, data: dict) -> dict:
         try:
             finances.save_data(data or {})
+            return {"ok": True}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # -- Sports (commun a tous les profils PEA) ---------------------------
+
+    def load_sports(self) -> dict:
+        try:
+            return {"ok": True, "data": sports.load_data(), "catalog": sports.SPORTS}
+        except Exception as e:
+            return {"ok": False, "error": str(e), "trace": traceback.format_exc()}
+
+    def save_sports(self, data: dict) -> dict:
+        try:
+            sports.save_data(data or {})
+            return {"ok": True}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # -- Pret etudiant (commun a tous les profils PEA) ---------------------
+
+    def load_pret(self) -> dict:
+        try:
+            return {"ok": True, "data": pret.load_data()}
+        except Exception as e:
+            return {"ok": False, "error": str(e), "trace": traceback.format_exc()}
+
+    def save_pret(self, data: dict) -> dict:
+        try:
+            pret.save_data(data or {})
             return {"ok": True}
         except Exception as e:
             return {"ok": False, "error": str(e)}
