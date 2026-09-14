@@ -72,7 +72,7 @@ python src/app.py
 python assets/make_icon.py
 
 # Build l'exécutable Windows
-python -m PyInstaller build/suivi_pea.spec --clean --noconfirm
+python -m PyInstaller build/pilote.spec --clean --noconfirm
 
 # Build l'installateur (nécessite Inno Setup 6)
 "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build/installer.iss

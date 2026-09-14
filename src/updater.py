@@ -143,7 +143,7 @@ def _do_install() -> None:
         exe_path = sys.executable
         _log(f"INSTALL: exe_path={exe_path} frozen={getattr(sys, 'frozen', False)}")
 
-        tmp_dir = Path(tempfile.gettempdir()) / "suivi_pea_update"
+        tmp_dir = Path(tempfile.gettempdir()) / "pilote_update"
         tmp_dir.mkdir(exist_ok=True)
         setup_path = tmp_dir / "Pilote_Setup.exe"
         _log(f"INSTALL: setup_path={setup_path}")

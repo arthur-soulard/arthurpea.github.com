@@ -31,7 +31,7 @@ jobs:
         continue-on-error: true
 
       - name: Build exe (PyInstaller)
-        run: python -m PyInstaller build/suivi_pea.spec --clean --noconfirm
+        run: python -m PyInstaller build/pilote.spec --clean --noconfirm
 
       - name: Install Inno Setup
         run: choco install innosetup --yes --no-progress

@@ -3,7 +3,7 @@
 PyInstaller spec : Pilote -> un seul Pilote.exe (onefile, sans console).
 
 Usage :
-    pyinstaller build/suivi_pea.spec --clean --noconfirm
+    pyinstaller build/pilote.spec --clean --noconfirm
 """
 
 import sys

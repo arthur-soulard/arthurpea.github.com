@@ -46,7 +46,7 @@ if exist "dist"          rmdir /s /q "dist"
 
 REM -- 5. Build --
 echo [4/4] PyInstaller...
-python -m PyInstaller build\suivi_pea.spec --clean --noconfirm
+python -m PyInstaller build\pilote.spec --clean --noconfirm
 if errorlevel 1 (
     echo.
     echo [ERREUR] Build PyInstaller a echoue.

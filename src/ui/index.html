@@ -471,7 +471,7 @@ td:first-child { text-align: left; padding-left: 2px; font-family: var(--font); 
 .strat-validate-btn.neu { color: var(--txt2); }
 
 /* ══════════════════════════════════════════════════
-   SUIVI PEA — surcharges desktop app (sidebar, titlebar, dark theme)
+   PILOTE — surcharges desktop app (sidebar, titlebar, dark theme)
 ══════════════════════════════════════════════════ */
 
 /* — Theme sombre via [data-theme="dark"] sur <html> — */
@@ -3019,7 +3019,7 @@ async function _hydrateFromPython() {
       } catch(e) {}
     }
     // Memorise les prefs UI/notifs pour le bootstrap shell
-    window.__peaPrefs = { ui: d.ui || {}, notifs: d.notifs || {} };
+    window.__appPrefs = { ui: d.ui || {}, notifs: d.notifs || {} };
     return true;
   } catch(e) {
     console.warn("Hydratation Python KO:", e);
@@ -3891,7 +3891,7 @@ async function _initBenchmarkUi() {
   if (_benchUiReady) return;
   // Restaure depuis prefs si dispo
   try {
-    const saved = window.__peaPrefs && window.__peaPrefs.ui && window.__peaPrefs.ui.benchEnabled;
+    const saved = window.__appPrefs && window.__appPrefs.ui && window.__appPrefs.ui.benchEnabled;
     if (saved && typeof saved === "object") {
       Object.keys(_benchEnabled).forEach(k => {
         if (typeof saved[k] === "boolean") _benchEnabled[k] = saved[k];
@@ -8494,7 +8494,7 @@ function _navToggleSection(secId) {
 
 function _injectTitlebar() {
   const html = `
-    <div class="titlebar" id="pea-titlebar">
+    <div class="titlebar" id="app-titlebar">
       <div class="titlebar-brand">
         <div class="titlebar-logo">P</div>
         <div class="titlebar-title">Pilote</div>
@@ -8525,7 +8525,7 @@ function _injectSidebar() {
   const openId = (S.uiPrefs && S.uiPrefs.navOpen !== undefined)
     ? S.uiPrefs.navOpen                 // "" = toutes repliees
     : NAV_SECTIONS[0].id;               // premier lancement : PEA deplie
-  let html = `<aside class="sidebar" id="pea-sidebar">
+  let html = `<aside class="sidebar" id="app-sidebar">
     <button class="sb-item sb-home" data-tab="home"><span>Accueil</span></button>`;
 
   NAV_SECTIONS.forEach(sec => {
@@ -8617,7 +8617,7 @@ function _showSidebarItem(id) {
   if (window.pywebview && window.pywebview.api && window.pywebview.api.save_ui_prefs) {
     try { window.pywebview.api.save_ui_prefs(S.uiPrefs); } catch(e) {}
   }
-  const old = document.getElementById("pea-sidebar");
+  const old = document.getElementById("app-sidebar");
   if (old) old.remove();
   _injectSidebar();
   const activePane = document.querySelector(".pane.active");
@@ -8746,7 +8746,7 @@ applyGsData = async function(opts) {
     _setCoursHealth("err", "Actualisation impossible");
     if (manual) showToastModern("✗ Yahoo injoignable", "err");
     if (window.pywebview && window.pywebview.api) {
-      const prefs = (window.__peaPrefs && window.__peaPrefs.notifs) || {};
+      const prefs = (window.__appPrefs && window.__appPrefs.notifs) || {};
       if (prefs.yahooDown) {
         window.pywebview.api.notify(
           "Pilote",
@@ -8815,7 +8815,7 @@ async function doImportDialog() {
 /* — Hook persist pour declencher des notifs Windows sur gros mouvements — */
 function _checkBigMoves() {
   try {
-    const prefs = (window.__peaPrefs && window.__peaPrefs.notifs) || {};
+    const prefs = (window.__appPrefs && window.__appPrefs.notifs) || {};
     if (!prefs.bigMove) return;
     if (!window.pywebview || !window.pywebview.api) return;
     if (!_wsVar) return;
@@ -9055,7 +9055,7 @@ async function _hydrateFromHttp() {
     if (d._cache && d._cache.history) {
       try { localStorage.setItem(LS_HIST, JSON.stringify({history: d._cache.history, fetchedAt: ""})); } catch(e) {}
     }
-    window.__peaPrefs = { ui: d.ui || {}, notifs: d.notifs || {} };
+    window.__appPrefs = { ui: d.ui || {}, notifs: d.notifs || {} };
     const dbg = j._debug || {};
     // Bandeau diagnostic UNIQUEMENT en cas d'erreur reelle de lecture
     // (ex: JSON corrompu). Un fichier vide / inexistant = comportement
@@ -12302,7 +12302,7 @@ function homeRender() {
     }
     // Applique le theme
     try {
-      const t = (window.__peaPrefs && window.__peaPrefs.ui && window.__peaPrefs.ui.theme) || "light";
+      const t = (window.__appPrefs && window.__appPrefs.ui && window.__appPrefs.ui.theme) || "light";
       document.documentElement.setAttribute("data-theme", t === "dark" ? "dark" : "light");
     } catch(e) {}
 
