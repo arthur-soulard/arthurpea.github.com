@@ -61,49 +61,232 @@ def get_app_dir() -> Path:
         return fallback
 
 
-# ─── Multi-profils (multi-PEA) ────────────────────────────────────────────
-PROFILES_FILE = "profiles.json"   # liste profils + actif
+# ─── Multi-utilisateurs (toute l'app, pas seulement le PEA) ──────────────
+#
+# Chaque utilisateur possede son propre dossier :
+#     <app_dir>/users/<slug>/pea_data.json
+#                            finances.json
+#                            sports.json
+#                            pret.json
+#                            backups*/...
+#
+# Avant la v4.1.2, seul le PEA etait dedouble (profiles.json + <slug>/), et
+# finances/sports/pret vivaient a la racine, communs a tous les profils.
+# ensure_migrated() rejoue cette ancienne disposition vers la nouvelle, une
+# seule fois, sans jamais supprimer de donnees.
+
+USERS_FILE     = "users.json"
+USERS_DIRNAME  = "users"
+LEGACY_PROFILES_FILE = "profiles.json"
+
+# Fichiers de modules qui etaient communs a tous les profils PEA
+_MODULE_FILES = (
+    ("finances.json", "backups_finances"),
+    ("sports.json",   "backups_sports"),
+    ("pret.json",     "backups_pret"),
+)
+
+_MIGRATION_DONE = False
 
 
-def _profiles_path() -> Path:
-    return get_app_dir() / PROFILES_FILE
+def _users_path() -> Path:
+    return get_app_dir() / USERS_FILE
 
 
-def get_profiles_state() -> dict:
-    """Retourne {active: 'default', profiles: [{slug, label}]}."""
-    p = _profiles_path()
+def _users_root() -> Path:
+    d = get_app_dir() / USERS_DIRNAME
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def slugify(label: str, existing=()) -> str:
+    """Transforme un libelle en slug de dossier unique."""
+    import re as _re
+    import unicodedata
+    norm = unicodedata.normalize("NFKD", label or "")
+    norm = "".join(c for c in norm if not unicodedata.combining(c))
+    base = _re.sub(r"[^a-z0-9]+", "_", norm.lower()).strip("_") or "user"
+    slug = base
+    i = 2
+    existing = set(existing)
+    while slug in existing:
+        slug = f"{base}_{i}"
+        i += 1
+    return slug
+
+
+def _move_dir_contents(src: Path, dst: Path) -> None:
+    """Deplace le contenu de src dans dst (sans ecraser ce qui existe deja)."""
+    if not src.exists() or not src.is_dir():
+        return
+    dst.mkdir(parents=True, exist_ok=True)
+    for item in list(src.iterdir()):
+        target = dst / item.name
+        if target.exists():
+            continue
+        try:
+            shutil.move(str(item), str(target))
+        except Exception as e:
+            print(f"[storage] migration : {item} non deplace ({e})", flush=True)
+    try:
+        src.rmdir()
+    except Exception:
+        pass
+
+
+def ensure_migrated() -> None:
+    """
+    Migre l'ancienne disposition (profils PEA + fichiers communs a la racine)
+    vers <app_dir>/users/<slug>/. Idempotent : ne fait rien si users.json existe.
+    """
+    global _MIGRATION_DONE
+    if _MIGRATION_DONE:
+        return
+    _MIGRATION_DONE = True
+
+    app = get_app_dir()
+    if (app / USERS_FILE).exists():
+        return
+
+    # 1. Liste de depart : anciens profils PEA, ou un utilisateur unique
+    entries, active = [], "default"
+    legacy_profiles = app / LEGACY_PROFILES_FILE
+    if legacy_profiles.exists():
+        try:
+            with open(legacy_profiles, "r", encoding="utf-8") as f:
+                st = json.load(f)
+            for pr in st.get("profiles") or []:
+                if pr.get("slug"):
+                    entries.append({"slug": pr["slug"], "label": pr.get("label") or pr["slug"]})
+            active = st.get("active") or (entries[0]["slug"] if entries else "default")
+        except Exception as e:
+            print(f"[storage] profiles.json illisible : {e}", flush=True)
+    if not entries:
+        entries = [{"slug": "default", "label": "Moi"}]
+        active = "default"
+    if not any(e["slug"] == active for e in entries):
+        active = entries[0]["slug"]
+
+    root = _users_root()
+
+    # 2. Un dossier par utilisateur, alimente par l'ancien dossier de profil
+    for e in entries:
+        dst = root / e["slug"]
+        dst.mkdir(parents=True, exist_ok=True)
+        src_dir = app / e["slug"]
+        # Garde-fou : un profil qui s'appellerait "users" pointerait sur la
+        # racine des utilisateurs — on ne deplace jamais un dossier dans lui-meme
+        try:
+            same = src_dir.resolve() == root.resolve()
+        except Exception:
+            same = False
+        if not same:
+            _move_dir_contents(src_dir, dst)
+
+    # 3. Ancien pea_data.json a la racine (installations les plus vieilles)
+    active_dir = root / active
+    active_dir.mkdir(parents=True, exist_ok=True)
+    legacy_data = app / DATA_FILE
+    if legacy_data.exists() and not (active_dir / DATA_FILE).exists():
+        try:
+            shutil.move(str(legacy_data), str(active_dir / DATA_FILE))
+        except Exception as e:
+            print(f"[storage] migration pea_data.json : {e}", flush=True)
+    _move_dir_contents(app / BACKUP_DIR, active_dir / BACKUP_DIR)
+
+    # 4. Modules jusqu'ici communs -> utilisateur actif
+    for fname, backup_dirname in _MODULE_FILES:
+        src_file = app / fname
+        dst_file = active_dir / fname
+        if src_file.exists() and not dst_file.exists():
+            try:
+                shutil.move(str(src_file), str(dst_file))
+            except Exception as e:
+                print(f"[storage] migration {fname} : {e}", flush=True)
+        _move_dir_contents(app / backup_dirname, active_dir / backup_dirname)
+
+    # 5. Libelle par defaut : le prenom saisi dans le PEA, si disponible
+    for e in entries:
+        if e["label"] in ("Moi", "Mon PEA", "default"):
+            try:
+                with open(root / e["slug"] / DATA_FILE, "r", encoding="utf-8") as f:
+                    prenom = ((json.load(f).get("config") or {}).get("prenom") or "").strip()
+                if prenom:
+                    e["label"] = prenom
+            except Exception:
+                pass
+
+    state = {"active": active, "users": [
+        {"slug": e["slug"], "label": e["label"], "emoji": "", "color": ""} for e in entries
+    ]}
+    save_users_state(state)
+
+    # L'ancien fichier est conserve, juste renomme (filet de securite)
+    if legacy_profiles.exists():
+        try:
+            legacy_profiles.rename(app / "profiles.legacy.json")
+        except Exception:
+            pass
+
+
+def get_users_state() -> dict:
+    """Retourne {active: 'slug', users: [{slug, label, emoji, color}]}."""
+    ensure_migrated()
+    p = _users_path()
     if p.exists():
         try:
             with open(p, "r", encoding="utf-8") as f:
                 d = json.load(f)
-            if "active" in d and "profiles" in d:
+            if isinstance(d.get("users"), list) and d.get("users"):
+                for u in d["users"]:
+                    u.setdefault("emoji", "")
+                    u.setdefault("color", "")
+                if not any(u["slug"] == d.get("active") for u in d["users"]):
+                    d["active"] = d["users"][0]["slug"]
                 return d
-        except Exception:
-            pass
-    # Default initial
-    state = {
-        "active": "default",
-        "profiles": [{"slug": "default", "label": "Mon PEA"}],
-    }
-    save_profiles_state(state)
+        except Exception as e:
+            print(f"[storage] users.json illisible : {e}", flush=True)
+    state = {"active": "default",
+             "users": [{"slug": "default", "label": "Moi", "emoji": "", "color": ""}]}
+    save_users_state(state)
     return state
 
 
-def save_profiles_state(state: dict) -> None:
-    p = _profiles_path()
+def save_users_state(state: dict) -> None:
+    p = _users_path()
     p.parent.mkdir(parents=True, exist_ok=True)
-    with open(p, "w", encoding="utf-8") as f:
-        json.dump(state, f, ensure_ascii=False, indent=2)
+    fd, tmp = tempfile.mkstemp(prefix=".users_", suffix=".tmp", dir=str(p.parent))
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(state, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, p)
+    except Exception:
+        try:
+            os.remove(tmp)
+        except Exception:
+            pass
+        raise
 
 
-def get_profile_dir(slug: str = None) -> Path:
-    """Dossier dedie a un profil (data + backups)."""
+def get_active_user() -> dict:
+    st = get_users_state()
+    for u in st["users"]:
+        if u["slug"] == st["active"]:
+            return u
+    return st["users"][0]
+
+
+def get_user_dir(slug: str = None) -> Path:
+    """
+    Dossier de donnees de l'utilisateur (tous modules confondus).
+    C'est la racine que jsonstore.py et finances.py utilisent aussi.
+    """
     if slug is None:
-        slug = get_profiles_state()["active"]
-    pdir = get_app_dir() / slug
-    pdir.mkdir(parents=True, exist_ok=True)
-    (pdir / BACKUP_DIR).mkdir(parents=True, exist_ok=True)
-    return pdir
+        slug = get_users_state()["active"]
+    d = _users_root() / slug
+    d.mkdir(parents=True, exist_ok=True)
+    (d / BACKUP_DIR).mkdir(parents=True, exist_ok=True)
+    return d
 
 
 # ─── Recuperation : scan d'anciens dossiers Donnees ────────────────────────
@@ -115,6 +298,14 @@ def scan_orphan_data() -> list:
     """
     home = Path.home()
     candidates = []
+    # Tout ce qui vit dans le dossier de donnees courant appartient a
+    # l'installation en cours : les autres utilisateurs, leurs backups, les
+    # fichiers de l'utilisateur actif. On ne le propose JAMAIS en
+    # "recuperation" — ce serait copier les donnees d'un autre utilisateur.
+    try:
+        own_dir = get_app_dir().resolve()
+    except Exception:
+        own_dir = None
 
     # Emplacements typiques a scanner (en surface, on ne descend pas profond)
     spots = [
@@ -140,6 +331,8 @@ def scan_orphan_data() -> list:
                 resolved = found.resolve()
                 if resolved == current_data_path:
                     continue  # ignorer le fichier courant
+                if own_dir is not None and own_dir in resolved.parents:
+                    continue  # appartient a cette installation (autre utilisateur, backups...)
                 if resolved in seen:
                     continue
                 seen.add(resolved)
@@ -206,36 +399,15 @@ def recover_from(source_path: str) -> dict:
 
 
 def get_data_path() -> Path:
-    """Chemin du fichier pea_data.json pour le profil actif."""
-    # Compatibilite : si l'ancien fichier existe a la racine ET aucun profil
-    # personnalise, on continue d'utiliser cet emplacement (ou on migre).
-    legacy = get_app_dir() / DATA_FILE
-    state = get_profiles_state()
-    if state["active"] == "default":
-        new_path = get_profile_dir("default") / DATA_FILE
-        # Migration : si le legacy existe et que le nouveau n'existe pas, on bouge
-        if legacy.exists() and not new_path.exists():
-            try:
-                import shutil
-                shutil.copy2(legacy, new_path)
-            except Exception:
-                pass
-        # On continue a utiliser legacy si lui seul existe (zero-disruption)
-        if legacy.exists() and not new_path.exists():
-            return legacy
-        return new_path
-    return get_profile_dir(state["active"]) / DATA_FILE
+    """Chemin du pea_data.json de l'utilisateur actif."""
+    return get_user_dir() / DATA_FILE
 
 
 def get_backup_dir() -> Path:
-    """Dossier backups pour le profil actif."""
-    state = get_profiles_state()
-    if state["active"] == "default":
-        # Compat : utilise le backups racine si un fichier legacy existe
-        legacy_back = get_app_dir() / BACKUP_DIR
-        if (get_app_dir() / DATA_FILE).exists() and legacy_back.exists():
-            return legacy_back
-    return get_profile_dir(state["active"]) / BACKUP_DIR
+    """Dossier backups PEA de l'utilisateur actif."""
+    d = get_user_dir() / BACKUP_DIR
+    d.mkdir(parents=True, exist_ok=True)
+    return d
 
 
 def get_log_path() -> Path:
@@ -333,7 +505,12 @@ def load_data() -> dict:
             _LAST_LOAD_INFO["error"] = f"main: {type(e).__name__}: {e}"
             print(f"[storage] lecture pea_data.json KO: {e}", flush=True)
     else:
-        _LAST_LOAD_INFO["error"] = "main: file does not exist"
+        # Fichier absent : ce n'est PAS une erreur. C'est l'etat normal d'un
+        # utilisateur qui vient d'etre cree (ou du tout premier lancement) ;
+        # le fichier sera ecrit a la premiere sauvegarde. On laisse donc
+        # error a None, sinon l'UI croit a une lecture ratee et s'interdit
+        # d'ecrire — l'utilisateur neuf ne pourrait jamais rien enregistrer.
+        _LAST_LOAD_INFO["source"] = "nouveau"
 
     # 2. Si echec, tente le backup le plus recent
     backup = _latest_backup()

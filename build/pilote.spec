@@ -35,6 +35,10 @@ a = Analysis(
         "clr_loader",
         # win10toast deps
         "win10toast",
+        # Pillow : icone recoloree a la volee (appicon.py, import paresseux)
+        "PIL.Image",
+        "PIL.ImageDraw",
+        "PIL.ImageFont",
     ],
     hookspath=[],
     hooksconfig={},

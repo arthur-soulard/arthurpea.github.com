@@ -66,14 +66,15 @@ input, select { font-family: var(--mono); }
   flex-wrap: wrap; margin-bottom: 1.75rem;
   padding-bottom: 1.25rem; border-bottom: 1px solid var(--brd);
 }
-.topbar-brand { display: flex; align-items: center; gap: 12px; }
+.topbar-brand { display: flex; align-items: center; gap: 12px; height: 34px; }
 .topbar-logo {
   width: 34px; height: 34px; background: var(--accent);
   border-radius: 9px; display: flex; align-items: center;
   justify-content: center; font-weight: 800; font-size: 16px;
   color: #fff; flex-shrink: 0; box-shadow: var(--sh);
 }
-.topbar-title  { font-size: 18px; font-weight: 700; letter-spacing: -.4px; }
+/* Plus gros, mais la hauteur du bloc reste celle du logo (34px) */
+.topbar-title  { font-size: 25px; font-weight: 800; letter-spacing: -.7px; line-height: 1; }
 .topbar-sub    { font-size: 11px; color: var(--txt2); font-family: var(--mono); margin-top: 1px; }
 .topbar-right  { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 
@@ -361,7 +362,9 @@ td:first-child { text-align: left; padding-left: 2px; font-family: var(--font); 
 /* ── Modal ───────────────────────────────────────── */
 .ov {
   display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.32); z-index: 500;
+  /* Au-dessus de la sidebar (9000), sous la titlebar (10000) :
+     une modale large ne doit jamais passer derriere le menu */
+  background: rgba(0,0,0,.32); z-index: 9500;
   align-items: center; justify-content: center;
   padding: 1rem; backdrop-filter: blur(4px);
 }
@@ -507,12 +510,13 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb { background: var(--brd2); }
 }
 .titlebar-brand { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
 .titlebar-logo {
-  width: 22px; height: 22px; border-radius: 5px;
+  width: 24px; height: 24px; border-radius: 6px;
   background: var(--accent); color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: 11px; box-shadow: var(--sh);
 }
-.titlebar-title { font-weight: 700; font-size: 12px; letter-spacing: -.2px; }
+/* Grossi sans toucher aux 36px de la barre */
+.titlebar-title { font-weight: 800; font-size: 16px; letter-spacing: -.35px; line-height: 1; }
 .titlebar-spacer { flex: 1; }
 .titlebar-btns { display: flex; -webkit-app-region: no-drag; }
 .tb-btn {
@@ -940,6 +944,8 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   border-radius: var(--rad); padding: 6px 9px; font-size: 11px;
   color: var(--txt); font-family: var(--font);
 }
+/* La case emoji garde sa largeur, seul le nom s'etire */
+.fin-add-line input.fin-ico-in { flex: 0 0 46px; font-size: 15px; padding: 6px 4px; }
 
 /* Modale récurrents */
 .fin-rec-row {
@@ -1154,9 +1160,9 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   letter-spacing: .09em; color: var(--txt3); text-align: center; padding-bottom: 2px;
 }
 .sp-day {
-  min-height: 98px; background: var(--bg2); border: 1px solid var(--brd);
-  border-radius: var(--rad); padding: 6px; cursor: pointer;
-  display: flex; flex-direction: column; gap: 3px;
+  min-height: 116px; background: var(--bg2); border: 1px solid var(--brd);
+  border-radius: var(--rad); padding: 7px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 4px;
   transition: border-color .12s, background .12s;
 }
 .sp-day:hover { border-color: var(--brd3); background: var(--bg3); }
@@ -1166,25 +1172,30 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   font-size: 11px; font-weight: 700; font-family: var(--mono); color: var(--txt2);
 }
 .sp-day.today .sp-day-n { color: var(--accent); }
-.sp-bubs { display: flex; flex-wrap: wrap; gap: 3px; }
+.sp-bubs { display: flex; flex-wrap: wrap; gap: 4px; }
 .sp-bub {
-  width: 22px; height: 22px; border-radius: 999px;
+  /* 30 px : quatre bulles tiennent sur une ligne dans une case de calendrier */
+  width: 30px; height: 30px; border-radius: 999px;
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 12px; line-height: 1; border: 1px solid transparent;
+  font-size: 17px; line-height: 1; border: 1.5px solid transparent;
 }
 .sp-bub-more {
   background: var(--bg4); border-color: var(--brd2); color: var(--txt2);
-  font-size: 9px; font-weight: 700; font-family: var(--mono);
+  font-size: 12px; font-weight: 700; font-family: var(--mono);
 }
 .sp-day-dur {
-  margin-top: auto; font-size: 9px; font-family: var(--mono);
+  margin-top: auto; font-size: 10px; font-family: var(--mono);
   color: var(--txt3); font-weight: 600;
 }
 .sp-snote {
   font-size: 11px; color: var(--txt2); margin-top: 3px;
   font-style: italic; overflow-wrap: anywhere;
 }
-@media (max-width: 760px) { .sp-day { min-height: 74px; } .sp-day-dur { display: none; } }
+@media (max-width: 760px) {
+  .sp-day { min-height: 84px; }
+  .sp-bub { width: 26px; height: 26px; font-size: 15px; }
+  .sp-day-dur { display: none; }
+}
 
 /* Liste des seances d'un jour (modale) */
 .sp-slist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
@@ -1213,6 +1224,28 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 .sp-pick:hover { border-color: var(--brd3); color: var(--txt); }
 .sp-pick.active { border-color: var(--accent); background: var(--a2); color: var(--accent); }
 .sp-pick-ico { font-size: 21px; line-height: 1; }
+.sp-pick-add { border-style: dashed; color: var(--txt3); }
+.sp-pick-add:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Choix des informations a saisir pour un sport perso */
+.sp-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+@media (max-width: 560px) { .sp-fields { grid-template-columns: 1fr; } }
+.sp-field {
+  display: flex; align-items: flex-start; gap: 9px; text-align: left;
+  padding: 9px 11px; border-radius: var(--rad); cursor: pointer;
+  border: 1px solid var(--brd2); background: var(--bg3);
+  font-family: var(--font); color: var(--txt2); transition: all .12s;
+}
+.sp-field:hover { border-color: var(--brd3); color: var(--txt); }
+.sp-field.active { border-color: var(--accent); background: var(--a2); color: var(--accent); }
+.sp-field-check {
+  width: 17px; height: 17px; border-radius: 5px; flex-shrink: 0; margin-top: 1px;
+  border: 1.5px solid var(--brd3); display: flex; align-items: center;
+  justify-content: center; font-size: 11px; font-weight: 800;
+}
+.sp-field.active .sp-field-check { border-color: var(--accent); background: var(--accent); color: #fff; }
+.sp-field-lbl  { display: block; font-size: 12px; font-weight: 700; }
+.sp-field-hint { display: block; font-size: 10px; color: var(--txt3); margin-top: 2px; }
 
 /* Groupes musculaires */
 .sp-groups { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -1284,13 +1317,14 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 /* ══════════════════════════════════════════════════
    Page d'accueil
    ══════════════════════════════════════════════════ */
-.home-hero { margin: .4rem 0 1.6rem; }
+.home-hero { margin: 0 0 1.6rem; }
 .home-greet {
-  font-size: 30px; font-weight: 800; letter-spacing: -.8px; line-height: 1.15;
+  font-size: clamp(38px, 5.2vw, 62px); font-weight: 800;
+  letter-spacing: -1.8px; line-height: 1.05;
 }
 .home-date {
-  font-size: 12px; color: var(--txt2); font-family: var(--mono);
-  margin-top: 6px;
+  font-size: 13px; color: var(--txt2); font-family: var(--mono);
+  margin-top: 10px; text-transform: capitalize;
 }
 .home-cards {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;
@@ -1319,17 +1353,88 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 }
 .home-card:hover .home-card-go { color: var(--accent); }
 
+/* Emoji des categories "Mes comptes" */
+.fin-ico { font-size: 14px; line-height: 1; }
+.fin-ico-lg { font-size: 16px; line-height: 1; }
+
 /* Bouton Accueil, seul au-dessus des sections */
 .sb-home { font-weight: 700; margin-bottom: 8px; }
+
+/* ══ Paramètres : colonne de sections + panneau ══ */
+.set-layout { display: grid; grid-template-columns: 186px 1fr; gap: 18px; align-items: start; }
+.set-nav { display: flex; flex-direction: column; gap: 3px; }
+.set-nav-btn {
+  text-align: left; padding: 9px 12px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 600; color: var(--txt2);
+  border: 1px solid transparent; background: transparent; cursor: pointer;
+  font-family: var(--font); display: flex; align-items: center; gap: 9px;
+  transition: background .12s, color .12s;
+}
+.set-nav-btn:hover { background: var(--bg3); color: var(--txt); }
+.set-nav-btn.active {
+  background: var(--bg3); color: var(--txt);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.set-nav-ico { width: 17px; text-align: center; font-size: 14px; opacity: .9; }
+.set-body { min-width: 0; max-height: min(64vh, 620px); overflow-y: auto; padding-right: 4px; }
+.set-sec { display: none; }
+.set-sec.active { display: block; }
+.set-sec h3 {
+  font-size: 13px; font-weight: 800; letter-spacing: -.2px;
+  margin: 0 0 4px; color: var(--txt);
+}
+.set-sec .set-lead {
+  font-size: 11.5px; color: var(--txt3); margin: 0 0 16px; line-height: 1.5;
+}
+.set-links { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
+@media (max-width: 720px) {
+  .set-layout { grid-template-columns: 1fr; }
+  .set-nav { flex-direction: row; flex-wrap: wrap; }
+  .set-nav-btn.active { box-shadow: none; border-color: var(--accent); }
+}
 
 .pea-bank {
   font-size: 11px; color: var(--txt2); font-family: var(--mono); margin-top: 6px;
 }
+/* Le haut de la page respire : tout est centre, les cartes descendent */
 .home-hero {
-  display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  gap: 0; padding-top: clamp(1.5rem, 7vh, 4.5rem);
 }
-.home-hero-txt { flex: 1; min-width: 220px; }
-.home-actions { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 6px; }
+.home-hero-txt { width: 100%; }
+.home-actions {
+  display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+  margin-top: 22px;
+}
+.home-cards { margin-top: clamp(2rem, 9vh, 5.5rem); }
+
+/* — Utilisateurs : selecteur en haut de l'accueil — */
+.home-users {
+  display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+  margin-top: 26px;
+}
+.home-user {
+  display: flex; align-items: center; gap: 9px;
+  background: var(--bg2); border: 1px solid var(--brd);
+  border-radius: 999px; padding: 6px 15px 6px 7px;
+  font-size: 13px; font-weight: 600; color: var(--txt2);
+  cursor: pointer; box-shadow: var(--sh);
+  transition: border-color .12s, transform .12s, color .12s;
+}
+.home-user:hover { border-color: var(--brd3); transform: translateY(-1px); color: var(--txt); }
+.home-user.active {
+  border-color: var(--accent); color: var(--txt);
+  box-shadow: 0 0 0 1px var(--accent), var(--sh);
+}
+.home-user-av {
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 800; color: #fff; letter-spacing: -.5px;
+}
+.home-user-add {
+  border-style: dashed; padding: 6px 15px; color: var(--txt3);
+}
+.home-user-add:hover { color: var(--accent); border-color: var(--accent); }
 
 </style>
 </head>
@@ -1400,8 +1505,10 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       <div class="home-greet" id="home-greet">Bonjour</div>
       <div class="home-date"  id="home-date"></div>
     </div>
+    <!-- Utilisateurs : on change de compte directement ici -->
+    <div class="home-users" id="home-users"></div>
     <div class="home-actions">
-      <button class="btn btn-ghost btn-sm" onclick="openConfig()" title="Paramètres de l'application">⚙ Paramètres</button>
+      <button class="btn btn-ghost btn-sm" onclick="openSettings()" title="Paramètres de Pilote">⚙ Paramètres</button>
       <button class="btn btn-ghost btn-sm" onclick="doExport()"       title="Exporter mes données (Ctrl+E)">↓ Exporter</button>
       <button class="btn btn-ghost btn-sm" onclick="doImportDialog()" title="Importer des données (Ctrl+I)">↑ Importer</button>
     </div>
@@ -1837,6 +1944,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       <button class="btn btn-ghost"    onclick="finOpenRecurrences()">↻ Récurrents</button>
       <button class="btn btn-ghost"    onclick="finOpenCategories()">▦ Catégories</button>
       <button class="btn btn-ghost"    onclick="finOpenSources()">⊳ Sources</button>
+      <button class="btn btn-ghost" onclick="openSettings('comptes')" title="Paramètres de Mes comptes">⚙</button>
     </div>
   </div>
 
@@ -1982,6 +2090,7 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
     <div class="m-spacer"></div>
     <button class="btn btn-primary" onclick="spOpenSession(null, null)">+ Séance</button>
     <button class="btn btn-ghost"   onclick="spOpenRoutines()">Routines</button>
+    <button class="btn btn-ghost" onclick="openSettings('sport')" title="Paramètres des Sports">⚙</button>
   </div>
 
   <div class="mkpis" id="sp-month-kpis"></div>
@@ -2163,6 +2272,51 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 </div>
 
 <!-- Routines (simples libellés réutilisables) -->
+<!-- Modale : mes sports (ajoutes par l'utilisateur) -->
+<div class="ov" id="ov-sp-sports" onclick="if(event.target===this)closeOv('ov-sp-sports')">
+  <div class="modal" style="max-width:560px">
+    <h2>🏅 Mes sports</h2>
+    <p class="m-note" style="margin-top:-.4rem">
+      En plus des sports livrés avec Pilote, tu peux créer les tiens et choisir
+      exactement les informations à saisir pour chacun.
+    </p>
+    <div class="sp-slist" id="sp-sports-list"></div>
+    <div class="mact">
+      <button class="btn btn-ghost" onclick="closeOv('ov-sp-sports')">Fermer</button>
+      <button class="btn btn-primary" onclick="spOpenCustomSport(null)">+ Nouveau sport</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale : creation / edition d'un sport perso -->
+<div class="ov" id="ov-sp-sport" onclick="if(event.target===this)closeOv('ov-sp-sport')">
+  <div class="modal" style="max-width:560px">
+    <h2 id="sp-sport-title">Nouveau sport</h2>
+    <div class="fg">
+      <label>Nom du sport</label>
+      <input id="sp-sport-label" placeholder="Escalade, Yoga, Ski de rando…" maxlength="28">
+    </div>
+    <div class="fg">
+      <label>Emoji</label>
+      <div id="sp-sport-emojis" style="display:flex;flex-wrap:wrap;gap:6px;padding-top:4px"></div>
+    </div>
+    <div class="fg">
+      <label>Couleur</label>
+      <div id="sp-sport-colors" style="display:flex;flex-wrap:wrap;gap:6px;padding-top:4px"></div>
+    </div>
+    <div class="fg">
+      <label>Informations à saisir <span style="color:var(--txt3);font-weight:400">(celles déjà disponibles dans l'app)</span></label>
+      <div class="sp-fields" id="sp-sport-fields" style="padding-top:4px"></div>
+    </div>
+    <div class="mact">
+      <button class="btn btn-ghost" onclick="closeOv('ov-sp-sport')">Annuler</button>
+      <button class="btn btn-ghost" id="sp-sport-del" style="color:var(--r);border-color:var(--r)"
+              onclick="spDeleteCustomSportFromModal()">🗑 Supprimer</button>
+      <button class="btn btn-primary" onclick="spSaveCustomSport()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <div class="ov" id="ov-sp-routines" onclick="if(event.target===this)closeOv('ov-sp-routines')">
   <div class="modal" style="max-width:480px">
     <h2>Routines</h2>
@@ -2329,6 +2483,8 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
     <div id="fin-cats-list" style="max-height:55vh;overflow-y:auto;padding-right:6px"></div>
 
     <div class="fin-add-line">
+      <input id="fin-newcat-icon" class="fin-ico-in" type="text" maxlength="4" placeholder="☺"
+             style="text-align:center" title="Emoji de la catégorie">
       <input id="fin-newcat-name" type="text" placeholder="Nouvelle catégorie…">
       <input id="fin-newcat-color" type="color" value="#7c3aed" style="width:38px;height:34px;padding:2px;cursor:pointer">
       <button class="btn btn-primary btn-sm" onclick="finAddCategory()">+ Ajouter</button>
@@ -2336,6 +2492,22 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 
     <div class="mact">
       <button class="btn btn-ghost" onclick="closeOv('ov-fin-cats')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale : choisir un emoji (catégories et sous-catégories) -->
+<div class="ov" id="ov-fin-icon" onclick="if(event.target===this)closeOv('ov-fin-icon')">
+  <div class="modal" style="max-width:430px">
+    <h2 id="fin-icon-title">Emoji</h2>
+    <div id="fin-icon-grid" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem"></div>
+    <div class="fg">
+      <label>Ou colle le tien</label>
+      <input id="fin-icon-free" maxlength="4" placeholder="🏆" style="width:90px;text-align:center;font-size:18px">
+    </div>
+    <div class="mact">
+      <button class="btn btn-ghost" onclick="closeOv('ov-fin-icon')">Annuler</button>
+      <button class="btn btn-primary" onclick="finIconConfirm()">Valider</button>
     </div>
   </div>
 </div>
@@ -2477,86 +2649,235 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 </div>
 
 <!-- Modal : Paramètres PEA -->
-<div class="ov" id="ov-config" onclick="if(event.target===this)closeOv('ov-config')">
-  <div class="modal" style="max-width:480px">
-    <h2>⚙ Paramètres du PEA</h2>
+<!-- Modal : utilisateur Pilote (chacun a ses propres donnees) -->
+<div class="ov" id="ov-user" onclick="if(event.target===this)closeOv('ov-user')">
+  <div class="modal" style="max-width:430px">
+    <h2 id="user-modal-title">Nouvel utilisateur</h2>
+    <p class="m-note" style="margin-top:-.4rem">
+      Chaque utilisateur a son propre PEA, ses comptes, son prêt et son sport.
+      Rien n'est partagé entre deux utilisateurs.
+    </p>
     <div class="fg">
-      <label>Prénom (affiché en haut)</label>
-      <input id="cfg-prenom" placeholder="Prénom">
-    </div>
-    <div class="fg">
-      <label>Banque / courtier</label>
-      <input id="cfg-banque" placeholder="Fortuneo, Boursorama, Linxea…">
-    </div>
-    <div class="fg">
-      <label>Date d'ouverture du PEA</label>
-      <input id="cfg-ouverture" type="date">
+      <label>Nom</label>
+      <input id="user-f-label" placeholder="Arthur, Papa, Maman…" maxlength="24">
     </div>
     <div class="fg">
-      <label>Couleur d'accent</label>
-      <div id="cfg-accent-row" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-top:4px"></div>
+      <label>Avatar</label>
+      <div id="user-f-emojis" style="display:flex;flex-wrap:wrap;gap:6px;padding-top:4px"></div>
+      <input id="user-f-emoji" placeholder="ou colle n'importe quel emoji" maxlength="4"
+             style="margin-top:8px">
     </div>
     <div class="fg">
-      <label>Thème</label>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button type="button" class="btn btn-ghost btn-sm" data-theme-btn="light" style="font-size:11px">☀ Clair</button>
-        <button type="button" class="btn btn-ghost btn-sm" data-theme-btn="dark"  style="font-size:11px">🌙 Sombre</button>
-      </div>
-    </div>
-    <div class="fg">
-      <label>Données</label>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button type="button" class="btn btn-ghost btn-sm" onclick="openDataFolder()" style="font-size:11px">📁 Ouvrir le dossier Données</button>
-        <span style="font-size:10px;color:var(--txt3);font-family:var(--mono)">Backups + JSON</span>
-      </div>
-    </div>
-    <div class="fg">
-      <label>Code PIN à 4 chiffres <span style="color:var(--txt3);font-weight:400">(optionnel, demandé à l'ouverture)</span></label>
-      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
-        <div id="cfg-pin-boxes" style="display:flex;gap:14px">
-          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-i="0">
-          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-i="1">
-          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-i="2">
-          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-i="3">
-        </div>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="clearPinDigits()" style="font-size:11px">Effacer</button>
-        <button type="button" class="btn btn-ghost btn-sm" id="btn-disable-pin" style="font-size:11px;color:var(--r);display:none" onclick="disablePinNow()">Désactiver le PIN</button>
-        <span id="cfg-pin-state" style="font-size:11px;color:var(--txt2)"></span>
-      </div>
-    </div>
-    <div class="fg" id="cfg-hidden-section">
-      <label>Onglets masqués <span style="color:var(--txt3);font-weight:400">(icône œil sur la barre latérale)</span></label>
-      <div id="cfg-hidden-list" style="display:flex;flex-wrap:wrap;gap:6px;padding-top:4px;min-height:22px"></div>
-    </div>
-    <div class="fg" id="cfg-hidden-cards-section">
-      <label>Blocs masqués <span style="color:var(--txt3);font-weight:400">(icône œil sur les tableaux / graphiques)</span></label>
-      <div id="cfg-hidden-cards-list" style="display:flex;flex-wrap:wrap;gap:6px;padding-top:4px;min-height:22px"></div>
-    </div>
-    <div class="fg">
-      <label>Profils PEA <span style="color:var(--txt3);font-weight:400">(plusieurs PEA dans la même app)</span></label>
-      <div id="cfg-profiles-list" style="display:flex;flex-direction:column;gap:6px"></div>
-      <button type="button" class="btn btn-ghost btn-sm" onclick="addProfile()" style="margin-top:6px;align-self:flex-start;font-size:11px">+ Ajouter un profil</button>
-    </div>
-    <div class="fg">
-      <label>Rapport annuel</label>
-      <div style="display:flex;gap:6px;align-items:center">
-        <select id="cfg-report-year" style="font-family:var(--mono);background:var(--bg3);border:1px solid var(--brd2);border-radius:var(--rad);padding:6px 10px;font-size:12px;color:var(--txt)"></select>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="openAnnualReport()" style="font-size:11px">📄 Générer</button>
-      </div>
-    </div>
-    <div style="background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:.7rem .9rem;font-size:11px;font-family:var(--mono);color:var(--txt2);margin-bottom:.9rem" id="cfg-recap">
-      L'avantage fiscal sera atteint le <strong id="cfg-fiscal-date">—</strong> (5 ans après l'ouverture).
+      <label>Couleur de la pastille</label>
+      <div id="user-f-colors" style="display:flex;flex-wrap:wrap;gap:6px;padding-top:4px"></div>
     </div>
     <div class="mact">
-      <button class="btn btn-ghost" onclick="closeOv('ov-config')">Annuler</button>
-      <button class="btn btn-ghost" style="color:var(--r);border-color:var(--r)" onclick="resetFromConfig()">🗑 Réinitialiser</button>
+      <button class="btn btn-ghost" onclick="closeOv('ov-user')">Annuler</button>
+      <button class="btn btn-ghost" id="user-f-del" style="color:var(--r);border-color:var(--r)"
+              onclick="deleteUserFromModal()">🗑 Supprimer</button>
+      <button class="btn btn-primary" onclick="saveUserModal()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="ov-config" onclick="if(event.target===this)closeOv('ov-config')">
+  <div class="modal" style="max-width:800px">
+    <h2>⚙ Paramètres de Pilote</h2>
+
+    <div class="set-layout">
+      <!-- Colonne de gauche : une entrée par domaine de l'app -->
+      <div class="set-nav" id="set-nav">
+        <button type="button" class="set-nav-btn active" data-set="general"
+                onclick="setGoSection('general')"><span class="set-nav-ico">⚙</span>Général</button>
+        <button type="button" class="set-nav-btn" data-set="users"
+                onclick="setGoSection('users')"><span class="set-nav-ico">👥</span>Utilisateurs</button>
+        <button type="button" class="set-nav-btn" data-set="nav"
+                onclick="setGoSection('nav')"><span class="set-nav-ico">☰</span>Navigation</button>
+        <button type="button" class="set-nav-btn" data-set="pea"
+                onclick="setGoSection('pea')"><span class="set-nav-ico">↗</span>PEA</button>
+        <button type="button" class="set-nav-btn" data-set="comptes"
+                onclick="setGoSection('comptes')"><span class="set-nav-ico">▦</span>Mes comptes</button>
+        <button type="button" class="set-nav-btn" data-set="pret"
+                onclick="setGoSection('pret')"><span class="set-nav-ico">🎓</span>Prêt étudiant</button>
+        <button type="button" class="set-nav-btn" data-set="sport"
+                onclick="setGoSection('sport')"><span class="set-nav-ico">🏃</span>Sports</button>
+        <button type="button" class="set-nav-btn" data-set="donnees"
+                onclick="setGoSection('donnees')"><span class="set-nav-ico">💾</span>Données &amp; app</button>
+      </div>
+
+      <div class="set-body">
+
+        <!-- ──── GÉNÉRAL ──── -->
+        <div class="set-sec active" data-sec="general">
+          <h3>Apparence</h3>
+          <p class="set-lead">Thème, couleur d'accent et verrouillage — valables pour toute l'app.</p>
+          <div class="fg">
+            <label>Thème</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button type="button" class="btn btn-ghost btn-sm" data-theme-btn="light" style="font-size:11px">☀ Clair</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-theme-btn="dark"  style="font-size:11px">🌙 Sombre</button>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Couleur d'accent</label>
+            <div id="cfg-accent-row" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-top:4px"></div>
+          </div>
+          <div class="fg">
+            <label>Icône de l'application</label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <button type="button" class="btn btn-ghost btn-sm" onclick="applyIconToShortcuts()"
+                      style="font-size:11px">🎨 Recolorer les raccourcis</button>
+              <span id="cfg-icon-state" style="font-size:10px;color:var(--txt3);font-family:var(--mono)">
+                Bureau, menu Démarrer et barre des tâches</span>
+            </div>
+            <p class="set-lead" style="margin:8px 0 0">
+              La vignette de la fenêtre prend déjà la couleur d'accent à chaque démarrage.
+              Ce bouton applique la même couleur aux raccourcis Windows.
+            </p>
+          </div>
+          <div class="fg">
+            <label>Code PIN à 4 chiffres <span style="color:var(--txt3);font-weight:400">(optionnel, demandé à l'ouverture)</span></label>
+            <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+              <div id="cfg-pin-boxes" style="display:flex;gap:14px">
+                <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-i="0">
+                <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-i="1">
+                <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-i="2">
+                <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-i="3">
+              </div>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="clearPinDigits()" style="font-size:11px">Effacer</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-disable-pin" style="font-size:11px;color:var(--r);display:none" onclick="disablePinNow()">Désactiver le PIN</button>
+              <span id="cfg-pin-state" style="font-size:11px;color:var(--txt2)"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ──── UTILISATEURS ──── -->
+        <div class="set-sec" data-sec="users">
+          <h3>Utilisateurs</h3>
+          <p class="set-lead">
+            Chaque utilisateur possède son propre PEA, ses comptes, son prêt et son sport.
+            Le changement d'utilisateur recharge l'application.
+          </p>
+          <div id="cfg-users-list" style="display:flex;flex-direction:column;gap:6px"></div>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="openUserModal(null)"
+                  style="margin-top:10px;font-size:11px">+ Nouvel utilisateur</button>
+        </div>
+
+        <!-- ──── NAVIGATION ──── -->
+        <div class="set-sec" data-sec="nav">
+          <h3>Navigation</h3>
+          <p class="set-lead">Ce que tu as masqué avec l'icône ⊘ se restaure ici.</p>
+          <div class="fg" id="cfg-hidden-section">
+            <label>Onglets masqués <span style="color:var(--txt3);font-weight:400">(icône œil sur la barre latérale)</span></label>
+            <div id="cfg-hidden-list" style="display:flex;flex-wrap:wrap;gap:6px;padding-top:4px;min-height:22px"></div>
+          </div>
+          <div class="fg" id="cfg-hidden-cards-section">
+            <label>Blocs masqués <span style="color:var(--txt3);font-weight:400">(icône œil sur les tableaux / graphiques)</span></label>
+            <div id="cfg-hidden-cards-list" style="display:flex;flex-wrap:wrap;gap:6px;padding-top:4px;min-height:22px"></div>
+          </div>
+        </div>
+
+        <!-- ──── PEA ──── -->
+        <div class="set-sec" data-sec="pea">
+          <h3>PEA</h3>
+          <p class="set-lead">Informations du plan et rapport fiscal.</p>
+          <div class="fg">
+            <label>Prénom <span style="color:var(--txt3);font-weight:400">(rapport annuel)</span></label>
+            <input id="cfg-prenom" placeholder="Prénom">
+          </div>
+          <div class="fg">
+            <label>Banque / courtier</label>
+            <input id="cfg-banque" placeholder="Fortuneo, Boursorama, Linxea…">
+          </div>
+          <div class="fg">
+            <label>Date d'ouverture du PEA</label>
+            <input id="cfg-ouverture" type="date">
+          </div>
+          <div style="background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:.7rem .9rem;font-size:11px;font-family:var(--mono);color:var(--txt2);margin-bottom:.9rem" id="cfg-recap">
+            L'avantage fiscal sera atteint le <strong id="cfg-fiscal-date">—</strong> (5 ans après l'ouverture).
+          </div>
+          <div class="fg">
+            <label>Rapport annuel</label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select id="cfg-report-year" style="font-family:var(--mono);background:var(--bg3);border:1px solid var(--brd2);border-radius:var(--rad);padding:6px 10px;font-size:12px;color:var(--txt)"></select>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="openAnnualReport()" style="font-size:11px">📄 Générer</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ──── MES COMPTES ──── -->
+        <div class="set-sec" data-sec="comptes">
+          <h3>Mes comptes</h3>
+          <p class="set-lead">Les listes qui alimentent la saisie des transactions.</p>
+          <div class="set-links">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="closeOv('ov-config');finOpenCategories()">▦ Catégories &amp; emoji</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="closeOv('ov-config');finOpenSources()">⊳ Sources</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="closeOv('ov-config');finOpenRecurrences()">↻ Récurrents</button>
+          </div>
+        </div>
+
+        <!-- ──── PRÊT ÉTUDIANT ──── -->
+        <div class="set-sec" data-sec="pret">
+          <h3>Prêt étudiant</h3>
+          <p class="set-lead">Montant, échéances, taux et frais se règlent dans l'onglet dédié.</p>
+          <div class="set-links">
+            <button type="button" class="btn btn-ghost btn-sm"
+                    onclick="closeOv('ov-config');goTab('pr-params');_setActiveSidebar('pr-params')">
+              Ouvrir les paramètres du prêt →</button>
+          </div>
+        </div>
+
+        <!-- ──── SPORTS ──── -->
+        <div class="set-sec" data-sec="sport">
+          <h3>Sports</h3>
+          <p class="set-lead">Ajoute tes propres sports et choisis les informations à saisir pour chacun.</p>
+          <div class="set-links">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="closeOv('ov-config');spOpenCustomSports()">🏅 Mes sports</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="closeOv('ov-config');spOpenSubtypes()">✎ Types de séance</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="closeOv('ov-config');spOpenRoutines()">↺ Routines</button>
+          </div>
+        </div>
+
+        <!-- ──── DONNÉES & APP ──── -->
+        <div class="set-sec" data-sec="donnees">
+          <h3>Données &amp; application</h3>
+          <p class="set-lead">Tout est stocké en clair sur ce PC, un dossier par utilisateur.</p>
+          <div class="fg">
+            <label>Dossier</label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <button type="button" class="btn btn-ghost btn-sm" onclick="openDataFolder()" style="font-size:11px">📁 Ouvrir le dossier Données</button>
+              <span style="font-size:10px;color:var(--txt3);font-family:var(--mono)">Backups + JSON</span>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Sauvegarde</label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <button type="button" class="btn btn-ghost btn-sm" onclick="doExport()" style="font-size:11px">↓ Exporter</button>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="doImportDialog()" style="font-size:11px">↑ Importer</button>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Mise à jour</label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-check-update" onclick="manualCheckUpdate()" style="font-size:11px">↻ Vérifier les mises à jour</button>
+              <span id="cfg-update-status" style="font-size:10px;color:var(--txt2);font-family:var(--mono)"></span>
+            </div>
+          </div>
+          <div class="fg">
+            <label style="color:var(--r)">Zone sensible</label>
+            <button type="button" class="btn btn-ghost btn-sm" style="color:var(--r);border-color:var(--r);font-size:11px"
+                    onclick="resetFromConfig()">🗑 Réinitialiser les données PEA</button>
+          </div>
+          <div id="cfg-version" style="font-size:10px;color:var(--txt3);font-family:var(--mono);margin-top:.9rem"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="mact">
+      <button class="btn btn-ghost" onclick="closeOv('ov-config')">Fermer</button>
       <button class="btn btn-primary" onclick="saveConfig()">Enregistrer</button>
     </div>
-    <div id="cfg-version" style="text-align:center;font-size:10px;color:var(--txt3);font-family:var(--mono);margin-top:.9rem"></div>
-    <div style="text-align:center;margin-top:.5rem">
-      <button type="button" class="btn btn-ghost btn-sm" id="btn-check-update" onclick="manualCheckUpdate()" style="font-size:11px">↻ Vérifier les mises à jour</button>
-    </div>
-    <div id="cfg-update-status" style="text-align:center;font-size:10px;color:var(--txt2);font-family:var(--mono);margin-top:.4rem"></div>
   </div>
 </div>
 
@@ -3020,6 +3341,9 @@ async function _hydrateFromPython() {
     }
     // Memorise les prefs UI/notifs pour le bootstrap shell
     window.__appPrefs = { ui: d.ui || {}, notifs: d.notifs || {} };
+    // La lecture a reussi : l'ecriture est autorisee, meme si le PEA est vide
+    // (cas d'un utilisateur qui vient d'etre cree).
+    _hydrationDone = true;
     return true;
   } catch(e) {
     console.warn("Hydratation Python KO:", e);
@@ -6322,6 +6646,14 @@ function goTab(n) {
 }
 
 /* ─── Modals ─── */
+/** Ouvre une modale en la placant au-dessus de celles deja ouvertes. */
+function openOvTop(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.zIndex = 9600;
+  el.classList.add("open");
+}
+
 function closeOv(id) {
   document.getElementById(id).classList.remove("open");
   if (id==="ov-pos") {
@@ -6802,92 +7134,202 @@ function doImport(ev) {
   reader.readAsText(file);
 }
 
-/* ─── Profils PEA (multi-PEA) ─── */
-async function _loadProfiles() {
+/* ─── Utilisateurs Pilote ───
+   Un utilisateur = un jeu de donnees complet (PEA + comptes + pret + sport).
+   Changer d'utilisateur recharge la page : tous les modules se rehydratent. */
+
+const USER_EMOJIS = ["\u{1F642}", "\u{1F60E}", "\u{1F913}", "\u{1F9D4}", "\u{1F471}", "\u{1F467}",
+                     "\u{1F468}", "\u{1F469}", "\u{1F474}", "\u{1F475}", "\u{1F431}", "\u{1F436}",
+                     "\u{1F981}", "\u{1F98A}", "\u{1F43C}", "\u{1F680}", "\u{2B50}", "\u{1F3AF}"];
+const USER_COLORS = ["#d97706", "#dc2626", "#db2777", "#7c3aed", "#2563eb",
+                     "#0891b2", "#0d9488", "#16a34a", "#65a30d", "#475569"];
+
+let USERS_STATE = null;
+let _userEditingSlug = null;
+let _userPickEmoji = "";
+let _userPickColor = USER_COLORS[0];
+
+async function _loadUsers(force) {
+  if (USERS_STATE && !force) return USERS_STATE;
   try {
-    if (window.pywebview && window.pywebview.api) {
-      const r = await window.pywebview.api.get_profiles();
-      if (r && r.ok) return r.state;
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.get_users) {
+      const r = await window.pywebview.api.get_users();
+      if (r && r.ok) { USERS_STATE = r.state; return USERS_STATE; }
     }
-    const r = await fetch("/profiles");
+    const r = await fetch("/users");
     const d = await r.json();
-    if (d.ok) return d.state;
-  } catch(e) {}
+    if (d.ok) { USERS_STATE = d.state; return USERS_STATE; }
+  } catch (e) { console.warn("[users] chargement KO", e); }
   return null;
 }
 
-async function renderProfilesList() {
-  const list = document.getElementById("cfg-profiles-list");
+function userInitial(u) {
+  return ((u && u.label) ? u.label.trim().charAt(0) : "?").toUpperCase();
+}
+function userColor(u) {
+  return (u && u.color) || getComputedStyle(document.documentElement)
+    .getPropertyValue("--accent").trim() || "#d97706";
+}
+function userAvatarHtml(u, cls) {
+  const inner = (u && u.emoji) ? u.emoji : userInitial(u);
+  return `<span class="${cls || "home-user-av"}" style="background:${userColor(u)}">${escHtml(inner)}</span>`;
+}
+
+/* Rang de selection affiche sur la page d'accueil */
+async function renderHomeUsers() {
+  const box = document.getElementById("home-users");
+  if (!box) return;
+  const state = await _loadUsers();
+  if (!state) { box.innerHTML = ""; return; }
+  // L'etat vient d'arriver : la salutation peut enfin porter le bon prenom
+  const greetEl = document.getElementById("home-greet");
+  if (greetEl && typeof homeGreeting === "function") {
+    greetEl.textContent = homeGreeting() + (homeDisplayName() ? " " + homeDisplayName() : "");
+  }
+  box.innerHTML = state.users.map(u => {
+    const active = u.slug === state.active;
+    return `<button class="home-user${active ? " active" : ""}"
+      onclick="${active ? `openUserModal('${u.slug}')` : `switchUser('${u.slug}')`}"
+      title="${active ? "Modifier cet utilisateur" : "Basculer sur " + escHtml(u.label)}">
+      ${userAvatarHtml(u)}<span>${escHtml(u.label)}</span>
+    </button>`;
+  }).join("") +
+  `<button class="home-user home-user-add" onclick="openUserModal(null)"
+           title="Cr\u00e9er un utilisateur">+ Nouvel utilisateur</button>`;
+}
+
+async function switchUser(slug) {
+  if (!(window.pywebview && window.pywebview.api && window.pywebview.api.set_active_user)) return;
+  const r = await window.pywebview.api.set_active_user(slug);
+  if (r && r.ok) location.reload();
+  else showToastModern("Changement d'utilisateur impossible : " + ((r && r.error) || "?"), "err");
+}
+
+/* ── Modale creation / edition ── */
+
+function _userRenderPickers() {
+  document.getElementById("user-f-emojis").innerHTML = USER_EMOJIS.map(e => `
+    <button type="button" data-uemoji="${e}" onclick="_userSetEmoji('${e}')"
+      style="width:32px;height:32px;border-radius:8px;font-size:17px;cursor:pointer;
+             background:var(--bg3);border:2px solid ${e === _userPickEmoji ? "var(--accent)" : "var(--brd2)"}">${e}</button>`).join("");
+  document.getElementById("user-f-colors").innerHTML = USER_COLORS.map(c => `
+    <button type="button" onclick="_userSetColor('${c}')"
+      style="width:26px;height:26px;border-radius:50%;cursor:pointer;background:${c};
+             border:${c.toLowerCase() === _userPickColor.toLowerCase() ? "3px solid var(--txt)" : "2px solid var(--brd2)"}"></button>`).join("");
+}
+function _userSetEmoji(e) {
+  _userPickEmoji = (_userPickEmoji === e) ? "" : e;
+  document.getElementById("user-f-emoji").value = _userPickEmoji;
+  _userRenderPickers();
+}
+function _userSetColor(c) { _userPickColor = c; _userRenderPickers(); }
+
+async function openUserModal(slug) {
+  const state = await _loadUsers(true);
+  const u = (slug && state) ? state.users.find(x => x.slug === slug) : null;
+  _userEditingSlug = u ? u.slug : null;
+  _userPickEmoji = u ? (u.emoji || "") : "";
+  _userPickColor = (u && u.color) || USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)];
+
+  document.getElementById("user-modal-title").textContent = u ? "Modifier l'utilisateur" : "Nouvel utilisateur";
+  document.getElementById("user-f-label").value = u ? u.label : "";
+  document.getElementById("user-f-emoji").value = _userPickEmoji;
+  document.getElementById("user-f-del").style.display =
+    (u && state.users.length > 1) ? "" : "none";
+  _userRenderPickers();
+  openOvTop("ov-user");
+  setTimeout(() => document.getElementById("user-f-label").focus(), 60);
+}
+
+async function saveUserModal() {
+  const api = (window.pywebview && window.pywebview.api) || null;
+  if (!api) { showToastModern("Bridge indisponible", "err"); return; }
+  const label = document.getElementById("user-f-label").value.trim();
+  const emoji = document.getElementById("user-f-emoji").value.trim();
+  if (!label) { showToastModern("Donne un nom \u00e0 l'utilisateur", "warn"); return; }
+
+  let r;
+  if (_userEditingSlug) r = await api.update_user(_userEditingSlug, label, emoji, _userPickColor);
+  else                  r = await api.add_user(label, emoji, _userPickColor);
+  if (!r || !r.ok) { showToastModern("\u00c9chec : " + ((r && r.error) || "?"), "err"); return; }
+
+  closeOv("ov-user");
+  USERS_STATE = r.state || null;
+  await _loadUsers(true);
+  renderHomeUsers();
+  renderUsersList();
+  _renderUserPill();
+  if (!_userEditingSlug && r.slug) {
+    if (confirm("Utilisateur \u00ab\u00a0" + label + "\u00a0\u00bb cr\u00e9\u00e9.\nBasculer dessus maintenant ?")) {
+      switchUser(r.slug);
+      return;
+    }
+  }
+  showToastModern("Utilisateur enregistr\u00e9", "ok");
+}
+
+async function deleteUserFromModal() {
+  if (!_userEditingSlug) return;
+  const api = (window.pywebview && window.pywebview.api) || null;
+  if (!api) return;
+  if (!confirm("Retirer cet utilisateur de la liste ?\n\nSes donn\u00e9es restent sur le disque "
+             + "(dossier Donnees/users/) et peuvent \u00eatre r\u00e9cup\u00e9r\u00e9es \u00e0 la main.")) return;
+  const r = await api.delete_user(_userEditingSlug);
+  if (!r || !r.ok) { showToastModern("\u00c9chec : " + ((r && r.error) || "?"), "err"); return; }
+  closeOv("ov-user");
+  const wasActive = USERS_STATE && USERS_STATE.active === _userEditingSlug;
+  USERS_STATE = r.state || null;
+  if (wasActive) { location.reload(); return; }
+  await _loadUsers(true);
+  renderHomeUsers(); renderUsersList(); _renderUserPill();
+  showToastModern("Utilisateur retir\u00e9", "ok");
+}
+
+/* ── Liste dans les Parametres ── */
+
+async function renderUsersList() {
+  const list = document.getElementById("cfg-users-list");
   if (!list) return;
-  const state = await _loadProfiles();
-  if (!state) { list.innerHTML = '<span style="color:var(--txt2);font-size:11px">Indisponible</span>'; return; }
-  list.innerHTML = state.profiles.map(p => {
-    const isActive = p.slug === state.active;
-    return `<div style="display:flex;gap:6px;align-items:center;background:${isActive?'var(--bg3)':'transparent'};border:1px solid var(--brd);border-radius:var(--rad);padding:6px 10px">
-      ${isActive ? '<span style="color:var(--g);font-size:14px">●</span>' : '<span style="color:var(--txt3);font-size:14px">○</span>'}
-      <span style="flex:1;font-size:12px;font-weight:${isActive?700:500}">${p.label}</span>
-      ${!isActive ? `<button type="button" class="btn btn-ghost btn-sm" onclick="switchProfile('${p.slug}')" style="font-size:10px;padding:3px 8px">Activer</button>` : ''}
-      <button type="button" class="btn btn-ghost btn-sm" onclick="renameProfile('${p.slug}','${p.label.replace(/'/g,"\\'")}')" style="font-size:10px;padding:3px 8px">✎</button>
-      ${state.profiles.length > 1 ? `<button type="button" class="btn btn-ghost btn-sm" onclick="deleteProfile('${p.slug}')" style="font-size:10px;padding:3px 8px;color:var(--r)">🗑</button>` : ''}
+  const state = await _loadUsers(true);
+  if (!state) { list.innerHTML = '<span class="m-empty">Indisponible</span>'; return; }
+  list.innerHTML = state.users.map(u => {
+    const active = u.slug === state.active;
+    return `<div style="display:flex;gap:9px;align-items:center;background:${active ? "var(--bg3)" : "transparent"};
+                 border:1px solid ${active ? "var(--accent)" : "var(--brd)"};border-radius:var(--rad);padding:7px 10px">
+      ${userAvatarHtml(u, "home-user-av")}
+      <span style="flex:1;font-size:12px;font-weight:${active ? 700 : 500}">${escHtml(u.label)}
+        ${active ? '<span class="m-tag">actif</span>' : ""}</span>
+      ${active ? "" : `<button type="button" class="btn btn-ghost btn-sm" onclick="switchUser('${u.slug}')"
+                        style="font-size:10px;padding:3px 8px">Basculer</button>`}
+      <button type="button" class="btn btn-ghost btn-sm" onclick="openUserModal('${u.slug}')"
+              style="font-size:10px;padding:3px 8px">\u270e</button>
     </div>`;
   }).join("");
 }
 
-async function addProfile() {
-  const label = prompt("Nom du nouveau profil PEA (ex : « PEA Papa »)");
-  if (!label || !label.trim()) return;
-  if (window.pywebview && window.pywebview.api) {
-    const r = await window.pywebview.api.add_profile(label.trim());
-    if (r && r.ok) renderProfilesList();
-    else alert("Erreur : " + ((r && r.error) || "?"));
-  }
-}
-async function renameProfile(slug, currentLabel) {
-  const newLabel = prompt("Nouveau nom :", currentLabel);
-  if (!newLabel || !newLabel.trim()) return;
-  if (window.pywebview && window.pywebview.api) {
-    const r = await window.pywebview.api.rename_profile(slug, newLabel.trim());
-    if (r && r.ok) { renderProfilesList(); _renderProfilePill(); }
-  }
-}
-async function deleteProfile(slug) {
-  if (!confirm("Supprimer ce profil ? Le fichier de données reste dans le dossier Donnees/ (tu peux le récupérer manuellement).")) return;
-  if (window.pywebview && window.pywebview.api) {
-    const r = await window.pywebview.api.delete_profile(slug);
-    if (r && r.ok) { renderProfilesList(); _renderProfilePill(); }
-    else alert("Erreur : " + ((r && r.error) || "?"));
-  }
-}
-async function switchProfile(slug) {
-  if (window.pywebview && window.pywebview.api) {
-    const r = await window.pywebview.api.set_active_profile(slug);
-    if (r && r.ok) {
-      // Recharge complete pour repartir avec les nouvelles donnees
-      location.reload();
-    }
-  }
-}
+/* ── Pastille en bas de la sidebar ── */
 
-async function _renderProfilePill() {
+async function _renderUserPill() {
   const sb = document.querySelector(".sidebar");
   if (!sb) return;
-  const state = await _loadProfiles();
-  if (!state || state.profiles.length <= 1) {
-    // Cache le pill si un seul profil (mode discret)
-    const ex = document.getElementById("profile-pill"); if (ex) ex.remove();
-    return;
-  }
-  let pill = document.getElementById("profile-pill");
+  const state = await _loadUsers();
+  if (!state) return;
+  const active = state.users.find(u => u.slug === state.active) || state.users[0];
+  let pill = document.getElementById("user-pill");
   if (!pill) {
-    pill = document.createElement("div");
-    pill.id = "profile-pill";
-    pill.style.cssText = "margin:auto 12px 12px;padding:8px 10px;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);font-size:10px;color:var(--txt2);font-family:var(--mono);cursor:pointer;text-align:center";
-    pill.title = "Cliquer pour changer de profil";
-    pill.onclick = () => openConfig();
-    sb.appendChild(pill);
+    pill = document.createElement("button");
+    pill.id = "user-pill";
+    pill.className = "sb-item";
+    pill.title = "Utilisateur actif \u2014 cliquer pour en changer";
+    pill.onclick = () => { goTab("home"); _setActiveSidebar("home"); };
+    const bottom = sb.querySelector(".sb-bottom");
+    if (bottom) bottom.insertBefore(pill, bottom.firstChild);
+    else sb.appendChild(pill);
   }
-  const active = state.profiles.find(p => p.slug === state.active);
-  pill.innerHTML = `<span style="color:var(--g)">●</span> ${active ? active.label : "?"}`;
+  pill.innerHTML = `${userAvatarHtml(active, "home-user-av")}
+    <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(active.label)}</span>`;
+  const av = pill.querySelector(".home-user-av");
+  if (av) { av.style.width = "22px"; av.style.height = "22px"; av.style.fontSize = "12px"; }
 }
 
 /* ─── Rapport annuel ─── */
@@ -7168,7 +7610,27 @@ async function _showWelcomeIfFirstRun() {
   if (!isEmpty) return;
   if (document.getElementById("ov-welcome")) return;
 
+  // Identite : sur une installation multi-utilisateurs, on rappelle de quel
+  // espace il s'agit — les donnees des autres utilisateurs ne sont jamais
+  // reprises ici.
+  let identitySection = "";
+  try {
+    const st = (typeof _loadUsers === "function") ? await _loadUsers() : null;
+    if (st && st.users.length > 1) {
+      const me = st.users.find(u => u.slug === st.active) || st.users[0];
+      identitySection = `
+        <div style="display:flex;align-items:center;gap:10px;justify-content:center;
+                    background:var(--bg3);border:1px solid var(--brd);border-radius:999px;
+                    padding:7px 16px;margin-bottom:1.2rem;font-size:12px">
+          ${userAvatarHtml(me)}
+          <span>Espace de <strong>${escHtml(me.label)}</strong> \u2014 vierge.
+          Les donn\u00e9es des autres utilisateurs restent chez eux.</span>
+        </div>`;
+    }
+  } catch (e) {}
+
   // Scan d'anciennes donnees pour proposer une recuperation auto
+  // (uniquement hors de cette installation : voir storage.scan_orphan_data)
   let candidates = [];
   try {
     const r = await fetch(`http://127.0.0.1:${_PEA_PORT}/scan-orphan-data?t=` + Date.now(), {cache:"no-store"});
@@ -7186,10 +7648,11 @@ async function _showWelcomeIfFirstRun() {
       <div style="background:linear-gradient(135deg, rgba(22,163,74,0.10), rgba(22,163,74,0.04));border:2px solid var(--g);
                   border-radius:var(--rad);padding:1rem 1.1rem;margin-bottom:1rem;text-align:left">
         <div style="font-weight:700;font-size:13px;color:var(--g);margin-bottom:.4rem">
-          ✨ Données existantes détectées
+          ✨ Ancienne installation détectée
         </div>
         <div style="font-size:11px;color:var(--txt2);margin-bottom:.7rem">
-          Tu as déjà utilisé Pilote ailleurs sur cet ordinateur. Récupérer ces données ?
+          Un fichier Pilote a été trouvé <strong>hors de cette installation</strong>
+          (ancien dossier, exe déplacé…). L'importer dans cet espace ?
         </div>
         <div style="display:flex;flex-direction:column;gap:6px">
           ${candidates.map((c, i) => `
@@ -7219,10 +7682,11 @@ async function _showWelcomeIfFirstRun() {
       <p style="color:var(--txt2);font-size:13px;margin-bottom:1.4rem">
         Un outil simple pour suivre ton PEA, ton portefeuille et ta performance dans le temps.
       </p>
+      ${identitySection}
       ${recoverySection}
       <div style="text-align:left;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:1.2rem;margin-bottom:1.2rem;font-size:12px;line-height:1.8">
         <strong style="font-size:13px">Pour démarrer :</strong><br>
-        <span style="font-family:var(--mono);color:var(--accent);font-weight:700">①</span> Configure ton PEA dans <strong>⚙ Paramètres</strong> en haut à droite<br>
+        <span style="font-family:var(--mono);color:var(--accent);font-weight:700">①</span> Configure ton PEA dans <strong>⚙ Paramètres</strong>, sur la page d'accueil<br>
         <span style="font-family:var(--mono);color:var(--accent);font-weight:700">②</span> Saisis tes <strong>versements</strong> dans l'onglet <strong>Dépôts</strong><br>
         <span style="font-family:var(--mono);color:var(--accent);font-weight:700">③</span> Ajoute tes <strong>positions</strong> (actions / ETF) et tes <strong>transactions</strong> achat/vente<br>
         <span style="font-family:var(--mono);color:var(--accent);font-weight:700">④</span> Les cours se mettent à jour <strong>automatiquement</strong> toutes les 3 min via Yahoo Finance
@@ -7231,7 +7695,7 @@ async function _showWelcomeIfFirstRun() {
         <strong style="color:var(--txt)">Aussi :</strong><br>
         💡 Tu peux <strong>importer</strong> des données depuis un JSON (bouton ⤒ Importer en haut)<br>
         🔒 Tu peux protéger l'accès avec un <strong>code PIN à 4 chiffres</strong> dans Paramètres<br>
-        🌙 Choisis un <strong>thème clair ou sombre</strong> + 7 couleurs d'accent dans Paramètres<br>
+        🌙 Choisis un <strong>thème clair ou sombre</strong> et la couleur d'accent de ton choix<br>
         📈 Compare ta performance vs <strong>CAC 40, S&P 500, ETF World</strong> dans l'onglet Performance<br>
         🧮 Simulateurs de projection long terme dans l'onglet <strong>Simulateurs</strong>
       </div>
@@ -7244,7 +7708,7 @@ async function _showWelcomeIfFirstRun() {
   document.body.appendChild(ov);
   const close = () => ov.remove();
   ov.querySelector("#welcome-skip").onclick   = close;
-  ov.querySelector("#welcome-config").onclick = () => { close(); openConfig(); };
+  ov.querySelector("#welcome-config").onclick = () => { close(); openSettings("pea"); };
   ov.querySelector("#welcome-import").onclick = () => {
     close();
     const inp = document.getElementById("import-file");
@@ -7408,7 +7872,24 @@ function _renderAccentPicker() {
   if (customPicker) customPicker.oninput = () => updateSelection(customPicker.value);
 }
 
-/* ─── Config PEA ─── */
+/* ─── Paramètres de Pilote ─── */
+
+/** Bascule sur une section de la modale (general, users, pea, sport…). */
+function setGoSection(id) {
+  document.querySelectorAll("#set-nav .set-nav-btn").forEach(b =>
+    b.classList.toggle("active", b.dataset.set === id));
+  document.querySelectorAll(".set-sec").forEach(el =>
+    el.classList.toggle("active", el.dataset.sec === id));
+  const body = document.querySelector(".set-body");
+  if (body) body.scrollTop = 0;
+}
+
+/** Point d'entrée : openSettings("sport") ouvre directement la bonne section. */
+async function openSettings(section) {
+  await openConfig();
+  setGoSection(section || "general");
+}
+
 async function openConfig() {
   document.getElementById("cfg-prenom").value  = S.prenom  || "";
   document.getElementById("cfg-banque").value   = S.banque  || "";
@@ -7424,8 +7905,8 @@ async function openConfig() {
     pinState.textContent = required ? "✓ PIN actif" : "Aucun PIN";
     if (disableBtn) disableBtn.style.display = required ? "" : "none";
   }
-  // Liste profils
-  if (typeof renderProfilesList === "function") renderProfilesList();
+  // Liste des utilisateurs
+  if (typeof renderUsersList === "function") renderUsersList();
   // Liste annees rapport
   if (typeof renderReportYears === "function") renderReportYears();
   updateConfigRecap();
@@ -7461,11 +7942,39 @@ async function openConfig() {
     const vEl = document.getElementById("cfg-version");
     if (vEl && window.pywebview && window.pywebview.api) {
       const info = await window.pywebview.api.app_info();
-      if (info) vEl.textContent = "Pilote v" + info.version;
+      if (info) vEl.textContent = "Pilote v" + info.version
+        + (info.user && info.user.label ? "  \u00b7  " + info.user.label : "");
     }
   } catch(e) {}
   document.getElementById("ov-config").classList.add("open");
+  setGoSection("general");
 }
+
+/** Recolore aussi les raccourcis Windows (Bureau, Démarrer, barre des tâches). */
+async function applyIconToShortcuts() {
+  const st = document.getElementById("cfg-icon-state");
+  const api = (window.pywebview && window.pywebview.api) || null;
+  if (!api || !api.apply_icon_to_shortcuts) {
+    if (st) st.textContent = "Indisponible";
+    return;
+  }
+  const row = document.getElementById("cfg-accent-row");
+  const color = (row && row.dataset.selected) || (S.uiPrefs && S.uiPrefs.accent) || "#d97706";
+  if (st) st.textContent = "Application\u2026";
+  try {
+    const r = await api.apply_icon_to_shortcuts(color);
+    if (r && r.ok) {
+      if (st) st.textContent = r.count + " raccourci" + (r.count > 1 ? "s" : "") + " recolor\u00e9" + (r.count > 1 ? "s" : "");
+      showToastModern("Ic\u00f4ne appliqu\u00e9e aux raccourcis", "ok");
+    } else {
+      if (st) st.textContent = (r && r.error) || "\u00c9chec";
+      showToastModern("Raccourcis non modifi\u00e9s : " + ((r && r.error) || "?"), "warn");
+    }
+  } catch (e) {
+    if (st) st.textContent = "Erreur";
+  }
+}
+
 function updateConfigRecap() {
   const val = document.getElementById("cfg-ouverture").value;
   const el = document.getElementById("cfg-fiscal-date");
@@ -7489,6 +7998,11 @@ async function saveConfig() {
   // Sauve uiPrefs (accent...) via API dediee
   if (window.pywebview && window.pywebview.api && window.pywebview.api.save_ui_prefs) {
     try { await window.pywebview.api.save_ui_prefs(S.uiPrefs); } catch(e) {}
+  }
+  // L'icone de la fenetre et de la barre des taches suit la couleur d'accent
+  if (S.uiPrefs.accent && window.pywebview && window.pywebview.api
+      && window.pywebview.api.set_app_icon_color) {
+    try { await window.pywebview.api.set_app_icon_color(S.uiPrefs.accent); } catch(e) {}
   }
   // PIN : on lit les 4 cases. Si tout vide = no-op. Si 4 chiffres = enregistre.
   const pinVal = getPinDigits();
@@ -8553,7 +9067,7 @@ function _injectSidebar() {
       <button class="sb-item" id="sb-theme">
         <span class="sb-icon">☾</span><span id="sb-theme-lbl">Thème sombre</span>
       </button>
-      <button class="sb-item" onclick="openConfig()">
+      <button class="sb-item" onclick="openSettings('general')">
         <span class="sb-icon">⚙</span><span>Paramètres</span>
       </button>
     </div>
@@ -8953,8 +9467,8 @@ function installShellEnhancements() {
   _applyHiddenCards();
   _injectCardEyeBtns();
   _installShortcuts();
-  // Pill profil PEA en bas de sidebar (cache si un seul profil)
-  if (typeof _renderProfilePill === "function") _renderProfilePill();
+  // Pastille utilisateur en bas de la sidebar
+  if (typeof _renderUserPill === "function") _renderUserPill();
 
   // Cacher le bouton "Cours manuels" (legacy GS) : la saisie passe par les positions
   const right = document.querySelector(".topbar-right");
@@ -9067,10 +9581,11 @@ async function _hydrateFromHttp() {
     } else {
       _diagHide();
     }
-    // Marqueur : hydratation reussie SEULEMENT si on a charge des donnees reelles
-    if (legacy.positions.length > 0 || legacy.transactions.length > 0 || legacy.depots.length > 0) {
-      _hydrationDone = true;
-    }
+    // Marqueur : ce qui compte est que la LECTURE ait reussi, pas qu'elle
+    // ramene des donnees. Un utilisateur qui vient d'etre cree a un PEA vide
+    // et doit pouvoir enregistrer sa premiere ligne ; seule une vraie erreur
+    // de lecture (JSON corrompu) doit bloquer l'ecriture.
+    if (!dbg.load_error) _hydrationDone = true;
     return true;
   } catch(e) {
     _diag("Hydratation HTTP exception : " + e.message, "err");
@@ -9355,6 +9870,52 @@ function finTxIsInMonth(tx, y, m) {
   return Y === y && M === (m + 1);
 }
 function finCatById(id) { return F.categories.find(c => c.id === id); }
+
+/* ── Emoji des categories / sous-categories ──
+   Chaque entree porte son emoji ; on retombe sur un pictogramme neutre
+   pour les categories creees avant la v4.1.2 et jamais personnalisees. */
+const FIN_FALLBACK_ICON = { expense: "\u{1F3F7}\u{FE0F}", income: "\u{1F4B0}" };
+const FIN_ICON_CHOICES = [
+  "\u{1F6D2}", "\u{1F37D}\u{FE0F}", "\u{1F35F}", "\u{2615}", "\u{1F3E0}", "\u{1F511}", "\u{26A1}", "\u{1F4A7}",
+  "\u{1F4F6}", "\u{1F4F1}", "\u{1F4FA}", "\u{1F4BB}", "\u{1F697}", "\u{26FD}", "\u{1F687}", "\u{2708}\u{FE0F}",
+  "\u{1F6B2}", "\u{1F3E5}", "\u{1F48A}", "\u{1F453}", "\u{1F3AC}", "\u{1F3AE}", "\u{1F3B5}", "\u{1F4DA}",
+  "\u{1F455}", "\u{1F45F}", "\u{1F381}", "\u{2764}\u{FE0F}", "\u{1F3CB}\u{FE0F}", "\u{26BD}", "\u{1F3C3}", "\u{1F43E}",
+  "\u{1F3E6}", "\u{1F4B3}", "\u{1F4B6}", "\u{1F4B0}", "\u{1F4C8}", "\u{1F31F}", "\u{1F6E0}\u{FE0F}", "\u{1F4E6}"
+];
+
+function finCatIcon(c) {
+  if (!c) return "\u2022";
+  return c.icon || FIN_FALLBACK_ICON[c.type] || "\u{1F3F7}\u{FE0F}";
+}
+function finSubIcon(sb) { return (sb && sb.icon) || "\u2022"; }
+
+/* Selecteur d'emoji : palette cliquable + saisie libre.
+   finPickIcon() ouvre la modale et rappelle le callback avec l'emoji choisi. */
+let _finIconCb = null;
+
+function finPickIcon(current, title, onPick) {
+  _finIconCb = onPick || null;
+  document.getElementById("fin-icon-title").textContent = title || "Emoji";
+  document.getElementById("fin-icon-free").value = current || "";
+  document.getElementById("fin-icon-grid").innerHTML = FIN_ICON_CHOICES.map(e => `
+    <button type="button" onclick="finIconPick('${e}')"
+      style="width:34px;height:34px;border-radius:8px;font-size:18px;cursor:pointer;background:var(--bg3);
+             border:2px solid ${e === current ? "var(--accent)" : "var(--brd2)"}">${e}</button>`).join("");
+  openOvTop("ov-fin-icon");
+}
+
+function finIconPick(e) {
+  document.getElementById("fin-icon-free").value = e;
+  finIconConfirm();
+}
+
+function finIconConfirm() {
+  const v = (document.getElementById("fin-icon-free").value || "").trim().slice(0, 4);
+  closeOv("ov-fin-icon");
+  const cb = _finIconCb;
+  _finIconCb = null;
+  if (cb) cb(v);
+}
 function finSubById(catId, subId) {
   const c = finCatById(catId);
   if (!c) return null;
@@ -9576,7 +10137,7 @@ function finRenderYearTop(t) {
     return `<div class="fin-top-row">
       <span class="fin-top-rank">${i + 1}</span>
       <span class="fin-top-color" style="background:${color}"></span>
-      <span class="fin-top-name">${_finEsc(cat.name)}</span>
+      <span class="fin-top-name"><span class="fin-ico">${_finEsc(finCatIcon(cat))}</span> ${_finEsc(cat.name)}</span>
       <div class="fin-top-bar-wrap"><div class="fin-top-bar" style="width:${entry.pct.toFixed(1)}%;background:${color}"></div></div>
       <span class="fin-top-pct">${entry.pct.toFixed(1)}%</span>
       <span class="fin-top-amount">${finFmtAbs(entry.amount)}</span>
@@ -9668,7 +10229,7 @@ function finRefreshFilters() {
     const cur = catSel.value;
     catSel.innerHTML = `<option value="">Toutes catégories</option>` +
       F.categories.map(c =>
-        `<option value="${c.id}">${_finEsc(c.name)} (${c.type === "income" ? "Rev" : "Dép"})</option>`
+        `<option value="${c.id}">${_finEsc(finCatIcon(c) + "  " + c.name)} (${c.type === "income" ? "Rev" : "Dép"})</option>`
       ).join("");
     catSel.value = cur;
   }
@@ -9717,8 +10278,8 @@ function finRenderTxList() {
     const cat = finCatById(tx.categoryId);
     const sub = finSubById(tx.categoryId, tx.subcategoryId);
     const src = finSrcById(tx.sourceId);
-    const catName = cat ? cat.name : "—";
-    const subPart = sub ? " · " + sub.name : "";
+    const catName = cat ? (finCatIcon(cat) + " " + cat.name) : "—";
+    const subPart = sub ? " · " + finSubIcon(sub) + " " + sub.name : "";
     const pillStyle = cat ? `background:${cat.color}22;color:${cat.color}` : "";
     const amountStr = (tx.type === "income" ? "+" : "−") + finFmtAbs(Number(tx.amount) || 0);
     const recIcon = tx.recurrenceId ? ` <span title="Issue d'un récurrent" style="color:var(--txt3);font-size:10px">↻</span>` : "";
@@ -9764,7 +10325,10 @@ function finRenderCharts() {
   } else {
     pieCanvas.style.display = "";
     pieEmpty.style.display  = "none";
-    const labels = ids.map(id => finCatById(Number(id)).name);
+    const labels = ids.map(id => {
+      const c = finCatById(Number(id));
+      return finCatIcon(c) + "  " + c.name;
+    });
     const values = ids.map(id => expByCat[id]);
     const colors = ids.map(id => finCatById(Number(id)).color || "#a1a1aa");
     if (_finCharts.pie) _finCharts.pie.destroy();
@@ -9851,7 +10415,7 @@ function finSetTxType(type) {
   document.getElementById("fin-tx-type-income").classList.toggle("active",  type === "income");
   const catSel = document.getElementById("fin-tx-cat");
   const cats = F.categories.filter(c => c.type === type);
-  catSel.innerHTML = cats.map(c => `<option value="${c.id}">${_finEsc(c.name)}</option>`).join("");
+  catSel.innerHTML = cats.map(c => `<option value="${c.id}">${_finEsc(finCatIcon(c) + "  " + c.name)}</option>`).join("");
   finRefreshSubs("fin-tx-cat","fin-tx-sub");
   const srcSel = document.getElementById("fin-tx-src");
   srcSel.innerHTML = F.sources.map(s => `<option value="${s.id}">${_finEsc(s.name)}</option>`).join("");
@@ -9863,7 +10427,7 @@ function finRefreshSubs(catSelId, subSelId) {
   const sel = document.getElementById(subSelId);
   if (!cat || !cat.subs || !cat.subs.length) { sel.innerHTML = `<option value="">—</option>`; return; }
   sel.innerHTML = `<option value="">—</option>` +
-    cat.subs.map(s => `<option value="${s.id}">${_finEsc(s.name)}</option>`).join("");
+    cat.subs.map(s => `<option value="${s.id}">${_finEsc(finSubIcon(s) + "  " + s.name)}</option>`).join("");
 }
 
 function finSaveTx() {
@@ -9926,7 +10490,8 @@ function finRenderCatsList() {
     const subsHtml = (c.subs || []).map(s => {
       const subUsed = finIsSubUsed(c.id, s.id);
       return `<div class="fin-sub-row">
-        <span class="fin-sub-name">↳ ${_finEsc(s.name)}</span>
+        <span class="fin-sub-name">↳ <span class="fin-ico">${_finEsc(finSubIcon(s))}</span> ${_finEsc(s.name)}</span>
+        <button class="fin-tx-act-btn" onclick="finChangeSubIcon(${c.id},${s.id})" title="Changer l'emoji">☺</button>
         <button class="fin-tx-act-btn" onclick="finRenameSub(${c.id},${s.id})" title="Renommer">✎</button>
         <button class="fin-tx-act-btn del" onclick="finDeleteSub(${c.id},${s.id})" title="${subUsed ? 'Bloqué : sous-catégorie utilisée par des transactions' : 'Supprimer'}" ${subUsed ? 'disabled style="opacity:.35;cursor:not-allowed"' : ''}>✕</button>
       </div>`;
@@ -9934,14 +10499,18 @@ function finRenderCatsList() {
     return `<div class="fin-cat-block">
       <div class="fin-cat-head">
         <span class="fin-cat-color-dot" style="background:${c.color || '#a1a1aa'}"></span>
+        <span class="fin-ico fin-ico-lg">${_finEsc(finCatIcon(c))}</span>
         <span class="fin-cat-name">${_finEsc(c.name)}</span>
         <span class="fin-cat-type-pill ${c.type}">${c.type === "income" ? "Revenu" : "Dépense"}</span>
+        <button class="fin-tx-act-btn" onclick="finChangeCatIcon(${c.id})" title="Changer l'emoji">☺</button>
         <button class="fin-tx-act-btn" onclick="finRenameCat(${c.id})"  title="Renommer">✎</button>
         <button class="fin-tx-act-btn" onclick="finChangeColor(${c.id})" title="Changer la couleur">◐</button>
         <button class="fin-tx-act-btn del" onclick="finDeleteCat(${c.id})" title="${used ? 'Bloqué : transactions ou récurrents liés' : 'Supprimer'}" ${used ? 'disabled style="opacity:.35;cursor:not-allowed"' : ''}>✕</button>
       </div>
       ${subsHtml}
       <div class="fin-add-line">
+        <input id="fin-newsubico-${c.id}" class="fin-ico-in" type="text" maxlength="4" placeholder="☺"
+               style="text-align:center" title="Emoji de la sous-catégorie">
         <input id="fin-newsub-${c.id}" type="text" placeholder="Nouvelle sous-catégorie…">
         <button class="btn btn-ghost btn-sm" onclick="finAddSub(${c.id})">+ Ajouter</button>
       </div>
@@ -9959,9 +10528,12 @@ function finIsSubUsed(catId, subId) {
 function finAddCategory() {
   const name  = document.getElementById("fin-newcat-name").value.trim();
   const color = document.getElementById("fin-newcat-color").value || "#7c3aed";
+  const icoEl = document.getElementById("fin-newcat-icon");
+  const icon  = (icoEl && icoEl.value.trim()) || FIN_FALLBACK_ICON[_finCatFilter];
   if (!name) return;
-  F.categories.push({ id: finUid("cat"), name, type: _finCatFilter, color, subs: [] });
+  F.categories.push({ id: finUid("cat"), name, icon, type: _finCatFilter, color, subs: [] });
   document.getElementById("fin-newcat-name").value = "";
+  if (icoEl) icoEl.value = "";
   finPersist(); finRenderCatsList(); finRefreshFilters();
   showToastModern("Catégorie ajoutée", "ok");
 }
@@ -9988,12 +10560,30 @@ function finChangeColor(id) {
 function finAddSub(catId) {
   const c = finCatById(catId); if (!c) return;
   const inp = document.getElementById("fin-newsub-" + catId);
+  const ico = document.getElementById("fin-newsubico-" + catId);
   const name = (inp.value || "").trim(); if (!name) return;
   c.subs = c.subs || [];
   const subId = (c.subs.reduce((m, s) => Math.max(m, s.id || 0), 0)) + 1;
-  c.subs.push({ id: subId, name });
+  c.subs.push({ id: subId, name, icon: (ico && ico.value.trim()) || "\u2022" });
   inp.value = "";
-  finPersist(); finRenderCatsList();
+  if (ico) ico.value = "";
+  finPersist(); finRenderCatsList(); finRenderAll();
+}
+
+/* ── Changement d'emoji ── */
+function finChangeCatIcon(id) {
+  const c = finCatById(id); if (!c) return;
+  finPickIcon(finCatIcon(c), "Emoji de \u00ab\u00a0" + c.name + "\u00a0\u00bb", v => {
+    c.icon = v || FIN_FALLBACK_ICON[c.type];
+    finPersist(); finRenderCatsList(); finRefreshFilters(); finRenderAll();
+  });
+}
+function finChangeSubIcon(catId, subId) {
+  const sb = finSubById(catId, subId); if (!sb) return;
+  finPickIcon(finSubIcon(sb), "Emoji de \u00ab\u00a0" + sb.name + "\u00a0\u00bb", v => {
+    sb.icon = v || "\u2022";
+    finPersist(); finRenderCatsList(); finRenderAll();
+  });
 }
 function finRenameSub(catId, subId) {
   const s = finSubById(catId, subId); if (!s) return;
@@ -10074,7 +10664,7 @@ function finRenderRecsList() {
     return `<div class="fin-rec-row">
       <div>
         <div class="fin-rec-name">${r.type === "income" ? "+" : "−"} ${_finEsc(r.label)}</div>
-        <div class="fin-rec-meta">${cat ? _finEsc(cat.name) : "—"} · ${_finFreqLabel(r)}</div>
+        <div class="fin-rec-meta">${cat ? _finEsc(finCatIcon(cat) + " " + cat.name) : "—"} · ${_finFreqLabel(r)}</div>
       </div>
       <span class="fin-rec-pill ${r.amountMode}">${r.amountMode === "fixed" ? "Fixe" : "Variable"}</span>
       <span class="fin-tx-source">Prochain : ${_finDateToFR(r.nextDue)}</span>
@@ -10128,7 +10718,7 @@ function finSetRecType(type) {
   document.getElementById("fin-rec-type-income").classList.toggle("active",  type === "income");
   const catSel = document.getElementById("fin-rec-cat");
   const cats = F.categories.filter(c => c.type === type);
-  catSel.innerHTML = cats.map(c => `<option value="${c.id}">${_finEsc(c.name)}</option>`).join("");
+  catSel.innerHTML = cats.map(c => `<option value="${c.id}">${_finEsc(finCatIcon(c) + "  " + c.name)}</option>`).join("");
   finRefreshSubs("fin-rec-cat","fin-rec-sub");
   const srcSel = document.getElementById("fin-rec-src");
   srcSel.innerHTML = F.sources.map(s => `<option value="${s.id}">${_finEsc(s.name)}</option>`).join("");
@@ -10263,8 +10853,30 @@ let SP_CATALOG = [
   { id: "natation", label: "Natation",              icon: "🏊", color: "#0891b2", fields: ["distance_m","duration","lieu"] },
   { id: "muscu",    label: "Musculation / Renfo",   icon: "💪", color: "#7c3aed", fields: ["duration","groups","routine"] },
   { id: "foot",     label: "Football",              icon: "⚽", color: "#16a34a", fields: ["duration","kind"] },
+  { id: "rando",    label: "Randonnée",             icon: "🥾", color: "#65a30d", fields: ["distance_km","duration","elevation","subtype"] },
   { id: "autre",    label: "Autre",                 icon: "🥋", color: "#71717a", fields: ["duration"] },
 ];
+
+// Sports du catalogue livre avec l'app (sans les sports perso)
+let SP_BASE_CATALOG = SP_CATALOG.slice();
+
+// Champs qu'un sport peut demander a la saisie (ecrase par Python au chargement)
+let SP_FIELD_CATALOG = [
+  { id: "duration",    label: "Durée",               hint: "en minutes" },
+  { id: "distance_km", label: "Distance (km)",       hint: "décimales autorisées" },
+  { id: "distance_m",  label: "Distance (m)",        hint: "comme la natation" },
+  { id: "elevation",   label: "Dénivelé +",          hint: "en mètres" },
+  { id: "subtype",     label: "Type de séance",      hint: "liste que tu remplis toi-même" },
+  { id: "kind",        label: "Entraînement / Match", hint: "comme le football" },
+  { id: "lieu",        label: "Lieu",                hint: "eau libre / bassin 25 / bassin 50" },
+  { id: "routine",     label: "Routine",             hint: "circuit nommé réutilisable" },
+  { id: "groups",      label: "Groupes musculaires", hint: "comme la musculation" },
+];
+
+const SP_SPORT_EMOJIS = ["🏃","🚴","🏊","💪","⚽","🥾","🎾","🏀","🏐","🥊",
+                         "🥋","🛹","⛷️","🧗","🧘","🕺","⛳","🏓","🚣","🏇"];
+const SP_SPORT_COLORS = ["#d97706","#dc2626","#db2777","#7c3aed","#2563eb",
+                         "#0891b2","#0d9488","#16a34a","#65a30d","#71717a"];
 
 const SP_GROUPS = ["Pectoraux","Dos","Épaules","Bras","Abdos","Jambes","Fessiers","Gainage","Full body"];
 const SP_MONTHS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
@@ -10273,7 +10885,23 @@ const SP_LIEUX  = { libre: "Eau libre", "25": "Bassin 25 m", "50": "Bassin 50 m"
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
 
-function spSportById(id) { return SP_CATALOG.find(s => s.id === id) || SP_CATALOG[SP_CATALOG.length - 1]; }
+function spSportById(id) {
+  return SP_CATALOG.find(s => s.id === id)
+      || SP_CATALOG.find(s => s.id === "autre")
+      || SP_CATALOG[SP_CATALOG.length - 1];
+}
+/** Sports ajoutes par l'utilisateur. */
+function spCustomSports() {
+  if (!SP) return [];
+  if (!Array.isArray(SP.customSports)) SP.customSports = [];
+  return SP.customSports;
+}
+/** Catalogue effectif = sports livres + sports perso (perso a la fin). */
+function spRebuildCatalog() {
+  const base = SP_BASE_CATALOG.filter(x => x.id !== "autre");
+  const autre = SP_BASE_CATALOG.find(x => x.id === "autre");
+  SP_CATALOG = base.concat(spCustomSports()).concat(autre ? [autre] : []);
+}
 function spHasField(sportId, f) { return (spSportById(sportId).fields || []).includes(f); }
 function spNum(v) { const n = Number(v); return isFinite(n) ? n : 0; }
 
@@ -10296,7 +10924,7 @@ function spFmtNum(n, dec) {
 /** Distance d'une seance ramenee en km (la natation est saisie en metres). */
 function spDistKm(s) {
   if (!s) return 0;
-  return s.sport === "natation" ? spNum(s.distance) / 1000 : spNum(s.distance);
+  return spHasField(s.sport, "distance_m") ? spNum(s.distance) / 1000 : spNum(s.distance);
 }
 function spSessions() { return (SP && Array.isArray(SP.sessions)) ? SP.sessions : []; }
 function spSessionsOn(iso) {
@@ -10320,17 +10948,17 @@ function spSubtypes(sportId) {
 function spSummary(s) {
   const bits = [];
   if (spNum(s.duration)) bits.push(spFmtDur(s.duration));
-  if (s.sport === "natation" && spNum(s.distance)) bits.push(spFmtNum(s.distance) + " m");
+  if (spHasField(s.sport, "distance_m") && spNum(s.distance)) bits.push(spFmtNum(s.distance) + " m");
   else if (spNum(s.distance)) bits.push(spFmtNum(s.distance, 1) + " km");
   if (spNum(s.elevation)) bits.push("+" + spFmtNum(s.elevation) + " m");
   if (s.subtype) bits.push(s.subtype);
-  if (s.sport === "foot" && s.kind) bits.push(s.kind === "match" ? "Match" : "Entraînement");
-  if (s.sport === "natation" && s.lieu) bits.push(SP_LIEUX[String(s.lieu)] || s.lieu);
-  if (s.sport === "muscu" && s.routineId) {
+  if (spHasField(s.sport, "kind") && s.kind) bits.push(s.kind === "match" ? "Match" : "Entraînement");
+  if (spHasField(s.sport, "lieu") && s.lieu) bits.push(SP_LIEUX[String(s.lieu)] || s.lieu);
+  if (spHasField(s.sport, "routine") && s.routineId) {
     const n = spRoutineName(s.routineId);
     if (n) bits.push(n);
   }
-  if (s.sport === "muscu" && (s.groups || []).length) bits.push(s.groups.join(", "));
+  if (spHasField(s.sport, "groups") && (s.groups || []).length) bits.push(s.groups.join(", "));
   return bits.join(" · ");
 }
 
@@ -10351,7 +10979,9 @@ async function spLoad() {
     const r = await window.pywebview.api.load_sports();
     if (!r || !r.ok) { console.warn("[sports] load KO", r); return false; }
     SP = r.data;
-    if (Array.isArray(r.catalog) && r.catalog.length) SP_CATALOG = r.catalog;
+    if (Array.isArray(r.catalog) && r.catalog.length) SP_BASE_CATALOG = r.catalog;
+    if (Array.isArray(r.fieldCatalog) && r.fieldCatalog.length) SP_FIELD_CATALOG = r.fieldCatalog;
+    spRebuildCatalog();
     return true;
   } catch (e) { console.warn("[sports] load KO", e); return false; }
 }
@@ -10543,7 +11173,160 @@ function spRenderPicker() {
   document.getElementById("sp-f-picker").innerHTML = SP_CATALOG.map(sp => `
     <button type="button" class="sp-pick${sp.id === _spSport ? " active" : ""}" onclick="spSetSport('${sp.id}')">
       <span class="sp-pick-ico">${sp.icon}</span><span>${escHtml(sp.label)}</span>
-    </button>`).join("");
+    </button>`).join("") + `
+    <button type="button" class="sp-pick sp-pick-add" onclick="spOpenCustomSport(null)"
+            title="Cr\u00e9er un sport et choisir les infos \u00e0 saisir">
+      <span class="sp-pick-ico">+</span><span>Ajouter un sport</span>
+    </button>`;
+}
+
+/* ── Sports personnalises ─────────────────────────────────────────
+   Un sport perso = un libelle, un emoji, une couleur, et la liste des champs
+   que la saisie doit afficher. Les champs sont exactement ceux que les sports
+   livres savent deja utiliser. */
+
+let _spEditingSportId = null;
+let _spSportFields    = ["duration"];
+let _spSportEmoji     = "\u{1F3C5}";
+let _spSportColor     = SP_SPORT_COLORS[0];
+
+/** Liste de gestion (depuis les Parametres). */
+function spOpenCustomSports() {
+  if (!SP) { showToastModern("Module sport non charg\u00e9", "warn"); return; }
+  spRenderCustomSports();
+  document.getElementById("ov-sp-sports").classList.add("open");
+}
+
+function spRenderCustomSports() {
+  const box = document.getElementById("sp-sports-list");
+  if (!box) return;
+  const list = spCustomSports();
+  box.innerHTML = list.length ? list.map(sp => {
+    const used = spSessions().filter(x => x.sport === sp.id).length;
+    const names = (sp.fields || []).map(f => {
+      const d = SP_FIELD_CATALOG.find(x => x.id === f);
+      return d ? d.label : f;
+    }).join(" \u00b7 ");
+    return `<div class="sp-srow">
+      <div class="sp-sicon" style="background:${sp.color}22;color:${sp.color}">${sp.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div class="sp-sname">${escHtml(sp.label)}
+          ${used ? `<span class="m-tag">${used} s\u00e9ance${used > 1 ? "s" : ""}</span>` : ""}</div>
+        <div class="sp-smeta">${escHtml(names || "aucun champ")}</div>
+      </div>
+      <div class="m-acts">
+        <button class="m-iconbtn" title="Modifier" onclick="spOpenCustomSport('${sp.id}')">\u270e</button>
+        <button class="m-iconbtn danger" title="Supprimer" onclick="spDeleteCustomSport('${sp.id}')">\u2715</button>
+      </div>
+    </div>`;
+  }).join("") : `<div class="m-empty">Aucun sport personnalis\u00e9 pour l'instant.</div>`;
+}
+
+function spOpenCustomSport(id) {
+  if (!SP) { showToastModern("Module sport non charg\u00e9", "warn"); return; }
+  const sp = id ? spCustomSports().find(x => x.id === id) : null;
+  _spEditingSportId = sp ? sp.id : null;
+  _spSportFields = sp ? (sp.fields || []).slice() : ["duration"];
+  _spSportEmoji  = sp ? sp.icon : "\u{1F3C5}";
+  _spSportColor  = sp ? sp.color : SP_SPORT_COLORS[Math.floor(Math.random() * SP_SPORT_COLORS.length)];
+
+  document.getElementById("sp-sport-title").textContent = sp ? "Modifier le sport" : "Nouveau sport";
+  document.getElementById("sp-sport-label").value = sp ? sp.label : "";
+  document.getElementById("sp-sport-del").style.display = sp ? "" : "none";
+  spRenderSportPickers();
+  openOvTop("ov-sp-sport");
+  setTimeout(() => document.getElementById("sp-sport-label").focus(), 60);
+}
+
+function spRenderSportPickers() {
+  document.getElementById("sp-sport-emojis").innerHTML = SP_SPORT_EMOJIS.map(e => `
+    <button type="button" onclick="spSetSportEmoji('${e}')"
+      style="width:34px;height:34px;border-radius:8px;font-size:18px;cursor:pointer;background:var(--bg3);
+             border:2px solid ${e === _spSportEmoji ? "var(--accent)" : "var(--brd2)"}">${e}</button>`).join("");
+
+  document.getElementById("sp-sport-colors").innerHTML = SP_SPORT_COLORS.map(c => `
+    <button type="button" onclick="spSetSportColor('${c}')"
+      style="width:26px;height:26px;border-radius:50%;cursor:pointer;background:${c};
+             border:${c.toLowerCase() === _spSportColor.toLowerCase() ? "3px solid var(--txt)" : "2px solid var(--brd2)"}"></button>`).join("");
+
+  document.getElementById("sp-sport-fields").innerHTML = SP_FIELD_CATALOG.map(f => {
+    const on = _spSportFields.includes(f.id);
+    return `<button type="button" class="sp-field${on ? " active" : ""}" onclick="spToggleSportField('${f.id}')">
+      <span class="sp-field-check">${on ? "\u2713" : ""}</span>
+      <span><span class="sp-field-lbl">${escHtml(f.label)}</span>
+      <span class="sp-field-hint">${escHtml(f.hint || "")}</span></span>
+    </button>`;
+  }).join("");
+}
+
+function spSetSportEmoji(e) { _spSportEmoji = e; spRenderSportPickers(); }
+function spSetSportColor(c) { _spSportColor = c; spRenderSportPickers(); }
+
+function spToggleSportField(id) {
+  if (_spSportFields.includes(id)) {
+    _spSportFields = _spSportFields.filter(x => x !== id);
+  } else {
+    // Les deux unites de distance s'excluent : on garde la derniere choisie
+    if (id === "distance_km") _spSportFields = _spSportFields.filter(x => x !== "distance_m");
+    if (id === "distance_m")  _spSportFields = _spSportFields.filter(x => x !== "distance_km");
+    _spSportFields = _spSportFields.concat([id]);
+  }
+  spRenderSportPickers();
+}
+
+async function spSaveCustomSport() {
+  const label = document.getElementById("sp-sport-label").value.trim();
+  if (!label) { showToastModern("Donne un nom au sport", "warn"); return; }
+  if (!_spSportFields.length) { showToastModern("Choisis au moins une information \u00e0 saisir", "warn"); return; }
+
+  const list = spCustomSports();
+  if (_spEditingSportId) {
+    const sp = list.find(x => x.id === _spEditingSportId);
+    if (sp) Object.assign(sp, { label, icon: _spSportEmoji, color: _spSportColor,
+                                fields: _spSportFields.slice() });
+  } else {
+    // Identifiant stable, distinct de ceux du catalogue livre
+    const base = "perso_" + (label.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "sport");
+    let id = base, i = 2;
+    while (SP_CATALOG.some(x => x.id === id)) { id = base + "_" + i; i++; }
+    list.push({ id, label, icon: _spSportEmoji, color: _spSportColor, fields: _spSportFields.slice() });
+    _spSport = id;
+  }
+  spRebuildCatalog();
+  await spPersist();
+  closeOv("ov-sp-sport");
+  spRenderCustomSports();
+  if (document.getElementById("ov-sp-session").classList.contains("open")) {
+    spRenderPicker();
+    spApplyFields();
+  }
+  spRenderAll();
+  showToastModern(_spEditingSportId ? "Sport modifi\u00e9" : "Sport ajout\u00e9", "ok");
+  _spEditingSportId = null;
+}
+
+async function spDeleteCustomSport(id) {
+  const used = spSessions().filter(x => x.sport === id).length;
+  if (used) {
+    showToastModern("Impossible : " + used + " s\u00e9ance" + (used > 1 ? "s utilisent" : " utilise") + " ce sport", "err");
+    return;
+  }
+  if (!confirm("Supprimer ce sport ?")) return;
+  SP.customSports = spCustomSports().filter(x => x.id !== id);
+  if (_spSport === id) _spSport = "course";
+  spRebuildCatalog();
+  await spPersist();
+  spRenderCustomSports();
+  spRenderAll();
+  showToastModern("Sport supprim\u00e9", "ok");
+}
+
+function spDeleteCustomSportFromModal() {
+  if (_spEditingSportId) {
+    const id = _spEditingSportId;
+    closeOv("ov-sp-sport");
+    spDeleteCustomSport(id);
+  }
 }
 
 function spSetSport(id) {
@@ -12207,6 +12990,15 @@ function homeGreeting() {
   return new Date().getHours() < 18 ? "Bonjour" : "Bonsoir";
 }
 
+/** Nom affiche : celui de l'utilisateur actif, sinon le prenom saisi dans le PEA. */
+function homeDisplayName() {
+  if (typeof USERS_STATE !== "undefined" && USERS_STATE) {
+    const u = USERS_STATE.users.find(x => x.slug === USERS_STATE.active);
+    if (u && u.label) return u.label;
+  }
+  return (typeof S !== "undefined" && S && S.prenom) ? S.prenom : "";
+}
+
 /** Prochain objectif sportif : l'evenement le plus proche, sinon la derniere perf visee. */
 function homeNextGoal() {
   if (typeof SP === "undefined" || !SP) return null;
@@ -12223,9 +13015,9 @@ function homeNextGoal() {
 function homeRender() {
   const greetEl = document.getElementById("home-greet");
   if (!greetEl) return;
+  if (typeof renderHomeUsers === "function") renderHomeUsers();
 
-  const prenom = (typeof S !== "undefined" && S && S.prenom) ? S.prenom : "";
-  greetEl.textContent = homeGreeting() + (prenom ? " " + prenom : "");
+  greetEl.textContent = homeGreeting() + (homeDisplayName() ? " " + homeDisplayName() : "");
   const d = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   document.getElementById("home-date").textContent = d.charAt(0).toUpperCase() + d.slice(1);
 

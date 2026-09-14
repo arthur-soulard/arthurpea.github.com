@@ -286,7 +286,8 @@ _PIN_SALT = "Suivi_PEA_pin_salt_v2"
 
 
 def _pin_path():
-    """Chemin du fichier hash PIN (a cote du pea_data.json du profil actif)."""
+    """Chemin du hash PIN. Volontairement global : le PIN verrouille l'app
+    entiere, pas un utilisateur en particulier."""
     import storage as _storage
     return _storage.get_app_dir() / "pin.hash"
 
@@ -894,10 +895,10 @@ class _Handler(http.server.BaseHTTPRequestHandler):
                 return self._json(200, {"ok": True, "results": _boost_local_etf(q)[:6]})
             return self._json(200, {"ok": True, "results": fetch_yahoo_search(q)})
 
-        if parsed.path == "/profiles":
+        if parsed.path == "/users":
             try:
                 import storage as _storage
-                return self._json(200, {"ok": True, "state": _storage.get_profiles_state()})
+                return self._json(200, {"ok": True, "state": _storage.get_users_state()})
             except Exception as e:
                 return self._json(500, {"ok": False, "error": str(e)})
 

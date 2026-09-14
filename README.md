@@ -12,24 +12,30 @@ et géographique, performance TWR comparée au CAC 40 / S&P 500 / ETF World, sim
 (projection DCA, objectifs, comparateur d'actifs), règles de stratégie vérifiées
 automatiquement, rapport annuel imprimable.
 
-**Mes comptes** — budget perso mois par mois : dépenses et revenus catégorisés, sources,
-échéances récurrentes à valider, récap annuel.
+**Mes comptes** — budget perso mois par mois : dépenses et revenus catégorisés (chaque
+catégorie et sous-catégorie porte son emoji), sources, échéances récurrentes à valider,
+récap annuel.
 
 **Prêt étudiant** — suivi d'un prêt à 0 % utilisé comme capital d'investissement :
 versements et remboursements, PEA dédié (achats, ventes, PRU, plus-values latentes et
 réalisées), assurance vie multi-contrats à capitalisation annuelle, livret A, frais
 ponctuels et récurrents.
 
-**Sports** — agenda mensuel des séances (course, vélo, natation, muscu, foot…), objectifs
-de performance et événements datés, statistiques d'heures et carte de régularité.
+**Sports** — agenda mensuel des séances (course, vélo, natation, muscu, foot, randonnée…),
+sports personnalisés dont tu choisis les informations à saisir, objectifs de performance
+et événements datés, statistiques d'heures et carte de régularité.
 
 ## ⚙ Transverse
 
 - **Page d'accueil** avec les chiffres qui comptent, et une salutation selon l'heure
+- **Multi-utilisateurs** : chacun a son propre PEA, ses comptes, son prêt et son sport —
+  on change d'utilisateur directement depuis l'accueil
 - **Cours auto-actualisés** toutes les 3 min via Yahoo Finance (zéro clé API)
-- **Sécurité** : code PIN à 4 chiffres optionnel
-- **Personnalisation** : 7 couleurs d'accent, thèmes clair / sombre / auto
-- **Multi-profils** pour le PEA
+- **Sécurité** : code PIN à 4 chiffres optionnel (il verrouille l'app entière)
+- **Personnalisation** : couleur d'accent libre, thèmes clair / sombre — l'icône de la
+  fenêtre et de la barre des tâches prend la couleur choisie
+- **Paramètres par domaine** : une section par onglet (Général, Utilisateurs, Navigation,
+  PEA, Mes comptes, Prêt, Sports, Données)
 - **Mise à jour automatique** depuis les releases GitHub
 - **100 % local** : aucune donnée envoyée nulle part (sauf à Yahoo pour les cours publics)
 
@@ -88,15 +94,21 @@ Les données utilisateur sont stockées localement dans le dossier `Donnees/` à
 Pilote/
 ├── Pilote.exe
 └── Donnees/
-    ├── default/
-    │   ├── pea_data.json     # données PEA du profil actif
-    │   └── backups/          # backup quotidien (rotation 7 jours)
-    ├── finances.json         # Mes comptes      (+ backups_finances/)
-    ├── sports.json           # Sports           (+ backups_sports/)
-    ├── pret.json             # Prêt étudiant    (+ backups_pret/)
-    ├── pin.hash              # hash du code PIN (si configuré)
-    └── profiles.json         # liste des profils (multi-PEA)
+    ├── users.json            # liste des utilisateurs + utilisateur actif
+    ├── users/
+    │   └── <utilisateur>/
+    │       ├── pea_data.json # PEA              (+ backups/)
+    │       ├── finances.json # Mes comptes      (+ backups_finances/)
+    │       ├── sports.json   # Sports           (+ backups_sports/)
+    │       └── pret.json     # Prêt étudiant    (+ backups_pret/)
+    ├── icones/               # icônes générées à la couleur d'accent
+    └── pin.hash              # hash du code PIN (si configuré), commun à l'app
 ```
+
+Migration automatique : une installation antérieure à la 4.1.2 (`profiles.json` +
+fichiers de modules à la racine) est déplacée au premier lancement vers
+`users/<slug>/`, sans perte. L'ancien `profiles.json` est conservé sous le nom
+`profiles.legacy.json`.
 
 Sur installation via Setup.exe : `%LocalAppData%\Programs\Pilote\Donnees\`
 
@@ -106,7 +118,8 @@ Sur installation via Setup.exe : `%LocalAppData%\Programs\Pilote\Donnees\`
 src/
 ├── app.py              # Point d'entrée pywebview, fenêtre native, bridge Python/JS
 ├── server.py           # Serveur HTTP local (proxy Yahoo + endpoints data)
-├── storage.py          # Données PEA, multi-profils, backups
+├── storage.py          # Données PEA, multi-utilisateurs, migration, backups
+├── appicon.py          # Icône recolorée selon l'accent (fenêtre + raccourcis)
 ├── finances.py         # Module Mes comptes
 ├── sports.py           # Module Sports (+ catalogue des sports)
 ├── pret.py             # Module Prêt étudiant

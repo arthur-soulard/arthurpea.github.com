@@ -32,7 +32,7 @@ import notifications
 
 
 APP_NAME    = "Pilote"
-APP_VERSION = "4.1.1"
+APP_VERSION = "4.1.2"
 SINGLE_INSTANCE_PORT = 50317          # port arbitraire pour le verrou single-instance
 WINDOW_DEFAULT_SIZE  = (1280, 800)
 WINDOW_MIN_SIZE      = (960, 640)
@@ -148,7 +148,7 @@ class Api:
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    # -- Finances perso (commun a tous les profils PEA) -------------------
+    # -- Finances perso (propre a l'utilisateur actif) --------------------
 
     def load_finances(self) -> dict:
         try:
@@ -163,11 +163,12 @@ class Api:
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    # -- Sports (commun a tous les profils PEA) ---------------------------
+    # -- Sports (propre a l'utilisateur actif) ----------------------------
 
     def load_sports(self) -> dict:
         try:
-            return {"ok": True, "data": sports.load_data(), "catalog": sports.SPORTS}
+            return {"ok": True, "data": sports.load_data(),
+                    "catalog": sports.SPORTS, "fieldCatalog": sports.FIELD_CATALOG}
         except Exception as e:
             return {"ok": False, "error": str(e), "trace": traceback.format_exc()}
 
@@ -178,7 +179,7 @@ class Api:
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    # -- Pret etudiant (commun a tous les profils PEA) ---------------------
+    # -- Pret etudiant (propre a l'utilisateur actif) ----------------------
 
     def load_pret(self) -> dict:
         try:
@@ -194,9 +195,9 @@ class Api:
             return {"ok": False, "error": str(e)}
 
     def open_data_folder(self) -> dict:
-        """Ouvre le dossier des donnees dans l'Explorateur Windows."""
+        """Ouvre le dossier de donnees de l'utilisateur actif."""
         try:
-            path = str(storage.get_app_dir())
+            path = str(storage.get_user_dir())
             if sys.platform == "win32":
                 os.startfile(path)
             else:
@@ -361,70 +362,89 @@ class Api:
         notifications.notify(title, msg, kind, self._notif_prefs)
         return {"ok": True}
 
-    # ─── Multi-profils ────────────────────────────────────────────────
-    def get_profiles(self) -> dict:
+    # ─── Multi-utilisateurs ────────────────────────────────
+    # Un utilisateur = un dossier complet (PEA + comptes + sport + pret).
+
+    def get_users(self) -> dict:
         try:
-            return {"ok": True, "state": storage.get_profiles_state()}
+            return {"ok": True, "state": storage.get_users_state()}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    def add_profile(self, label: str) -> dict:
+    def add_user(self, label: str, emoji: str = "", color: str = "") -> dict:
         try:
-            import re
-            state = storage.get_profiles_state()
-            base_slug = re.sub(r"[^a-z0-9]+", "_", label.lower()).strip("_") or "pea"
-            slug = base_slug
-            i = 2
-            existing = {p["slug"] for p in state["profiles"]}
-            while slug in existing:
-                slug = f"{base_slug}_{i}"; i += 1
-            state["profiles"].append({"slug": slug, "label": label or "Nouveau PEA"})
-            storage.save_profiles_state(state)
-            # Cree le dossier + un pea_data vierge
-            storage.get_profile_dir(slug)
-            from storage import default_data, save_data, get_profile_dir, DATA_FILE
-            target = get_profile_dir(slug) / DATA_FILE
-            if not target.exists():
-                with open(target, "w", encoding="utf-8") as f:
-                    import json as _json
-                    _json.dump(default_data(), f, ensure_ascii=False, indent=2)
-            return {"ok": True, "slug": slug}
+            label = (label or "").strip() or "Nouvel utilisateur"
+            state = storage.get_users_state()
+            slug = storage.slugify(label, [u["slug"] for u in state["users"]])
+            state["users"].append({"slug": slug, "label": label,
+                                   "emoji": (emoji or "").strip(),
+                                   "color": (color or "").strip()})
+            storage.save_users_state(state)
+            # Cree le dossier : les modules ecriront leurs defauts au 1er acces
+            storage.get_user_dir(slug)
+            return {"ok": True, "slug": slug, "state": state}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    def rename_profile(self, slug: str, label: str) -> dict:
+    def update_user(self, slug: str, label: str = None,
+                    emoji: str = None, color: str = None) -> dict:
         try:
-            state = storage.get_profiles_state()
-            for p in state["profiles"]:
-                if p["slug"] == slug:
-                    p["label"] = label or p["label"]
-                    storage.save_profiles_state(state)
-                    return {"ok": True}
-            return {"ok": False, "error": "profil introuvable"}
+            state = storage.get_users_state()
+            for u in state["users"]:
+                if u["slug"] == slug:
+                    if label is not None and label.strip():
+                        u["label"] = label.strip()
+                    if emoji is not None:
+                        u["emoji"] = emoji.strip()
+                    if color is not None:
+                        u["color"] = color.strip()
+                    storage.save_users_state(state)
+                    return {"ok": True, "state": state}
+            return {"ok": False, "error": "utilisateur introuvable"}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    def delete_profile(self, slug: str) -> dict:
+    def delete_user(self, slug: str) -> dict:
+        """Retire l'utilisateur de la liste. Son dossier reste sur le disque."""
         try:
-            state = storage.get_profiles_state()
-            if len(state["profiles"]) <= 1:
-                return {"ok": False, "error": "Impossible de supprimer le dernier profil"}
-            state["profiles"] = [p for p in state["profiles"] if p["slug"] != slug]
+            state = storage.get_users_state()
+            if len(state["users"]) <= 1:
+                return {"ok": False, "error": "Impossible de supprimer le dernier utilisateur"}
+            state["users"] = [u for u in state["users"] if u["slug"] != slug]
             if state["active"] == slug:
-                state["active"] = state["profiles"][0]["slug"]
-            storage.save_profiles_state(state)
-            return {"ok": True, "active": state["active"]}
+                state["active"] = state["users"][0]["slug"]
+            storage.save_users_state(state)
+            return {"ok": True, "active": state["active"], "state": state,
+                    "folder": str(storage.get_app_dir() / storage.USERS_DIRNAME / slug)}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    def set_active_profile(self, slug: str) -> dict:
+    def set_active_user(self, slug: str) -> dict:
         try:
-            state = storage.get_profiles_state()
-            if not any(p["slug"] == slug for p in state["profiles"]):
-                return {"ok": False, "error": "profil inconnu"}
+            state = storage.get_users_state()
+            if not any(u["slug"] == slug for u in state["users"]):
+                return {"ok": False, "error": "utilisateur inconnu"}
             state["active"] = slug
-            storage.save_profiles_state(state)
+            storage.save_users_state(state)
             return {"ok": True}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ─── Icone de l'app a la couleur du theme ──────────────────────
+
+    def set_app_icon_color(self, color: str) -> dict:
+        """Recolore l'icone de la fenetre + barre des taches (effet immediat)."""
+        try:
+            import appicon
+            return {"ok": appicon.apply_to_window(color)}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def apply_icon_to_shortcuts(self, color: str) -> dict:
+        """Repointe aussi les raccourcis Bureau / Demarrer / barre des taches."""
+        try:
+            import appicon
+            return appicon.apply_to_shortcuts(color)
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
@@ -468,9 +488,14 @@ class Api:
             return {"ok": False, "error": str(e)}
 
     def app_info(self) -> dict:
+        try:
+            active = storage.get_active_user()
+        except Exception:
+            active = {}
         return {
             "appName":  APP_NAME,
             "version":  APP_VERSION,
+            "user":     active,
             "appDir":   str(storage.get_app_dir()),
             "dataPath": str(storage.get_data_path()),
             "logPath":  str(storage.get_log_path()),
@@ -777,6 +802,20 @@ def main() -> int:
             storage.save_data(d)
         except Exception as e:
             print(f"[app] Echec sauvegarde UI prefs : {e}", flush=True)
+
+    # Icone recoloree selon l'accent choisi : des que la fenetre existe
+    def _paint_icon():
+        try:
+            import appicon
+            accent = (storage.load_data().get("uiPrefs") or {}).get("accent")
+            appicon.apply_to_window(accent or appicon.DEFAULT_COLOR)
+        except Exception as e:
+            print(f"[app] icone accent KO : {e}", flush=True)
+
+    try:
+        window.events.shown += _paint_icon
+    except Exception:
+        pass
 
     window.events.closing += _on_closing
 

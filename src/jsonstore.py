@@ -6,8 +6,8 @@ backup quotidien, rotation 7 jours). Les modules ajoutes ensuite (sports.py,
 pret.py) partagent la meme mecanique via cette petite classe, plutot que de
 la recopier a chaque fois.
 
-Comme finances.json, ces fichiers sont COMMUNS a tous les profils PEA :
-ils vivent dans <app_dir>/ a cote de profiles.json.
+Depuis la v4.1.2, ces fichiers sont PROPRES a chaque utilisateur : ils vivent
+dans <app_dir>/users/<slug>/ a cote de pea_data.json.
 """
 from __future__ import annotations
 
@@ -40,10 +40,10 @@ class JsonStore:
     # ─── Chemins ──────────────────────────────────────────────────────────────
 
     def path(self) -> Path:
-        return storage.get_app_dir() / self.filename
+        return storage.get_user_dir() / self.filename
 
     def backup_dir(self) -> Path:
-        d = storage.get_app_dir() / self.backup_dirname
+        d = storage.get_user_dir() / self.backup_dirname
         d.mkdir(parents=True, exist_ok=True)
         return d
 
