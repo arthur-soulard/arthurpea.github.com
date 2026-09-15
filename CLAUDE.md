@@ -7,11 +7,11 @@ Aucune donnée ne sort du PC — pas de compte, pas de serveur distant, pas de t
 Stack : Python + pywebview (fenêtre native avec UI HTML/CSS/JS), PyInstaller pour
 compiler en .exe, Inno Setup pour le Setup.exe, GitHub Actions pour build + release.
 
-**Version actuelle : 4.1.4**
+**Version actuelle : 4.2.0**
 (l'app s'appelait « Suivi PEA » jusqu'à la 4.1.0, le dossier du dépôt jusqu'à la 4.1.1)
 
 Dépôt : `C:\Users\Arthur\Desktop\Pilote` — branche `main`, remote
-`github.com/arthur-soulard/arthurpea.github.com` (le nom du dépôt est historique,
+`github.com/arthur-soulard/arthurpilote.github.com` (le nom du dépôt est historique,
 il ne suit pas le nom de l'app).
 
 ## Structure
@@ -222,7 +222,7 @@ Ne jamais descendre sinon l'auto-updater croit que l'app est déjà à jour.
 ## Système d'auto-update (tout est en place, ne pas casser)
 
 * `updater.py` interroge
-  `https://api.github.com/repos/arthur-soulard/arthurpea.github.com/releases/latest`
+  `https://api.github.com/repos/arthur-soulard/arthurpilote.github.com/releases/latest`
 * Il retient le premier asset dont le nom finit par `Setup.exe`
 * Si nouvelle version → modal dans l'UI avec barre de progression
 * Téléchargement chunké avec progression réelle (fallback 25 Mo si Content-Length absent)
@@ -334,7 +334,7 @@ leur section.
 ### ⚠ Le serveur local n'est PAS un endroit privé
 
 Il écoute sur `127.0.0.1`, mais **tout site ouvert dans n'importe quel navigateur du
-PC peut lui parler** pendant que Pilote tourne. Avant la 4.1.5, un simple
+PC peut lui parler** pendant que Pilote tourne. Avant la 4.2.0, un simple
 `fetch("http://127.0.0.1:7438/data")` depuis une page web suffisait à lire le PEA,
 les comptes, le patrimoine et la santé — le serveur répondait avec
 `Access-Control-Allow-Origin: *`.
@@ -607,7 +607,7 @@ Points critiques :
 ## Déploiement
 
 * Téléchargement du Setup.exe :
-  https://github.com/arthur-soulard/arthurpea.github.com/releases/latest
+  https://github.com/arthur-soulard/arthurpilote.github.com/releases/latest
 * Les mises à jour suivantes sont automatiques depuis l'app
 
 ## Pistes en attente (proposées, non décidées)

@@ -18,7 +18,7 @@ import urllib.parse
 from datetime import datetime
 from pathlib import Path
 
-RELEASES_API = "https://api.github.com/repos/arthur-soulard/arthurpea.github.com/releases/latest"
+RELEASES_API = "https://api.github.com/repos/arthur-soulard/arthurpilote.github.com/releases/latest"
 
 _lock = threading.Lock()
 
