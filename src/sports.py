@@ -100,11 +100,6 @@ _store = jsonstore.JsonStore(
     default_factory=default_data,
 )
 
-
-def get_sports_path():
-    return _store.path()
-
-
 def load_data() -> dict:
     return _store.load()
 

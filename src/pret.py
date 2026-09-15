@@ -62,11 +62,6 @@ _store = jsonstore.JsonStore(
     default_factory=default_data,
 )
 
-
-def get_pret_path():
-    return _store.path()
-
-
 def load_data() -> dict:
     data = _store.load()
     # Les sous-objets doivent toujours exister avec leurs cles (merge peu profond

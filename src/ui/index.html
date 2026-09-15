@@ -401,22 +401,6 @@ td:first-child { text-align: left; padding-left: 2px; font-family: var(--font); 
 }
 .cinp:focus { outline: none; border-color: var(--accent); }
 
-/* GSheet info */
-.gsheet-info {
-  background: var(--bg3); border: 1px solid var(--brd); border-radius: var(--rad);
-  padding: .8rem; margin-bottom: .8rem; font-size: 11px; color: var(--txt2); line-height: 1.65;
-}
-.gsheet-info strong { color: var(--txt); }
-
-/* Debug panel */
-.debug-box {
-  background: #1e1e2e; color: #cdd6f4; border-radius: var(--rad);
-  padding: .8rem; font-family: var(--mono); font-size: 10px;
-  line-height: 1.7; max-height: 220px; overflow-y: auto;
-  margin-top: .75rem; display: none;
-}
-.debug-box.show { display: block; }
-
 /* Save badge */
 .sbadge {
   position: fixed; bottom: 18px; right: 18px;
@@ -3638,31 +3622,6 @@ label.sv-check, label.sv-inline {
   </div>
 </div>
 
-<!-- Modal : Google Sheets config -->
-<div class="ov" id="ov-gsheet" onclick="if(event.target===this)closeOv('ov-gsheet')">
-  <div class="modal" style="max-width:540px">
-    <h2>Connexion Google Sheets</h2>
-    <div class="gsheet-info">
-      <strong>Format attendu (pubhtml) :</strong><br>
-      Col A = Ticker (EPA:SGO) · Col C = Entreprise · Col D = Cours · Col E = Var 1S% · Col F = Var 1M% · Col G = Var 1an%<br><br>
-      <strong>Actualisation :</strong> automatique toutes les 3 minutes.
-    </div>
-    <div class="fg">
-      <label>URL Google Sheets (pubhtml)</label>
-      <input id="gs-url" placeholder="https://docs.google.com/spreadsheets/d/…/pubhtml?gid=…&single=true" style="font-size:10px">
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:.5rem;flex-wrap:wrap">
-      <button class="btn btn-ghost btn-sm" onclick="testGsheet()">Tester la connexion</button>
-      <button class="btn btn-ghost btn-sm" onclick="toggleDebug()">Afficher debug</button>
-      <span id="gs-test-result" style="font-size:11px;font-family:var(--mono);align-self:center"></span>
-    </div>
-    <div class="debug-box" id="debug-box"></div>
-    <div class="mact">
-      <button class="btn btn-ghost" onclick="closeOv('ov-gsheet')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveGsheet()">Enregistrer &amp; actualiser</button>
-    </div>
-  </div>
-</div>
 
 <!-- ══════════════════════════════════════════════════
      JAVASCRIPT
@@ -3671,7 +3630,6 @@ label.sv-check, label.sv-inline {
 "use strict";
 
 /* ─── URL Google Sheets pré-configurée ─── */
-const GS_DEFAULT_URL = "";
 
 /* ─── Données par défaut ─── */
 const DEF = {
@@ -3741,11 +3699,6 @@ const GEOS = [
 function geoById(id) {
   return GEOS.find(g => g.id === id) || { id: "autre", label: "Autre / Diversifié", icon: "○", color: "#a1a1aa" };
 }
-function geoBadgeHtml(id) {
-  if (!id) return '<span style="color:var(--txt3);font-size:10px">—</span>';
-  const g = geoById(id);
-  return `<span class="sector-badge" style="background:${g.color}22;color:${g.color}">${g.icon} ${g.label}</span>`;
-}
 
 /* Suffixe de place de cotation → zone (heuristique, surchargeable par l'utilisateur) */
 const EXCHANGE_GEO = {
@@ -3794,7 +3747,7 @@ function resolveGeoMix(p) {
   return { [detectGeoZone(p && p.ticker)]: 1 };
 }
 
-let _gsTimer  = null;
+let _coursTimer  = null;
 let _wsVar    = {};
 let _wsAnalysts = {};   // {ticker: {targetMean, numAnalysts, recoMean, recoKey, ...}}
 let _wsSpark    = {};   // {ticker: [closes 30j]}
@@ -3960,12 +3913,11 @@ function resetDef(ask) {
   renderAll();
   updateStatus();
 }
-function doReset() { resetDef(true); }
 
+/* Appele par le bouton "Reinitialiser les donnees PEA" des parametres */
 function resetFromConfig() {
   if (!confirm("Réinitialiser toutes les données ? Positions, transactions, dépôts, dividendes — tout sera effacé. Cette action est irréversible.")) return;
   closeOv("ov-config");
-  localStorage.removeItem("gs_url4");
   resetDef(false);
 }
 
@@ -3995,7 +3947,7 @@ function ebtn(fn, id) {
 }
 
 /* Convert .PA ticker to EPA: form and vice-versa */
-function toGsKey(ticker) {
+function toDotKey(ticker) {
   if (ticker.startsWith("EPA:") || ticker.startsWith("ETR:") || ticker.startsWith("AMS:") || ticker.startsWith("LON:")) return ticker;
   if (ticker.endsWith(".PA")) return "EPA:" + ticker.replace(".PA","");
   if (ticker.endsWith(".DE")) return "ETR:" + ticker.replace(".DE","");
@@ -5122,16 +5074,10 @@ async function renderPerf() {
 
 /* ═══════════════════════════════════════════════════════════════════════
    HEAT MAP DU PORTEFEUILLE
-   Treemap squarified : taille ∝ valeur €, couleur ∝ perf (achat ou jour)
+   Treemap squarified : taille et couleur = valeur et plus-value depuis l'achat.
+   (Un mode "variation du jour" a existe ; ses deux boutons ont disparu du
+   DOM et la branche etait devenue inatteignable.)
 ═══════════════════════════════════════════════════════════════════════ */
-let _hmMode = "achat";
-
-function setHmMode(mode) {
-  _hmMode = mode;
-  document.getElementById("hm-btn-achat").className = "btn btn-sm" + (mode === "achat" ? " btn-primary" : "");
-  document.getElementById("hm-btn-jour").className  = "btn btn-sm" + (mode === "jour"  ? " btn-primary" : "");
-  renderHeatmap();
-}
 
 function _hmColor(pct) {
   if (pct === null || pct === undefined) return { bg: "var(--bg4)", fg: "var(--txt2)" };
@@ -5212,13 +5158,8 @@ function renderHeatmap() {
     const val  = e.val !== null ? e.val : e.inv;
     const inv  = e.inv;
     const pvEur = val - inv;
-    let pct = null;
-    if (_hmMode === "achat") {
-      pct = (e.pru && e.pru > 0 && p.cours) ? (p.cours - e.pru) / e.pru * 100 : null;
-    } else {
-      const v = getVar(p.ticker);
-      pct = (v && v.d1 !== undefined && v.d1 !== null) ? v.d1 : null;
-    }
+    const pct = (e.pru && e.pru > 0 && p.cours)
+      ? (p.cours - e.pru) / e.pru * 100 : null;
     const ticker  = p.ticker.includes(":") ? p.ticker.split(":")[1] : p.ticker;
     return { ticker, name: p.name || ticker, val, inv, pvEur, pct, qty: e.qty, pru: e.pru };
   }).filter(i => i.val > 0).sort((a, b) => b.val - a.val);
@@ -6194,7 +6135,7 @@ function setStars(id, n) {
 }
 
 function getVar(ticker) {
-  const key = toGsKey(ticker);
+  const key = toDotKey(ticker);
   // Try EPA:SGO format, then ticker as-is, then .PA format
   const dotKey = ticker.startsWith("EPA:") ? ticker.replace("EPA:","") + ".PA"
                : ticker.startsWith("ETR:") ? ticker.replace("ETR:","") + ".DE"
@@ -6325,7 +6266,7 @@ async function fetchLocalCours() {
   const tickers = [];
   S.positions.forEach(p => { if (p.ticker) tickers.push(p.ticker); });
   if (S.wishlist) S.wishlist.forEach(w => { if (w.ticker) tickers.push(w.ticker); });
-  if (tickers.length === 0) return { prices: {}, variations: {}, debugLines: ["Aucun ticker en portefeuille"] };
+  if (tickers.length === 0) return { prices: {}, variations: {} };
 
   const unique = [...new Set(tickers)];
   const url = LOCAL_COURS_URL + "?tickers=" + encodeURIComponent(unique.join(",")) + "&cb=" + Date.now();
@@ -6337,7 +6278,6 @@ async function fetchLocalCours() {
 
   const prices     = {};
   const variations = {};
-  const debugLines = [];
 
   Object.entries(data.prices).forEach(([tk, info]) => {
     const prix = info.prix;
@@ -6359,15 +6299,14 @@ async function fetchLocalCours() {
     else if (tk.startsWith("AMS:")) dotKey2 = tk.replace("AMS:", "") + ".AS";
     else if (tk.startsWith("LON:")) dotKey2 = tk.replace("LON:", "") + ".L";
     variations[dotKey2] = varEntry;
-    debugLines.push(tk + " = " + info.prix + " | 1S=" + info.w1 + "% | 1M=" + info.m1 + "% | 1A=" + info.y1 + "%");
   });
 
-  return { prices, variations, debugLines };
+  return { prices, variations };
 }
 
-async function applyGsData() {
+async function applyCoursData() {
   try {
-    const { prices, variations, debugLines } = await fetchLocalCours();
+    const { prices, variations } = await fetchLocalCours();
 
     let changed = false;
     S.positions.forEach(p => {
@@ -6399,29 +6338,27 @@ async function applyGsData() {
     renderPositions();
     renderWishlist();
     updateStatus();
-    window._lastDebug = debugLines;
 
     // Rafraîchit la heat map si le pane "perf" est actif
-    // (applyGsData met à jour _wsVar mais renderHeatmap n'était jamais appelée ici)
+    // (applyCoursData met à jour _wsVar mais renderHeatmap n'était jamais appelée ici)
     if (document.getElementById("pane-perf")?.classList.contains("active")) {
       renderHeatmap();
     }
 
   } catch(e) {
     console.warn("cours_server:", e.message);
-    window._lastDebug = ["ERREUR : " + e.message];
-    showToast("\u274C Serveur de cours inaccessible \u2014 lance lancer_pea.bat", "err");
+    showToast("\u274C Cours indisponibles \u2014 v\u00E9rifiez la connexion Internet", "err");
   }
 }
 
-function startGsRefresh() {
-  stopGsRefresh();
-  applyGsData();
+function startCoursRefresh() {
+  stopCoursRefresh();
+  applyCoursData();
   fetchSparklines();
   fetchKeystats();
   fetchAnalysts();
-  _gsTimer = setInterval(() => {
-    applyGsData();
+  _coursTimer = setInterval(() => {
+    applyCoursData();
     fetchSparklines();
     fetchKeystats();
     fetchAnalysts();
@@ -6693,49 +6630,14 @@ function renderReco() {
   if (el) el.textContent = "Yahoo Finance · " + new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
 }
 
-function stopGsRefresh() {
-  if (_gsTimer) { clearInterval(_gsTimer); _gsTimer = null; }
+function stopCoursRefresh() {
+  if (_coursTimer) { clearInterval(_coursTimer); _coursTimer = null; }
 }
 
-/* ─── Google Sheets modal ─── */
-function openGsheet() {
-  document.getElementById("gs-url").value = localStorage.getItem("gs_url4") || GS_DEFAULT_URL;
-  document.getElementById("gs-test-result").textContent = "";
-  document.getElementById("debug-box").classList.remove("show");
-  document.getElementById("ov-gsheet").classList.add("open");
-}
-function saveGsheet() {
-  const url = document.getElementById("gs-url").value.trim();
-  if (url) localStorage.setItem("gs_url4", url);
-  else     localStorage.removeItem("gs_url4");
-  closeOv("ov-gsheet");
-  startGsRefresh();
-}
-async function testGsheet() {
-  const el = document.getElementById("gs-test-result");
-  el.textContent = "Test du serveur local..."; el.style.color = "var(--a)";
-  try {
-    const { prices, debugLines } = await fetchLocalCours();
-    const np = Object.keys(prices).length / 2;
-    el.textContent = "OK — " + Math.ceil(np) + " cours Yahoo Finance";
-    el.style.color = np > 0 ? "var(--g)" : "var(--r)";
-    window._lastDebug = debugLines;
-  } catch(e) {
-    el.textContent = "Erreur : " + e.message + " — cours_server.py lance ?";
-    el.style.color = "var(--r)";
-    window._lastDebug = ["ERREUR : " + e.message];
-  }
-}
-function toggleDebug() {
-  const box = document.getElementById("debug-box");
-  const lines = window._lastDebug || ["Pas encore de données — cliquez sur Tester d'abord"];
-  box.textContent = lines.join("\n");
-  box.classList.toggle("show");
-}
 
 /* ─── Status ─── */
 function updateStatus() {
-  // Le texte d'heure est géré par applyGsData / _setCoursHealth
+  // Le texte d'heure est géré par applyCoursData / _setCoursHealth
   // On ne touche plus à sdot (supprimé du HTML)
 }
 
@@ -7411,7 +7313,7 @@ function savePos() {
   if (document.getElementById("pane-perf").classList.contains("active")) renderPerf();
   if (document.getElementById("pane-sector")?.classList.contains("active")) renderSectors();
   // Actualiser les cours immédiatement pour la nouvelle position
-  applyGsData();
+  applyCoursData();
 }
 
 function editPos(id) {
@@ -7631,15 +7533,9 @@ function applyCours() {
   updateStatus();
 }
 
-/* Import / Export */
-function exportData() {
-  const blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download="pea-data-"+new Date().toISOString().slice(0,10)+".json";
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(a.href),800);
-}
-function triggerImport() { document.getElementById("import-file").click(); }
+/* Import d'un pea_data.json : alimente par l'input cache #import-file
+   (ecran de bienvenue). L'export passe par doExport(), cote Python, qui
+   ouvre une vraie boite de dialogue Windows. */
 function doImport(ev) {
   const file=ev.target.files[0]; if(!file)return;
   const reader=new FileReader();
@@ -7655,6 +7551,7 @@ function doImport(ev) {
   };
   reader.readAsText(file);
 }
+
 
 /* ─── Utilisateurs Pilote ───
    Un utilisateur = un jeu de donnees complet (PEA + comptes + pret + sport).
@@ -9684,17 +9581,6 @@ function delRule(id) {
   persist(); renderStrat();
 }
 
-function moveRule(id, dir) {
-  const arr = S.strategies || [];
-  const idx = arr.findIndex(r => r.id === id);
-  if (idx < 0) return;
-  const newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= arr.length) return;
-  pushUndo();
-  [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
-  persist(); renderStrat();
-}
-
 // Wire up live PRU preview after DOM ready
 document.addEventListener("DOMContentLoaded", ()=>{
   ["f-prix","f-qty","f-frais"].forEach(id=>{
@@ -10070,17 +9956,17 @@ function _setCoursHealth(state, label) {
   else if (state === "err")  text.style.color = "var(--r)";
 }
 
-/* — Hook sur applyGsData pour mettre a jour le pill et donner du feedback — */
-const _applyGsDataOrig = applyGsData;
+/* — Hook sur applyCoursData pour mettre a jour le pill et donner du feedback — */
+const _applyCoursDataOrig = applyCoursData;
 let _refreshInFlight = false;
-applyGsData = async function(opts) {
+applyCoursData = async function(opts) {
   if (_refreshInFlight) return;
   _refreshInFlight = true;
   const manual = !!(opts && opts.manual);
   if (manual) showToastModern("↻ Actualisation des cours…", "ok");
   _setCoursHealth("warn", "Actualisation en cours…");
   try {
-    await _applyGsDataOrig.apply(this);
+    await _applyCoursDataOrig.apply(this);
     const t = new Date().toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"});
     _setCoursHealth("ok", "Dernière actualisation " + t);
     if (manual) showToastModern("✓ Cours actualisés à " + t, "ok");
@@ -10103,7 +9989,7 @@ applyGsData = async function(opts) {
 };
 
 /* Action declenchee par l'utilisateur (bouton "Actualiser" ou Ctrl+R) */
-function manualRefresh() { applyGsData({manual: true}); }
+function manualRefresh() { applyCoursData({manual: true}); }
 
 /* — Raccourcis clavier — */
 function _installShortcuts() {
@@ -10196,92 +10082,6 @@ function _injectDashboardPane() {
   }
   pane.appendChild(pea);
   pane.appendChild(mets);
-}
-
-/* — (sections dashboard retirees — fonction conservee mais vide) — */
-function renderDashboard_disabled() {
-  // Top mouvements (positions triees par variation 1 mois)
-  const movers = document.getElementById("dash-movers");
-  if (movers) {
-    const rows = (S.positions || [])
-      .map(p => {
-        const v = _wsVar[p.ticker];
-        return { p, m1: v?.m1 };
-      })
-      .filter(x => x.m1 != null)
-      .sort((a,b) => b.m1 - a.m1);
-    if (rows.length === 0) {
-      movers.innerHTML = '<div class="dash-empty">Aucune donnée Yahoo disponible</div>';
-    } else {
-      const top    = rows.slice(0, 3);
-      const bottom = rows.slice(-3).reverse().filter(r => !top.includes(r));
-      const items  = [...top, ...bottom].slice(0, 5);
-      movers.innerHTML = items.map(({p, m1}) => {
-        const cls = m1 > 0 ? "pos" : (m1 < 0 ? "neg" : "neu");
-        const sign = m1 > 0 ? "+" : "";
-        return `<div class="movers-row">
-          <div>
-            <div class="movers-tk">${p.name}</div>
-            <div class="movers-sub">${p.ticker}</div>
-          </div>
-          <div class="movers-pct ${cls}">${sign}${m1.toFixed(2)}%</div>
-        </div>`;
-      }).join("");
-    }
-  }
-
-  // Prochains dividendes (divFuture trie par date, dans les 90 prochains jours)
-  const divup = document.getElementById("dash-divup");
-  const divupTot = document.getElementById("dash-div-total");
-  if (divup) {
-    const today = new Date().toISOString().slice(0, 10);
-    const max90 = new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10);
-    const rows = (S.divFuture || [])
-      .filter(d => d.date && d.date >= today && d.date <= max90)
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(0, 5);
-    const total = rows.reduce((s, d) => s + (d.montant || 0), 0);
-    if (divupTot) divupTot.textContent = rows.length > 0 ? `${total.toFixed(2)} € sur ${rows.length}` : "";
-    if (rows.length === 0) {
-      divup.innerHTML = '<div class="dash-empty">Aucun dividende prévu dans les 90 prochains jours</div>';
-    } else {
-      divup.innerHTML = rows.map(d => {
-        const dt = new Date(d.date);
-        const fmt = dt.toLocaleDateString("fr-FR", {day:"2-digit", month:"short"});
-        const pos = (S.positions || []).find(p => p.ticker === d.ticker);
-        const name = pos?.name || d.ticker;
-        return `<div class="divup-row">
-          <span class="divup-date">${fmt}</span>
-          <span class="divup-tk">${name}</span>
-          <span class="divup-amt">+${(d.montant || 0).toFixed(2)} €</span>
-        </div>`;
-      }).join("");
-    }
-  }
-
-  // Repartition par ligne (% de la valeur totale)
-  const repart = document.getElementById("dash-repart");
-  if (repart) {
-    const eps = (S.positions || []).map(p => ({ p, e: computePos(p) }));
-    const tv  = eps.reduce((s, x) => x.e.val != null ? s + x.e.val : s, 0);
-    if (tv === 0) {
-      repart.innerHTML = '<div class="dash-empty">Aucune valorisation disponible</div>';
-    } else {
-      const palette = ["var(--b)", "var(--g)", "var(--a)", "var(--p)", "var(--r)", "#06b6d4", "#ec4899", "#84cc16"];
-      const sorted = eps
-        .filter(x => x.e.val != null && x.e.val > 0)
-        .sort((a, b) => b.e.val - a.e.val);
-      repart.innerHTML = sorted.map((x, i) => {
-        const pct = (x.e.val / tv) * 100;
-        const col = palette[i % palette.length];
-        return `<div class="repart-row">
-          <span class="repart-tk">${x.p.name}</span>
-          <span class="repart-bar"><span class="repart-bar-fill" style="width:${pct.toFixed(1)}%;background:${col}"></span></span>
-          <span class="repart-pct">${pct.toFixed(1)}%</span>
-        </div>`;
-      }).join("");
-    }
-  }
 }
 
 /* — Installation finale du shell — */
@@ -15293,7 +15093,7 @@ function dashWireDnd(box) {
     if (typeof installShellEnhancements === "function") installShellEnhancements();
     // Premier lancement : welcome screen si aucune data
     try { if (typeof _showWelcomeIfFirstRun === "function") _showWelcomeIfFirstRun(); } catch(e) {}
-    startGsRefresh();
+    startCoursRefresh();
     // Verifie les mises a jour apres stabilisation de l'UI (15s = temps suffisant pour l'API GitHub)
     if (window.pywebview) setTimeout(_checkForUpdates, 5000);
     // Initialise le module Mes Comptes (en silence, sans bloquer le rendu PEA)

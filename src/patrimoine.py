@@ -105,11 +105,6 @@ _store = jsonstore.JsonStore(
     default_factory=default_data,
 )
 
-
-def get_patrimoine_path():
-    return _store.path()
-
-
 def load_data() -> dict:
     data = _store.load()
     # Un fichier cree avant l'introduction des comptes auto n'en a pas : on les
@@ -133,16 +128,6 @@ def mois_courant() -> str:
     """Date d'ancrage du releve du mois en cours, toujours le 1er."""
     d = datetime.date.today()
     return d.replace(day=1).isoformat()
-
-
-def mois_precedent(iso: str) -> str:
-    try:
-        d = datetime.date.fromisoformat(iso)
-    except Exception:
-        d = datetime.date.today()
-    d = d.replace(day=1)
-    return (d - datetime.timedelta(days=1)).replace(day=1).isoformat()
-
 
 def net_worth(data: dict, date_iso: str = None) -> dict:
     """

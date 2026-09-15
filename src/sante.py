@@ -119,11 +119,6 @@ _store = jsonstore.JsonStore(
     default_factory=default_data,
 )
 
-
-def get_sante_path():
-    return _store.path()
-
-
 def load_data() -> dict:
     return _store.load()
 
@@ -620,39 +615,3 @@ def read_screenshots(paths: list) -> dict:
 
 
 # ─── Objectifs ────────────────────────────────────────────────────────────────
-
-def goal_progress(goal: dict, mesures: list) -> dict:
-    """
-    Avancement d'un objectif, en pourcentage du chemin parcouru.
-
-    `start` est la valeur de depart (celle du jour ou l'objectif a ete cree si
-    elle n'est pas fournie). Un objectif de perte et un objectif de gain se
-    calculent pareil : distance parcourue / distance totale.
-    """
-    mid = goal.get("metric")
-    target = goal.get("target")
-    if mid is None or target is None:
-        return {"pct": 0, "current": None, "start": None, "done": False}
-
-    dated = sorted([m for m in mesures if m.get(mid) is not None],
-                   key=lambda m: (m.get("date", ""), m.get("time", "")))
-    current = dated[-1].get(mid) if dated else None
-
-    start = goal.get("start")
-    if start is None:
-        created = goal.get("createdAt", "")[:10]
-        avant = [m for m in dated if m.get("date", "") <= created] if created else []
-        start = (avant[-1].get(mid) if avant else
-                 (dated[0].get(mid) if dated else None))
-
-    if current is None or start is None:
-        return {"pct": 0, "current": current, "start": start, "done": False}
-
-    total = float(target) - float(start)
-    if abs(total) < 1e-9:
-        return {"pct": 100, "current": current, "start": start, "done": True}
-    fait = float(current) - float(start)
-    pct = max(0.0, min(100.0, (fait / total) * 100.0))
-    # Atteint = on a franchi la cible dans le bon sens
-    done = (current <= target) if total < 0 else (current >= target)
-    return {"pct": round(pct, 1), "current": current, "start": start, "done": done}
