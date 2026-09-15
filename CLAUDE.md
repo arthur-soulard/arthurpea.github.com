@@ -107,10 +107,6 @@ jour : 10 Ko au lieu de 418 Ko. Ne pas « simplifier » en resérialisant `data`
    volume de données : un utilisateur qui vient d'être créé a un PEA vide et doit
    pouvoir enregistrer. Côté Python, un `pea_data.json` absent n'est **pas** une erreur
    de lecture (`storage.load_data()` laisse `error` à `None`).
-5. **`src/ui/vendor/` dans les `datas` de `build/pilote.spec`** → même piège que
-   `ocr_win.ps1` : sans cette ligne, Chart.js et les polices sont introuvables dans
-   l'exe compilé. Les graphiques disparaissent et la typo retombe sur celle du
-   système, alors que tout marche parfaitement en dev.
 4. **`ocr_win.ps1` dans les `datas` de `build/pilote.spec`** → sans cette ligne, l'OCR
    du module Santé fonctionne parfaitement en dev et **échoue silencieusement dans
    l'exe compilé** : le script est introuvable, `ocr_available()` répond « Script OCR
@@ -118,6 +114,10 @@ jour : 10 Ko au lieu de 418 Ko. Ne pas « simplifier » en resérialisant `data`
    qu'on ne teste pas le binaire. Vérification : `ocr_win.ps1` doit apparaître comme
    chaîne dans `Pilote.exe`.
 
+5. **`src/ui/vendor/` dans les `datas` de `build/pilote.spec`** → même piège que
+   `ocr_win.ps1` : sans cette ligne, Chart.js et les polices sont introuvables dans
+   l'exe compilé. Les graphiques disparaissent et la typo retombe sur celle du
+   système, alors que tout marche parfaitement en dev.
 ## Sauvegarde externe sur clé USB (`sauvegarde.py`)
 
 Contrairement à tout le reste, ce module est au niveau de **l'installation**, pas de
@@ -571,7 +571,7 @@ Points critiques :
 
 ## Conventions de code
 
-* Tout l'UI vit dans `index.html` (~15 300 lignes). Les modules annexes sont des blocs
+* Tout l'UI vit dans `index.html` (~15 100 lignes). Les modules annexes sont des blocs
   JS autonomes en fin de fichier, préfixés (`fin*`, `sp*`, `pr*`, `sa*`, `pa*`, `dash*`,
   `sv*`, `home*`), avec leur propre patch de `goTab`. **Ordre d'insertion : Sports →
   Prêt → Santé → Patrimoine → Tableau de bord → `boot()`.** Les patches de `goTab`
