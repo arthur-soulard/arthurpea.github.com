@@ -690,6 +690,31 @@ def resource_path(rel: str) -> str:
 
 # ─── Crash log silencieux ─────────────────────────────────────────────────────
 
+CRASH_LOG_MAX = 256 * 1024   # 256 Ko
+
+
+def _rotate_crash_log() -> None:
+    """
+    Un crash.log qui grossit sans fin finit par peser plus lourd que les
+    donnees elles-memes et par partir dans chaque sauvegarde USB. On garde la
+    generation precedente sous crash.log.1 et on repart a zero au-dela de
+    CRASH_LOG_MAX.
+    """
+    try:
+        path = storage.get_log_path()
+        if path.exists() and path.stat().st_size > CRASH_LOG_MAX:
+            prev = path.with_name(path.name + ".1")
+            try:
+                if prev.exists():
+                    prev.unlink()
+            except Exception:
+                pass
+            path.replace(prev)
+    except Exception:
+        pass
+
+
+
 def install_crash_handler() -> None:
     """
     Installe un crash handler silencieux qui n'ecrit que les VRAIS crashes.
@@ -707,6 +732,7 @@ def install_crash_handler() -> None:
         if _is_benign(exc):
             return  # ignore silencieusement les bugs connus de libs tierces
         try:
+            _rotate_crash_log()
             with open(storage.get_log_path(), "a", encoding="utf-8") as f:
                 f.write("\n=== CRASH ===\n")
                 import datetime as _dt
@@ -732,53 +758,6 @@ def install_crash_handler() -> None:
 
 # ─── Cycle de vie ─────────────────────────────────────────────────────────────
 
-def _startup_audit() -> None:
-    """
-    Ecrit un audit IMMEDIAT au demarrage dans %APPDATA%\\Pilote\\startup_audit.log
-    pour voir EXACTEMENT ce que voit le process au moment du lancement.
-    """
-    try:
-        import datetime as _dt
-        log_path = storage.get_app_dir() / "startup_audit.log"
-        data_path = storage.get_data_path()
-
-        # Lecture brute des 300 premiers octets (sans passer par load_data)
-        first_bytes = ""
-        try:
-            if data_path.exists():
-                with open(data_path, "rb") as f:
-                    raw = f.read(300)
-                first_bytes = raw.decode("utf-8", errors="replace")
-        except Exception as e:
-            first_bytes = f"<lecture KO: {e}>"
-
-        with open(log_path, "a", encoding="utf-8") as log:
-            log.write("\n" + "=" * 70 + "\n")
-            log.write(f"STARTUP {_dt.datetime.now().isoformat()}\n")
-            log.write(f"PID         : {os.getpid()}\n")
-            log.write(f"sys.executable: {sys.executable}\n")
-            log.write(f"sys.argv    : {sys.argv}\n")
-            log.write(f"frozen      : {getattr(sys, 'frozen', False)}\n")
-            log.write(f"_MEIPASS    : {getattr(sys, '_MEIPASS', None)}\n")
-            log.write(f"cwd         : {os.getcwd()}\n")
-            log.write(f"APPDATA env : {os.environ.get('APPDATA', '?')}\n")
-            log.write(f"USERPROFILE : {os.environ.get('USERPROFILE', '?')}\n")
-            log.write(f"app_dir     : {storage.get_app_dir()}\n")
-            log.write(f"data_path   : {data_path}\n")
-            log.write(f"data exists : {data_path.exists()}\n")
-            if data_path.exists():
-                st = data_path.stat()
-                log.write(f"data size   : {st.st_size} octets\n")
-                log.write(f"data mtime  : {_dt.datetime.fromtimestamp(st.st_mtime).isoformat()}\n")
-            log.write(f"data first  : {first_bytes[:200]}\n")
-            log.write(f"PYTHONIOENCODING: {os.environ.get('PYTHONIOENCODING', '?')}\n")
-    except Exception as e:
-        try:
-            with open(storage.get_app_dir() / "startup_audit.log", "a", encoding="utf-8") as log:
-                log.write(f"\nAUDIT FAILED: {e}\n")
-        except Exception:
-            pass
-
 
 def main() -> int:
     install_crash_handler()
@@ -788,7 +767,6 @@ def main() -> int:
         storage.migrate_legacy_pin()
     except Exception as e:
         print(f"[app] migration PIN KO : {e}", flush=True)
-    # _startup_audit() retire — n'est plus necessaire
 
     # Lance la verification de mise a jour en arriere-plan (silencieux)
     try:

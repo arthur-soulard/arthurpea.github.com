@@ -598,9 +598,16 @@ def _daily_backup(data: dict) -> None:
     today = datetime.date.today().isoformat()
     backup_dir = get_backup_dir()
     backup_path = backup_dir / f"pea_data_{today}.json"
+    # `_cache` (les cours et historiques Yahoo gardes pour le mode hors-ligne)
+    # pese a lui seul plus que toutes les donnees reunies : ~200 Ko contre
+    # ~6 Ko. Il a sa place dans le fichier courant, qu'il fait vivre hors
+    # ligne, mais aucune dans un backup : il se regenere en un appel reseau,
+    # et le recopier sept fois par utilisateur gonflait aussi chaque archive
+    # de sauvegarde USB. Un backup ne doit contenir que l'irremplacable.
+    sans_cache = {k: v for k, v in data.items() if k != "_cache"}
     try:
         with open(backup_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+            json.dump(sans_cache, f, ensure_ascii=False, indent=2)
     except Exception as e:
         print(f"[storage] Backup quotidien impossible : {e}", flush=True)
         return
