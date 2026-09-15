@@ -28,11 +28,14 @@ import storage
 import finances
 import sports
 import pret
+import patrimoine
+import sante
+import sauvegarde
 import notifications
 
 
 APP_NAME    = "Pilote"
-APP_VERSION = "4.1.3"
+APP_VERSION = "4.1.4"
 SINGLE_INSTANCE_PORT = 50317          # port arbitraire pour le verrou single-instance
 WINDOW_DEFAULT_SIZE  = (1280, 800)
 WINDOW_MIN_SIZE      = (960, 640)
@@ -191,6 +194,174 @@ class Api:
         try:
             pret.save_data(data or {})
             return {"ok": True}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # -- Patrimoine (propre a l'utilisateur actif) -------------------------
+
+    def load_patrimoine(self) -> dict:
+        try:
+            data = patrimoine.load_data()
+            return {"ok": True, "data": data, "types": patrimoine.TYPES,
+                    "moisCourant": patrimoine.mois_courant(),
+                    "moisSaisi":   patrimoine.mois_saisi(data),
+                    "net":         patrimoine.net_worth(data),
+                    "serie":       patrimoine.serie_mensuelle(data)}
+        except Exception as e:
+            return {"ok": False, "error": str(e), "trace": traceback.format_exc()}
+
+    def save_patrimoine(self, data: dict) -> dict:
+        try:
+            patrimoine.save_data(data or {})
+            d = patrimoine.load_data()
+            return {"ok": True, "net": patrimoine.net_worth(d),
+                    "serie": patrimoine.serie_mensuelle(d),
+                    "moisSaisi": patrimoine.mois_saisi(d)}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # -- Sante (propre a l'utilisateur actif) ------------------------------
+
+    def load_sante(self) -> dict:
+        try:
+            return {"ok": True, "data": sante.load_data(),
+                    "metrics": sante.METRICS}
+        except Exception as e:
+            return {"ok": False, "error": str(e), "trace": traceback.format_exc()}
+
+    def save_sante(self, data: dict) -> dict:
+        try:
+            sante.save_data(data or {})
+            return {"ok": True}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def sante_ocr_available(self) -> dict:
+        try:
+            return sante.ocr_available()
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def sante_pick_screenshots(self) -> dict:
+        """Selecteur de captures FitDays (plusieurs a la fois)."""
+        try:
+            win = webview.windows[0]
+            result = win.create_file_dialog(
+                webview.OPEN_DIALOG,
+                allow_multiple=True,
+                file_types=("Images (*.png;*.jpg;*.jpeg;*.heic)", "All files (*.*)"),
+            )
+            if not result:
+                return {"ok": False, "cancelled": True}
+            paths = list(result) if isinstance(result, (list, tuple)) else [result]
+            return {"ok": True, "paths": paths}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def sante_read_screenshots(self, paths: list) -> dict:
+        """
+        Lecture OCR des captures. Peut prendre plusieurs secondes : l'UI
+        affiche un indicateur pendant ce temps.
+        """
+        try:
+            return sante.read_screenshots(list(paths or []))
+        except Exception as e:
+            return {"ok": False, "error": str(e), "values": {},
+                    "trace": traceback.format_exc()}
+
+    # -- Sauvegarde externe (cle USB) --------------------------------------
+    # Au niveau de l'installation, pas de l'utilisateur : une sauvegarde
+    # embarque TOUT le dossier Donnees, tous les espaces confondus.
+
+    def sauvegarde_status(self) -> dict:
+        try:
+            return sauvegarde.status()
+        except Exception as e:
+            return {"ok": False, "error": str(e), "trace": traceback.format_exc()}
+
+    def sauvegarde_set_config(self, patch: dict) -> dict:
+        """Met a jour les seuls champs de comportement (auto, frequence, keep)."""
+        try:
+            cfg = sauvegarde.load_config()
+            for key in ("auto", "frequence", "keep"):
+                if key in (patch or {}):
+                    cfg[key] = patch[key]
+            cfg["keep"] = max(1, min(100, int(cfg.get("keep") or 10)))
+            if cfg.get("frequence") not in ("daily", "weekly", "manual"):
+                cfg["frequence"] = "daily"
+            sauvegarde.save_config(cfg)
+            return sauvegarde.status()
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def sauvegarde_pick_folder(self) -> dict:
+        """Ouvre le selecteur de dossier et retient la cle choisie."""
+        try:
+            win = webview.windows[0]
+            result = win.create_file_dialog(webview.FOLDER_DIALOG)
+            if not result:
+                return {"ok": False, "cancelled": True}
+            path = result[0] if isinstance(result, (list, tuple)) else result
+            res = sauvegarde.set_destination(path)
+            if not res.get("ok"):
+                return res
+            return sauvegarde.status()
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def sauvegarde_use_drive(self, root: str) -> dict:
+        """Choisit une cle detectee, avec un sous-dossier dedie."""
+        try:
+            target = os.path.join(root, "Sauvegardes Pilote")
+            res = sauvegarde.set_destination(target)
+            if not res.get("ok"):
+                return res
+            return sauvegarde.status()
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def sauvegarde_push_usb(self, root: str = None) -> dict:
+        """Miroir immediat du dossier Donnees sur la cle (bouton de l'accueil)."""
+        try:
+            return sauvegarde.push_to_usb(root)
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def sauvegarde_usb_state(self) -> dict:
+        try:
+            return sauvegarde.usb_state()
+        except Exception as e:
+            return {"ok": False, "error": str(e), "drives": [], "count": 0}
+
+    def sauvegarde_run(self) -> dict:
+        try:
+            return sauvegarde.run_backup(reason="manuel")
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def sauvegarde_list(self) -> dict:
+        try:
+            return sauvegarde.list_backups()
+        except Exception as e:
+            return {"ok": False, "error": str(e), "backups": []}
+
+    def sauvegarde_restore(self, path: str) -> dict:
+        try:
+            return sauvegarde.restore_from(path)
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def sauvegarde_open_folder(self) -> dict:
+        try:
+            dest = sauvegarde.resolve_destination()
+            if not dest.get("ready"):
+                return {"ok": False, "error": dest.get("message") or "Destination absente."}
+            if sys.platform == "win32":
+                os.startfile(dest["path"])
+            else:
+                import subprocess
+                subprocess.Popen(["xdg-open", dest["path"]])
+            return {"ok": True, "path": dest["path"]}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
@@ -623,6 +794,21 @@ def main() -> int:
     try:
         import updater
         updater.start_check(APP_VERSION)
+    except Exception:
+        pass
+
+    # Sauvegarde externe automatique, en arriere-plan et sans rien bloquer :
+    # si la cle USB n'est pas branchee, on note le statut et on n'insiste pas.
+    def _auto_sauvegarde():
+        try:
+            res = sauvegarde.auto_backup_if_due()
+            if res.get("ok"):
+                print(f"[app] sauvegarde externe : {res.get('path')}", flush=True)
+        except Exception as e:
+            print(f"[app] sauvegarde auto KO : {e}", flush=True)
+
+    try:
+        threading.Thread(target=_auto_sauvegarde, daemon=True).start()
     except Exception:
         pass
 

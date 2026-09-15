@@ -26,6 +26,8 @@ a = Analysis(
     datas=[
         # Embarque l'UI HTML et l'icone dans l'exe
         (str(SRC / "ui" / "index.html"), "ui"),
+        # Script OCR (module Sante) : lu a l'execution via sys._MEIPASS
+        (str(SRC / "ocr_win.ps1"),      "."),
         (str(ICON),                       "."),
     ],
     hiddenimports=[

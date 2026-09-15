@@ -1387,6 +1387,209 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
   font-size: 11.5px; color: var(--txt3); margin: 0 0 16px; line-height: 1.5;
 }
 .set-links { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
+
+/* ── Patrimoine ─────────────────────────────────────────────────────────── */
+.pa-split { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 20px; align-items: center; }
+@media (max-width: 760px) { .pa-split { grid-template-columns: 1fr; } }
+.pa-pie { position: relative; height: 260px; }
+.pa-legend { display: flex; flex-direction: column; gap: 6px; }
+.pa-leg {
+  display: flex; align-items: center; gap: 9px; font-size: 11.5px;
+  padding: 6px 9px; border-radius: var(--rad); background: var(--bg3);
+  border: 1px solid var(--brd);
+}
+.pa-leg-dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.pa-leg-val { margin-left: auto; font-family: var(--mono); font-weight: 700; }
+.pa-leg-pct { font-family: var(--mono); font-size: 10px; color: var(--txt3); min-width: 38px; text-align: right; }
+
+.pa-cpt {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 11px; border: 1px solid var(--brd); border-radius: var(--rad);
+  background: var(--bg3); margin-bottom: 6px;
+}
+.pa-cpt-ico { font-size: 17px; }
+.pa-cpt-name { font-weight: 700; font-size: 12.5px; }
+.pa-cpt-type { font-size: 10px; color: var(--txt3); }
+.pa-cpt-val { margin-left: auto; font-family: var(--mono); font-weight: 800; font-size: 13px; }
+.pa-cpt.dette .pa-cpt-val { color: var(--r); }
+.pa-cpt-auto {
+  font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--accent); border: 1px solid var(--accent); border-radius: 99px; padding: 1px 6px;
+}
+
+.pa-sai-line { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+.pa-sai-line .pa-sai-lbl { flex: 1; font-size: 12px; display: flex; align-items: center; gap: 7px; }
+.pa-sai-line input { width: 140px; text-align: right; }
+.pa-sai-total {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-top: 1px solid var(--brd); margin-top: 12px; padding-top: 10px;
+  font-family: var(--mono); font-size: 13px; font-weight: 800;
+}
+.pa-rappel {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg2));
+  border: 1px solid var(--accent); border-radius: var(--radl);
+  padding: 12px 16px; margin-bottom: 1rem; font-size: 12.5px;
+}
+
+/* ── Accueil : tableau de bord modulaire ────────────────────────────────── */
+.dash-empty {
+  border: 2px dashed var(--brd2); border-radius: var(--radl);
+  padding: 22px; text-align: center; color: var(--txt3); font-size: 12px;
+}
+.dash-cfg-list { display: flex; flex-direction: column; gap: 5px; }
+.dash-cfg-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 11px; border: 1px solid var(--brd); border-radius: var(--rad);
+  background: var(--bg3); font-size: 12px; cursor: grab;
+}
+.dash-cfg-row.dragging { opacity: .45; }
+.dash-cfg-row.over { border-color: var(--accent); }
+.dash-cfg-grip { color: var(--txt3); cursor: grab; font-size: 13px; }
+.dash-cfg-row input { width: auto; margin: 0; }
+.dash-cfg-mod {
+  margin-left: auto; font-size: 9px; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--txt3); font-weight: 700;
+}
+
+/* ── Santé ──────────────────────────────────────────────────────────────── */
+.sa-chart { position: relative; height: 300px; }
+.sa-ranges { display: flex; gap: 4px; flex-wrap: wrap; }
+.sa-ranges .btn.active {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.sa-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 10px;
+}
+.sa-cell {
+  background: var(--bg3); border: 1px solid var(--brd);
+  border-radius: var(--rad); padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.sa-cell-lbl {
+  font-size: 9px; font-weight: 700; color: var(--txt2);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.sa-cell-val { font-family: var(--mono); font-size: 16px; font-weight: 800; }
+.sa-cell-dlt { font-size: 10px; font-family: var(--mono); color: var(--txt3); }
+.sa-cell-dlt.up   { color: var(--r); }
+.sa-cell-dlt.down { color: var(--g); }
+
+/* Import des captures */
+.sa-drop {
+  border: 2px dashed var(--brd2); border-radius: var(--radl);
+  padding: 26px 18px; text-align: center; cursor: pointer;
+  background: var(--bg3); transition: border-color .15s, background .15s;
+}
+.sa-drop:hover { border-color: var(--accent); }
+.sa-drop-ico { font-size: 30px; margin-bottom: 6px; }
+.sa-files { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+.sa-file {
+  display: flex; align-items: center; gap: 8px; font-size: 11px;
+  font-family: var(--mono); color: var(--txt2);
+  background: var(--bg3); border: 1px solid var(--brd);
+  border-radius: var(--rad); padding: 6px 10px;
+}
+.sa-reading { display: flex; align-items: center; gap: 14px; padding: 26px 6px; }
+.sa-spinner {
+  width: 26px; height: 26px; flex: none;
+  border: 3px solid var(--brd2); border-top-color: var(--accent);
+  border-radius: 50%; animation: sa-spin .8s linear infinite;
+}
+@keyframes sa-spin { to { transform: rotate(360deg); } }
+.sa-summary {
+  border-radius: var(--rad); padding: 10px 12px; margin-bottom: 14px;
+  font-size: 11.5px; line-height: 1.5;
+  background: var(--bg3); border: 1px solid var(--brd);
+}
+.sa-summary b { color: var(--txt); }
+
+/* Grille de saisie des 14 mesures */
+.sa-fields {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 9px; margin-bottom: 12px;
+}
+.sa-field { display: flex; flex-direction: column; gap: 3px; }
+.sa-field label {
+  font-size: 9px; font-weight: 700; color: var(--txt2);
+  text-transform: uppercase; letter-spacing: .07em;
+}
+.sa-field .sa-inwrap { position: relative; }
+.sa-field input { width: 100%; padding-right: 34px; }
+.sa-field .sa-unit {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  font-size: 10px; color: var(--txt3); font-family: var(--mono); pointer-events: none;
+}
+/* Valeur que l'OCR n'a pas su lire : a completer a la main */
+.sa-field.missing input { border-color: var(--r); background: color-mix(in srgb, var(--r) 7%, var(--bg3)); }
+.sa-field.missing label { color: var(--r); }
+
+/* Objectifs */
+.sa-goal {
+  background: var(--bg2); border: 1px solid var(--brd);
+  border-radius: var(--radl); padding: 1rem 1.2rem; margin-bottom: 12px;
+  box-shadow: var(--sh);
+}
+.sa-goal-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.sa-goal-name { font-weight: 800; font-size: 14px; }
+.sa-goal-num { font-family: var(--mono); font-size: 13px; color: var(--txt2); }
+.sa-goal-bar {
+  height: 8px; border-radius: 99px; background: var(--bg3);
+  overflow: hidden; margin: 10px 0 6px;
+}
+.sa-goal-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width .4s; }
+.sa-goal.done .sa-goal-fill { background: var(--g); }
+.sa-goal-foot {
+  display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  font-size: 10.5px; color: var(--txt3); font-family: var(--mono);
+}
+
+/* Bouton clé USB de l'accueil */
+.home-usb-state {
+  font-size: 10.5px; color: var(--txt3); font-family: var(--mono);
+  margin-top: 8px; min-height: 14px;
+}
+
+/* ── Sauvegarde USB ─────────────────────────────────────────────────────── */
+.sv-dest {
+  font-size: 11px; font-family: var(--mono); color: var(--txt2);
+  background: var(--bg3); border: 1px solid var(--brd); border-radius: var(--rad);
+  padding: 9px 11px; line-height: 1.55; word-break: break-all;
+}
+.sv-dest .sv-ok    { color: var(--g); font-weight: 700; }
+.sv-dest .sv-warn  { color: var(--r); font-weight: 700; }
+.sv-dest .sv-none  { color: var(--txt3); }
+.sv-drives { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.sv-drive {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  background: var(--bg3); border: 1px solid var(--brd); border-radius: var(--rad);
+  padding: 8px 11px; cursor: pointer; color: var(--txt); font-size: 11.5px;
+  transition: border-color .12s, background .12s;
+}
+.sv-drive:hover { border-color: var(--accent); }
+.sv-drive .sv-drive-ico { font-size: 15px; }
+.sv-drive .sv-drive-sub {
+  margin-left: auto; font-size: 10px; color: var(--txt3); font-family: var(--mono);
+}
+/* Ces libelles sont du texte courant : on annule le style "titre de champ"
+   que .fg label impose (majuscules + interlettrage). */
+/* `label.` et non `.` : il faut au moins la specificite de `.fg label`. */
+label.sv-check, label.sv-inline {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11.5px; font-weight: 500; color: var(--txt2);
+  text-transform: none; letter-spacing: normal; margin-bottom: 0;
+}
+.sv-check { cursor: pointer; }
+.sv-check input { width: auto; margin: 0; }
+.sv-inline input { width: 64px; }
+.sv-list { display: flex; flex-direction: column; gap: 4px; max-height: 190px; overflow-y: auto; }
+.sv-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border: 1px solid var(--brd); border-radius: var(--rad);
+  background: var(--bg3); font-size: 11px; font-family: var(--mono); color: var(--txt2);
+}
+.sv-row .sv-row-name { color: var(--txt); font-weight: 600; }
+.sv-row .sv-row-size { margin-left: auto; color: var(--txt3); font-size: 10px; }
 @media (max-width: 720px) {
   .set-layout { grid-template-columns: 1fr; }
   .set-nav { flex-direction: row; flex-wrap: wrap; }
@@ -1511,7 +1714,10 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
       <button class="btn btn-ghost btn-sm" onclick="openSettings()" title="Paramètres de Pilote">⚙ Paramètres</button>
       <button class="btn btn-ghost btn-sm" onclick="doExport()"       title="Exporter mes données (Ctrl+E)">↓ Exporter</button>
       <button class="btn btn-ghost btn-sm" onclick="doImportDialog()" title="Importer des données (Ctrl+I)">↑ Importer</button>
+      <button class="btn btn-ghost btn-sm" id="home-usb-btn" onclick="svPushToUsb()"
+              title="Copier toutes les données sur la clé USB">🔑 Téléverser vers clé USB</button>
     </div>
+    <div class="home-usb-state" id="home-usb-state"></div>
   </div>
   <div class="home-cards" id="home-cards"></div>
 </div>
@@ -2175,6 +2381,112 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 <div class="pane" id="pane-pr-liv"><div id="pr-liv-body"></div></div>
 <div class="pane" id="pane-pr-params"><div id="pr-params-body"></div></div>
 
+<!-- ═══════════════════ PATRIMOINE ═══════════════════ -->
+<div class="pane" id="pane-pa-vue">
+  <div class="m-head">
+    <span class="m-nav-lbl">Patrimoine net</span>
+    <div class="m-spacer"></div>
+    <button class="btn btn-primary" onclick="paOpenSaisie()">📝 Relevé du mois</button>
+    <button class="btn btn-ghost"   onclick="goTab('pa-comptes');_setActiveSidebar('pa-comptes')">Comptes</button>
+  </div>
+  <div id="pa-rappel"></div>
+  <div class="mkpis" id="pa-kpis"></div>
+
+  <div class="card" id="card-pa-courbe">
+    <div class="card-h"><span class="card-t">Évolution</span>
+      <span class="m-note" style="margin:0">Un point par mois</span></div>
+    <div class="card-b"><div class="sa-chart"><canvas id="pa-chart"></canvas></div></div>
+  </div>
+
+  <div class="card" id="card-pa-repart">
+    <div class="card-h"><span class="card-t">Répartition</span>
+      <span class="m-note" id="pa-repart-when" style="margin:0"></span></div>
+    <div class="card-b">
+      <div class="pa-split">
+        <div class="pa-pie"><canvas id="pa-chart-pie"></canvas></div>
+        <div class="pa-legend" id="pa-legend"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="pane" id="pane-pa-comptes">
+  <div class="m-head">
+    <span class="m-nav-lbl">Comptes et relevés</span>
+    <div class="m-spacer"></div>
+    <button class="btn btn-primary" onclick="paOpenCompte(null)">+ Compte</button>
+    <button class="btn btn-ghost"   onclick="paOpenSaisie()">📝 Relevé du mois</button>
+  </div>
+  <div class="card" id="card-pa-comptes">
+    <div class="card-h"><span class="card-t">Mes comptes</span>
+      <span class="m-note" style="margin:0">Le PEA et le prêt se remplissent tout seuls</span></div>
+    <div class="card-b"><div id="pa-comptes-list"></div></div>
+  </div>
+  <div class="card" id="card-pa-releves">
+    <div class="card-h"><span class="card-t">Historique des relevés</span></div>
+    <div class="tw"><table><thead id="pa-rel-head"></thead><tbody id="pa-rel-body"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SANTÉ ═══════════════════ -->
+<div class="pane" id="pane-sa-suivi">
+  <div class="m-head">
+    <span class="m-nav-lbl" id="sa-suivi-lbl">Composition corporelle</span>
+    <div class="m-spacer"></div>
+    <button class="btn btn-primary" onclick="saImportScreens()">📷 Envoyer les captures</button>
+    <button class="btn btn-ghost"   onclick="saOpenMesure(null)">+ Pesée</button>
+  </div>
+  <div class="mkpis" id="sa-kpis"></div>
+
+  <div class="card" id="card-sa-poids">
+    <div class="card-h" style="flex-wrap:wrap;gap:.6rem">
+      <span class="card-t">Poids</span>
+      <div class="sa-ranges" id="sa-range-btns">
+        <button class="btn btn-sm btn-ghost" id="sar-3m"  onclick="saSetRange('3m')">3M</button>
+        <button class="btn btn-sm btn-ghost" id="sar-6m"  onclick="saSetRange('6m')">6M</button>
+        <button class="btn btn-sm btn-ghost" id="sar-1y"  onclick="saSetRange('1y')">1A</button>
+        <button class="btn btn-sm btn-ghost" id="sar-max" onclick="saSetRange('max')">Max</button>
+      </div>
+    </div>
+    <div class="card-b"><div class="sa-chart"><canvas id="sa-chart-poids"></canvas></div></div>
+  </div>
+
+  <div class="card" id="card-sa-compo">
+    <div class="card-h"><span class="card-t">Composition</span>
+      <span class="m-note" style="margin:0">Graisse · Muscle · Eau, en %</span></div>
+    <div class="card-b"><div class="sa-chart"><canvas id="sa-chart-compo"></canvas></div></div>
+  </div>
+
+  <div class="card" id="card-sa-grid">
+    <div class="card-h"><span class="card-t">Dernière pesée</span>
+      <span class="m-note" id="sa-grid-when" style="margin:0"></span></div>
+    <div class="card-b"><div class="sa-grid" id="sa-grid"></div></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-sa-mesures">
+  <div class="m-head">
+    <span class="m-nav-lbl">Historique des pesées</span>
+    <div class="m-spacer"></div>
+    <button class="btn btn-primary" onclick="saImportScreens()">📷 Envoyer les captures</button>
+    <button class="btn btn-ghost"   onclick="saOpenMesure(null)">+ Pesée</button>
+  </div>
+  <div class="card" id="card-sa-hist">
+    <div class="card-h"><span class="card-t">Toutes les mesures</span>
+      <span class="m-note" id="sa-hist-count" style="margin:0"></span></div>
+    <div class="tw"><table><thead id="sa-hist-head"></thead><tbody id="sa-hist-body"></tbody></table></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-sa-goals">
+  <div class="m-head">
+    <span class="m-nav-lbl">Objectifs</span>
+    <div class="m-spacer"></div>
+    <button class="btn btn-primary" onclick="saOpenGoal(null)">+ Objectif</button>
+  </div>
+  <div id="sa-goals-body"></div>
+</div>
+
 </div><!-- /wrap -->
 
 <!-- ════════════════════ MODALES SPORTS ════════════════════ -->
@@ -2691,6 +3003,8 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
                 onclick="setGoSection('general')"><span class="set-nav-ico">⚙</span>Général</button>
         <button type="button" class="set-nav-btn" data-set="users"
                 onclick="setGoSection('users')"><span class="set-nav-ico">👥</span>Utilisateurs</button>
+        <button type="button" class="set-nav-btn" data-set="accueil"
+                onclick="setGoSection('accueil')"><span class="set-nav-ico">▤</span>Accueil</button>
         <button type="button" class="set-nav-btn" data-set="nav"
                 onclick="setGoSection('nav')"><span class="set-nav-ico">☰</span>Navigation</button>
         <button type="button" class="set-nav-btn" data-set="pea"
@@ -2701,6 +3015,8 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
                 onclick="setGoSection('pret')"><span class="set-nav-ico">🎓</span>Prêt étudiant</button>
         <button type="button" class="set-nav-btn" data-set="sport"
                 onclick="setGoSection('sport')"><span class="set-nav-ico">🏃</span>Sports</button>
+        <button type="button" class="set-nav-btn" data-set="sauvegarde"
+                onclick="setGoSection('sauvegarde')"><span class="set-nav-ico">🔑</span>Sauvegarde USB</button>
         <button type="button" class="set-nav-btn" data-set="donnees"
                 onclick="setGoSection('donnees')"><span class="set-nav-ico">💾</span>Données &amp; app</button>
       </div>
@@ -2844,6 +3160,68 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
         </div>
 
         <!-- ──── DONNÉES & APP ──── -->
+        <div class="set-sec" data-sec="accueil">
+          <h3>Tuiles de l'accueil</h3>
+          <p class="set-lead">Coche ce que tu veux voir, glisse pour réordonner.
+            Une tuile dont le module n'a rien à afficher se masque d'elle-même.</p>
+          <div class="dash-cfg-list" id="dash-cfg"></div>
+        </div>
+
+        <div class="set-sec" data-sec="sauvegarde">
+          <h3>Sauvegarde sur clé USB</h3>
+          <p class="set-lead">Une archive <code>.zip</code> de tout le dossier Données —
+            tous les utilisateurs, tous les modules. De quoi remonter l'installation
+            entière depuis la clé. Rien n'est chiffré.</p>
+
+          <div class="fg">
+            <label>Destination</label>
+            <div id="sv-dest" class="sv-dest">…</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+              <button type="button" class="btn btn-ghost btn-sm" onclick="svPickFolder()"
+                      style="font-size:11px">📁 Choisir un dossier…</button>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="svRefresh()"
+                      style="font-size:11px">↻ Détecter les clés</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="sv-open"
+                      onclick="svOpenFolder()" style="font-size:11px">📂 Ouvrir</button>
+            </div>
+            <div id="sv-drives" class="sv-drives"></div>
+          </div>
+
+          <div class="fg">
+            <label>Automatique</label>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <label class="sv-check">
+                <input type="checkbox" id="sv-auto" onchange="svSaveCfg()">
+                <span>Sauvegarder au démarrage quand la clé est branchée</span>
+              </label>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px">
+              <select id="sv-freq" onchange="svSaveCfg()" style="max-width:250px">
+                <option value="daily">Au plus une fois par jour</option>
+                <option value="weekly">Au plus une fois par semaine</option>
+                <option value="manual">Jamais (manuel uniquement)</option>
+              </select>
+              <label class="sv-inline">Garder
+                <input type="number" id="sv-keep" min="1" max="100" onchange="svSaveCfg()">
+                archives</label>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label>Maintenant</label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <button type="button" class="btn btn-primary btn-sm" id="sv-run"
+                      onclick="svRunNow()" style="font-size:11px">💾 Sauvegarder maintenant</button>
+              <span id="sv-last" style="font-size:10px;color:var(--txt2);font-family:var(--mono)"></span>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label>Archives sur la clé</label>
+            <div id="sv-list" class="sv-list"><div class="m-empty">—</div></div>
+          </div>
+        </div>
+
         <div class="set-sec" data-sec="donnees">
           <h3>Données &amp; application</h3>
           <p class="set-lead">Tout est stocké en clair sur ce PC, un dossier par utilisateur.</p>
@@ -2890,6 +3268,140 @@ body.has-shell .wrap { margin-left: 220px; max-width: calc(1120px + 220px); }
 <input type="file" id="import-file" accept="application/json" style="display:none" onchange="doImport(event)">
 
 <!-- ══════════ MODALS ══════════ -->
+
+<!-- Patrimoine : relevé du mois -->
+<div class="ov" id="ov-pa-saisie" onclick="if(event.target===this)closeOv('ov-pa-saisie')">
+  <div class="modal" style="max-width:600px">
+    <h2>Relevé du mois</h2>
+    <p class="m-note" style="margin:0 0 14px">
+      Chaque ligne est pré-remplie avec sa dernière valeur connue. Corrige ce qui
+      a bougé, laisse le reste. Le PEA et le prêt sont repris automatiquement.
+    </p>
+    <div class="fg"><label>Mois</label><input id="pa-sai-date" type="date"></div>
+    <div id="pa-sai-lines"></div>
+    <div class="pa-sai-total" id="pa-sai-total"></div>
+    <div class="mact">
+      <button class="btn btn-ghost" onclick="closeOv('ov-pa-saisie')">Annuler</button>
+      <button class="btn btn-primary" onclick="paSaveSaisie()">Enregistrer le relevé</button>
+    </div>
+  </div>
+</div>
+
+<!-- Patrimoine : compte -->
+<div class="ov" id="ov-pa-compte" onclick="if(event.target===this)closeOv('ov-pa-compte')">
+  <div class="modal" style="max-width:480px">
+    <h2 id="pa-cpt-title">Nouveau compte</h2>
+    <div class="fg"><label>Nom</label>
+      <input id="pa-cpt-label" placeholder="ex : Livret A, Bitcoin, Appartement"></div>
+    <div class="fg"><label>Type</label><select id="pa-cpt-type"></select></div>
+    <div class="fg"><label>Note</label><input id="pa-cpt-note" placeholder="optionnel"></div>
+    <p class="m-note" id="pa-cpt-auto" style="display:none">
+      Ce compte est alimenté automatiquement par un autre module : son type et
+      son nom peuvent être changés, mais sa valeur vient de là-bas.
+    </p>
+    <div class="mact">
+      <button class="btn btn-ghost" id="pa-cpt-del" style="display:none"
+              onclick="paDeleteCompte()">🗑 Supprimer</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeOv('ov-pa-compte')">Annuler</button>
+      <button class="btn btn-primary" onclick="paSaveCompte()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Santé : lecture automatique des captures FitDays -->
+<div class="ov" id="ov-sa-import" onclick="if(event.target===this)closeOv('ov-sa-import')">
+  <div class="modal" style="max-width:720px">
+    <h2>Captures FitDays</h2>
+
+    <div id="sa-imp-step1">
+      <p class="m-note" style="margin:0 0 14px">
+        Choisis les captures de ta pesée — l'écran <b>Détails</b> suffit, tu peux
+        y ajouter l'écran principal pour la date. Pilote les lit tout seul, hors ligne.
+      </p>
+      <div class="sa-drop" onclick="saPickFiles()">
+        <div class="sa-drop-ico">📷</div>
+        <div><b>Choisir les captures</b></div>
+        <div class="m-note" style="margin:4px 0 0">PNG ou JPG · plusieurs à la fois</div>
+      </div>
+      <div id="sa-imp-files" class="sa-files"></div>
+    </div>
+
+    <div id="sa-imp-step2" style="display:none">
+      <div class="sa-reading">
+        <div class="sa-spinner"></div>
+        <div><b id="sa-imp-progress">Lecture en cours…</b>
+          <div class="m-note" style="margin:3px 0 0">Quelques secondes : plusieurs passes sont nécessaires.</div></div>
+      </div>
+    </div>
+
+    <div id="sa-imp-step3" style="display:none">
+      <div id="sa-imp-summary" class="sa-summary"></div>
+      <div class="fg-row">
+        <div class="fg"><label>Date de la pesée</label><input id="sa-imp-date" type="date"></div>
+        <div class="fg"><label>Heure</label><input id="sa-imp-time" type="time"></div>
+      </div>
+      <p class="m-note" style="margin:2px 0 10px">
+        Vérifie les valeurs avant d'enregistrer : un champ surligné n'a pas été lu
+        et reste à compléter.
+      </p>
+      <div class="sa-fields" id="sa-imp-fields"></div>
+    </div>
+
+    <div class="mact">
+      <button class="btn btn-ghost" onclick="closeOv('ov-sa-import')">Annuler</button>
+      <button class="btn btn-primary" id="sa-imp-save" style="display:none"
+              onclick="saSaveImport()">Enregistrer la pesée</button>
+    </div>
+  </div>
+</div>
+
+<!-- Santé : pesée manuelle / édition -->
+<div class="ov" id="ov-sa-mesure" onclick="if(event.target===this)closeOv('ov-sa-mesure')">
+  <div class="modal" style="max-width:660px">
+    <h2 id="sa-mes-title">Nouvelle pesée</h2>
+    <div class="fg-row">
+      <div class="fg"><label>Date</label><input id="sa-mes-date" type="date"></div>
+      <div class="fg"><label>Heure</label><input id="sa-mes-time" type="time"></div>
+    </div>
+    <div class="sa-fields" id="sa-mes-fields"></div>
+    <div class="fg"><label>Note</label><input id="sa-mes-note" placeholder="à jeun, après sport…"></div>
+    <div class="mact">
+      <button class="btn btn-ghost" id="sa-mes-del" style="display:none"
+              onclick="saDeleteMesure()">🗑 Supprimer</button>
+      <div class="m-spacer" style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeOv('ov-sa-mesure')">Annuler</button>
+      <button class="btn btn-primary" onclick="saSaveMesure()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Santé : objectif -->
+<div class="ov" id="ov-sa-goal" onclick="if(event.target===this)closeOv('ov-sa-goal')">
+  <div class="modal" style="max-width:520px">
+    <h2 id="sa-goal-title">Nouvel objectif</h2>
+    <div class="fg">
+      <label>Sur quelle mesure ?</label>
+      <select id="sa-goal-metric" onchange="saGoalMetricChanged()"></select>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Valeur à atteindre</label>
+        <input id="sa-goal-target" type="number" step="0.1" placeholder="75"></div>
+      <div class="fg"><label>Départ <span style="color:var(--txt3);font-weight:400">(optionnel)</span></label>
+        <input id="sa-goal-start" type="number" step="0.1" placeholder="valeur actuelle"></div>
+    </div>
+    <div class="fg"><label>Échéance <span style="color:var(--txt3);font-weight:400">(optionnel)</span></label>
+      <input id="sa-goal-date" type="date"></div>
+    <div class="fg"><label>Note</label><input id="sa-goal-note" placeholder="pourquoi cet objectif"></div>
+    <div class="mact">
+      <button class="btn btn-ghost" id="sa-goal-del" style="display:none"
+              onclick="saDeleteGoal()">🗑 Supprimer</button>
+      <div class="m-spacer" style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeOv('ov-sa-goal')">Annuler</button>
+      <button class="btn btn-primary" onclick="saSaveGoal()">Enregistrer</button>
+    </div>
+  </div>
+</div>
 
 <!-- Modal : Ajouter position (crée aussi une transaction) -->
 <div class="ov" id="ov-pos" onclick="if(event.target===this)closeOv('ov-pos')">
@@ -3663,7 +4175,9 @@ function renderMetrics() {
   document.getElementById("m-pv-sub").textContent = pvP!=null ? pct(pvP) : "";
   document.getElementById("mc-pv-acc").style.background = pv==null ? "transparent" : pv>=0 ? "var(--g)" : "var(--r)";
   // Partage avec la page d'accueil pour qu'elle affiche exactement le meme chiffre
-  window._peaPv = { eur: pv, pct: pvP };
+  // `total` = valorisation du PEA (lignes + especes). Le module Patrimoine
+  // s'en sert pour pre-remplir sa ligne PEA, sans recalculer de son cote.
+  window._peaPv = { eur: pv, pct: pvP, total: all ? Math.round((tv + cash) * 100) / 100 : null };
   if (typeof homeRender === "function") homeRender();
   document.getElementById("m-fees").textContent = fees>0 ? eur(fees) : "—";
   document.getElementById("m-div").textContent  = divRec>0 ? eur(divRec) : "—";
@@ -7963,6 +8477,190 @@ function setGoSection(id) {
     el.classList.toggle("active", el.dataset.sec === id));
   const body = document.querySelector(".set-body");
   if (body) body.scrollTop = 0;
+  // La sauvegarde interroge le disque (clés branchées) : on ne le fait qu'à
+  // l'ouverture de sa section, pas à chaque ouverture des paramètres.
+  if (id === "sauvegarde") svRefresh();
+  if (id === "accueil" && typeof dashRenderConfig === "function") dashRenderConfig();
+}
+
+/* ══════════ Sauvegarde externe (clé USB) ══════════ */
+
+let SV_STATE = null;
+
+function svBytes(n) {
+  if (!n && n !== 0) return "—";
+  if (n < 1024) return n + " o";
+  if (n < 1024 * 1024) return (n / 1024).toFixed(0) + " Ko";
+  if (n < 1024 * 1024 * 1024) return (n / 1048576).toFixed(1) + " Mo";
+  return (n / 1073741824).toFixed(2) + " Go";
+}
+
+function svWhen(iso) {
+  if (!iso) return "jamais";
+  const d = new Date(iso);
+  if (isNaN(d)) return "jamais";
+  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })
+       + " à " + d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+}
+
+async function svRefresh() {
+  if (!window.pywebview || !pywebview.api) return;
+  let st;
+  try { st = await pywebview.api.sauvegarde_status(); }
+  catch (e) { return; }
+  if (!st || !st.ok) return;
+  SV_STATE = st;
+
+  const cfg = st.config || {};
+  const dest = st.destination || {};
+
+  // Destination
+  const box = document.getElementById("sv-dest");
+  if (box) {
+    if (dest.reason === "unset") {
+      box.innerHTML = `<span class="sv-none">Aucune destination choisie. Branche une clé USB, `
+        + `puis sélectionne-la ci-dessous.</span>`;
+    } else if (dest.ready) {
+      box.innerHTML = `<span class="sv-ok">✓ Prête</span> — ${escHtml(dest.path)}`
+        + (cfg.volumeLabel ? `<br><span class="sv-none">Clé « ${escHtml(cfg.volumeLabel)} »`
+            + ` · retrouvée même si Windows change sa lettre</span>` : "");
+    } else {
+      box.innerHTML = `<span class="sv-warn">✕ ${escHtml(dest.message || "Indisponible")}</span>`
+        + (cfg.destination ? `<br><span class="sv-none">${escHtml(cfg.destination)}</span>` : "");
+    }
+  }
+
+  const openBtn = document.getElementById("sv-open");
+  if (openBtn) openBtn.disabled = !dest.ready;
+  const runBtn = document.getElementById("sv-run");
+  if (runBtn) runBtn.disabled = !dest.ready;
+
+  // Clés détectées
+  const dl = document.getElementById("sv-drives");
+  if (dl) {
+    const drives = st.drives || [];
+    if (!drives.length) {
+      dl.innerHTML = `<div class="m-note" style="font-size:10.5px">Aucune clé USB détectée.</div>`;
+    } else {
+      dl.innerHTML = drives.map(d => `
+        <button type="button" class="sv-drive" onclick="svUseDrive('${escHtml(d.root).replace(/\\/g, "\\\\")}')">
+          <span class="sv-drive-ico">🔑</span>
+          <span><b>${escHtml(d.letter)}</b> ${escHtml(d.label)}</span>
+          <span class="sv-drive-sub">${svBytes(d.free)} libres / ${svBytes(d.total)}</span>
+        </button>`).join("");
+    }
+  }
+
+  // Comportement
+  const auto = document.getElementById("sv-auto");
+  if (auto) auto.checked = !!cfg.auto;
+  const freq = document.getElementById("sv-freq");
+  if (freq) freq.value = cfg.frequence || "daily";
+  const keep = document.getElementById("sv-keep");
+  if (keep) keep.value = cfg.keep || 10;
+
+  // Dernière sauvegarde
+  const last = document.getElementById("sv-last");
+  if (last) {
+    if (cfg.lastStatus === "ok")      last.textContent = "Dernière : " + svWhen(cfg.lastBackupAt);
+    else if (cfg.lastStatus === "absent") last.textContent = "Clé absente au dernier essai";
+    else if (cfg.lastStatus === "error")  last.textContent = "Échec : " + (cfg.lastError || "");
+    else last.textContent = "Jamais sauvegardé";
+  }
+
+  svLoadList();
+}
+
+async function svLoadList() {
+  const el = document.getElementById("sv-list");
+  if (!el || !window.pywebview || !pywebview.api) return;
+  let res;
+  try { res = await pywebview.api.sauvegarde_list(); }
+  catch (e) { return; }
+  if (!res || !res.ok || !(res.backups || []).length) {
+    el.innerHTML = `<div class="m-empty">Aucune archive sur la clé.</div>`;
+    return;
+  }
+  el.innerHTML = res.backups.map(b => `
+    <div class="sv-row">
+      <span class="sv-row-name">${escHtml(svWhen(b.date))}</span>
+      <span class="sv-row-size">${svBytes(b.size)}</span>
+      <button type="button" class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 7px"
+              onclick="svRestore('${escHtml(b.path).replace(/\\/g, "\\\\")}', '${escHtml(svWhen(b.date))}')">↺ Restaurer</button>
+    </div>`).join("");
+}
+
+async function svSaveCfg() {
+  if (!window.pywebview || !pywebview.api) return;
+  const patch = {
+    auto:      document.getElementById("sv-auto").checked,
+    frequence: document.getElementById("sv-freq").value,
+    keep:      parseInt(document.getElementById("sv-keep").value, 10) || 10,
+  };
+  try {
+    const st = await pywebview.api.sauvegarde_set_config(patch);
+    if (st && st.ok) { SV_STATE = st; svRefresh(); }
+  } catch (e) {}
+}
+
+async function svPickFolder() {
+  if (!window.pywebview || !pywebview.api) return;
+  try {
+    const st = await pywebview.api.sauvegarde_pick_folder();
+    if (st && st.cancelled) return;
+    if (st && st.ok) { showToastModern("Destination enregistrée", "ok"); svRefresh(); }
+    else showToastModern((st && st.error) || "Impossible d'utiliser ce dossier", "err");
+  } catch (e) { showToastModern("Erreur : " + e, "err"); }
+}
+
+async function svUseDrive(root) {
+  if (!window.pywebview || !pywebview.api) return;
+  try {
+    const st = await pywebview.api.sauvegarde_use_drive(root);
+    if (st && st.ok) { showToastModern("Clé choisie comme destination", "ok"); svRefresh(); }
+    else showToastModern((st && st.error) || "Clé inutilisable", "err");
+  } catch (e) { showToastModern("Erreur : " + e, "err"); }
+}
+
+async function svRunNow() {
+  if (!window.pywebview || !pywebview.api) return;
+  const btn = document.getElementById("sv-run");
+  if (btn) { btn.disabled = true; btn.textContent = "⏳ Sauvegarde…"; }
+  try {
+    const res = await pywebview.api.sauvegarde_run();
+    if (res && res.ok) {
+      showToastModern(`Sauvegardé · ${res.files} fichiers · ${svBytes(res.size)}`, "ok");
+    } else {
+      showToastModern((res && res.error) || "Sauvegarde impossible", "err");
+    }
+  } catch (e) { showToastModern("Erreur : " + e, "err"); }
+  if (btn) btn.textContent = "💾 Sauvegarder maintenant";
+  svRefresh();
+}
+
+async function svOpenFolder() {
+  if (!window.pywebview || !pywebview.api) return;
+  try { await pywebview.api.sauvegarde_open_folder(); } catch (e) {}
+}
+
+async function svRestore(path, when) {
+  if (!window.pywebview || !pywebview.api) return;
+  if (!confirm("Restaurer la sauvegarde du " + when + " ?\n\n"
+             + "Les fichiers actuels seront écrasés par ceux de l'archive, "
+             + "pour TOUS les utilisateurs.\n"
+             + "Une archive de sécurité de l'état actuel sera créée avant.\n\n"
+             + "L'application se rechargera ensuite.")) return;
+  try {
+    const res = await pywebview.api.sauvegarde_restore(path);
+    if (res && res.ok) {
+      alert("Restauration terminée : " + res.files + " fichiers.\n\n"
+          + (res.safety ? "État précédent conservé ici :\n" + res.safety + "\n\n" : "")
+          + "L'application va se recharger.");
+      location.reload();
+    } else {
+      showToastModern((res && res.error) || "Restauration impossible", "err");
+    }
+  } catch (e) { showToastModern("Erreur : " + e, "err"); }
 }
 
 /** Point d'entrée : openSettings("sport") ouvre directement la bonne section. */
@@ -9016,6 +9714,15 @@ const NAV_SECTIONS = [
     { id: "sp-agenda", label: "Agenda"       },
     { id: "sp-goals",  label: "Objectifs"    },
     { id: "sp-stats",  label: "Statistiques" },
+  ]},
+  { id: "sec-patri", label: "Patrimoine", children: [
+    { id: "pa-vue",     label: "Vue d'ensemble" },
+    { id: "pa-comptes", label: "Comptes"        },
+  ]},
+  { id: "sec-sante", label: "Santé", children: [
+    { id: "sa-suivi",   label: "Suivi"     },
+    { id: "sa-mesures", label: "Mesures"   },
+    { id: "sa-goals",   label: "Objectifs" },
   ]},
 ];
 
@@ -13107,55 +13814,8 @@ function homeRender() {
   const d = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   document.getElementById("home-date").textContent = d.charAt(0).toUpperCase() + d.slice(1);
 
-  // 1. Rendement total du PEA (exactement la valeur de la vue d'ensemble)
-  const pv = window._peaPv || {};
-  const pvTxt = (pv.eur != null) ? eur(pv.eur, true) : "\u2014";
-  const pvCls = (pv.eur == null) ? "" : (pv.eur >= 0 ? "c-g" : "c-r");
-  const pvSub = (pv.pct != null) ? pct(pv.pct) : "En attente des cours";
-
-  // 2. Heures de sport du mois en cours
-  let hTxt = "\u2014", hSub = "Module sport non charg\u00e9";
-  if (typeof SP !== "undefined" && SP) {
-    const now = new Date();
-    const t = spTotals(spMonthSessions(now.getFullYear(), now.getMonth()));
-    hTxt = spFmtDur(t.min);
-    hSub = t.n ? t.n + " s\u00e9ance" + (t.n > 1 ? "s" : "") + " en " + SP_MONTHS[now.getMonth()]
-               : "Aucune s\u00e9ance ce mois-ci";
-  }
-
-  // 3. Prochain objectif sportif
-  let gTxt = "\u2014", gSub = "Aucun objectif en cours";
-  const g = homeNextGoal();
-  if (g) {
-    if (g.kind === "event" && g.date) {
-      const days = Math.round((spParseISO(g.date) - spParseISO(spDateISO(new Date()))) / 86400000);
-      gTxt = days === 0 ? "Aujourd'hui" : "J\u2212" + days;
-      gSub = g.title;
-    } else {
-      gTxt = "\u25CE";
-      gSub = g.title;
-    }
-  }
-
-  document.getElementById("home-cards").innerHTML = `
-    <div class="home-card" onclick="goTab('perf');_setActiveSidebar('perf')">
-      <span class="home-card-lbl">Rendement total du PEA</span>
-      <span class="home-card-val ${pvCls}">${pvTxt}</span>
-      <span class="home-card-sub">${escHtml(pvSub)}</span>
-      <span class="home-card-go">Voir la performance \u2192</span>
-    </div>
-    <div class="home-card" onclick="goTab('sp-agenda');_setActiveSidebar('sp-agenda')">
-      <span class="home-card-lbl">Sport ce mois-ci</span>
-      <span class="home-card-val">${hTxt}</span>
-      <span class="home-card-sub">${escHtml(hSub)}</span>
-      <span class="home-card-go">Ouvrir l'agenda \u2192</span>
-    </div>
-    <div class="home-card" onclick="goTab('sp-goals');_setActiveSidebar('sp-goals')">
-      <span class="home-card-lbl">Prochain objectif</span>
-      <span class="home-card-val">${gTxt}</span>
-      <span class="home-card-sub">${escHtml(gSub)}</span>
-      <span class="home-card-go">Voir les objectifs \u2192</span>
-    </div>`;
+  // Les tuiles viennent de DASH_WIDGETS : l'accueil n'est plus fige.
+  dashRender();
 }
 
 // Rafraichit l'accueil a chaque fois qu'on y revient
@@ -13167,6 +13827,1403 @@ function homeRender() {
     if (n === "home") homeRender();
   };
 })();
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MODULE SANTÉ
+   Données : <app_dir>/users/<slug>/sante.json via pywebview (load_sante / save_sante)
+   Source  : captures d'écran de l'app FitDays, lues par OCR côté Python.
+
+   L'OCR est fiable mais jamais garanti : l'import n'écrit JAMAIS directement.
+   Il pré-remplit un formulaire, surligne ce qu'il n'a pas su lire, et attend
+   une validation. Une donnée de santé fausse est pire qu'une donnée absente.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+let SA = null;                 // contenu de sante.json
+let SA_METRICS = [];           // catalogue renvoyé par Python
+let _saBootstrapped = false;
+let _saCharts = {};
+let _saImport = { paths: [], values: {}, missing: [], date: "", time: "" };
+let _saEditId = null;          // pesée en cours d'édition
+let _saGoalId = null;
+
+const SA_RANGES = { "3m": 90, "6m": 182, "1y": 365, "max": null };
+
+function saMetric(id)  { return SA_METRICS.find(m => m.id === id) || {}; }
+function saMesures()   { return (SA && SA.mesures) ? SA.mesures : []; }
+function saGoals()     { return (SA && SA.goals)   ? SA.goals   : []; }
+
+/** Pesées triées de la plus ancienne à la plus récente. */
+function saSorted() {
+  return saMesures().slice().sort((a, b) =>
+    (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
+}
+function saLast() { const s = saSorted(); return s.length ? s[s.length - 1] : null; }
+function saPrev() { const s = saSorted(); return s.length > 1 ? s[s.length - 2] : null; }
+
+function saFmt(mid, v) {
+  if (v === null || v === undefined || v === "") return "—";
+  const m = saMetric(mid);
+  const d = (m.decimals === undefined) ? 1 : m.decimals;
+  const n = Number(v).toFixed(d);
+  return m.unit ? `${n} ${m.unit}` : n;
+}
+
+function saNextId(kind) {
+  if (!SA._nid) SA._nid = {};
+  const n = SA._nid[kind] || 1;
+  SA._nid[kind] = n + 1;
+  return `${kind}${n}`;
+}
+
+/* ── Chargement / enregistrement ───────────────────────────────────────── */
+
+async function saLoad() {
+  if (!window.pywebview || !pywebview.api) return false;
+  try {
+    const r = await pywebview.api.load_sante();
+    if (!r || !r.ok) return false;
+    SA = r.data || {};
+    SA_METRICS = r.metrics || [];
+    if (!Array.isArray(SA.mesures)) SA.mesures = [];
+    if (!Array.isArray(SA.goals))   SA.goals   = [];
+    return true;
+  } catch (e) { return false; }
+}
+
+async function saSave() {
+  if (!SA || !window.pywebview || !pywebview.api) return false;
+  try {
+    const r = await pywebview.api.save_sante(SA);
+    if (!r || !r.ok) { showToastModern((r && r.error) || "Enregistrement impossible", "err"); return false; }
+    return true;
+  } catch (e) { showToastModern("Erreur : " + e, "err"); return false; }
+}
+
+async function saBootstrap() {
+  if (_saBootstrapped) return;
+  const ok = await saLoad();
+  if (!ok || !SA) return;
+  _saBootstrapped = true;
+  saRenderAll();
+}
+
+function saRenderAll() {
+  saRenderKpis();
+  saRenderCharts();
+  saRenderGrid();
+  saRenderHist();
+  saRenderGoals();
+}
+
+/* ── Suivi : KPIs ──────────────────────────────────────────────────────── */
+
+function saDelta(mid, cur, prev) {
+  if (cur === undefined || cur === null || prev === undefined || prev === null) return "";
+  const d = cur - prev;
+  if (Math.abs(d) < 1e-9) return "stable";
+  const m = saMetric(mid);
+  const dec = (m.decimals === undefined) ? 1 : m.decimals;
+  return (d > 0 ? "+" : "−") + Math.abs(d).toFixed(dec) + (m.unit ? " " + m.unit : "");
+}
+
+/** Pour le poids et la graisse, baisser est bon : la couleur suit le sens voulu. */
+function saDeltaClass(mid, cur, prev) {
+  if (cur === undefined || cur === null || prev === undefined || prev === null) return "";
+  const d = cur - prev;
+  if (Math.abs(d) < 1e-9) return "";
+  const baisserEstBon = ["poids", "imc", "graisse", "graisse_sous_cutanee",
+                         "graisse_viscerale", "age_corporel"].includes(mid);
+  const bon = baisserEstBon ? d < 0 : d > 0;
+  return bon ? "down" : "up";
+}
+
+function saRenderKpis() {
+  const box = document.getElementById("sa-kpis");
+  if (!box) return;
+  const last = saLast(), prev = saPrev();
+  if (!last) {
+    box.innerHTML = `<div class="m-empty" style="grid-column:1/-1">
+      Aucune pesée. Envoie tes captures FitDays pour commencer.</div>`;
+    return;
+  }
+  const cards = [
+    { id: "poids",           lbl: "Poids",            accent: true },
+    { id: "graisse",         lbl: "Graisse corporelle" },
+    { id: "masse_musculaire", lbl: "Masse musculaire" },
+    { id: "imc",             lbl: "IMC" },
+  ];
+  box.innerHTML = cards.map(c => {
+    const v = last[c.id], p = prev ? prev[c.id] : null;
+    const d = saDelta(c.id, v, p);
+    return `<div class="mkpi${c.accent ? " accent" : ""}">
+      <span class="mkpi-lbl">${escHtml(c.lbl)}</span>
+      <span class="mkpi-val">${saFmt(c.id, v)}</span>
+      <span class="mkpi-sub">${d ? escHtml(d) + " vs pesée précédente" : "première pesée"}</span>
+    </div>`;
+  }).join("");
+}
+
+/* ── Suivi : courbes ───────────────────────────────────────────────────── */
+
+function saSetRange(r) {
+  if (!SA) return;
+  SA.uiRange = r;
+  saSave();
+  saRenderCharts();
+}
+
+function saFilterRange(list) {
+  const r = (SA && SA.uiRange) || "max";
+  const days = SA_RANGES[r];
+  if (!days) return list;
+  const limite = new Date();
+  limite.setDate(limite.getDate() - days);
+  const iso = limite.toISOString().slice(0, 10);
+  return list.filter(m => m.date >= iso);
+}
+
+function saCssVar(name, fallback) {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || fallback;
+}
+
+function saRenderCharts() {
+  const r = (SA && SA.uiRange) || "max";
+  document.querySelectorAll("#sa-range-btns .btn").forEach(b =>
+    b.classList.toggle("active", b.id === "sar-" + r));
+
+  const serie = saFilterRange(saSorted());
+  const labels = serie.map(m => {
+    const d = new Date(m.date + "T00:00:00");
+    return isNaN(d) ? m.date
+      : d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+  });
+  const grid = saCssVar("--brd", "rgba(128,128,128,.2)");
+  const txt  = saCssVar("--txt2", "#888");
+
+  const commun = {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: "index", intersect: false },
+    plugins: { legend: { labels: { color: txt, boxWidth: 12, font: { size: 11 } } } },
+    scales: {
+      x: { grid: { color: grid }, ticks: { color: txt, font: { size: 10 }, maxRotation: 0 } },
+      y: { grid: { color: grid }, ticks: { color: txt, font: { size: 10 } } },
+    },
+  };
+
+  // Poids
+  const cvP = document.getElementById("sa-chart-poids");
+  if (cvP && window.Chart) {
+    if (_saCharts.poids) _saCharts.poids.destroy();
+    const acc = saCssVar("--accent", "#e07a2f");
+    _saCharts.poids = new Chart(cvP, {
+      type: "line",
+      data: { labels, datasets: [{
+        label: "Poids (kg)",
+        data: serie.map(m => (m.poids ?? null)),
+        borderColor: acc, backgroundColor: acc + "22",
+        borderWidth: 2, tension: .3, fill: true,
+        pointRadius: serie.length > 40 ? 0 : 3, spanGaps: true,
+      }] },
+      options: Object.assign({}, commun, {
+        scales: Object.assign({}, commun.scales, {
+          y: Object.assign({}, commun.scales.y, { beginAtZero: false }),
+        }),
+      }),
+    });
+  }
+
+  // Composition : graisse / muscle / eau
+  const cvC = document.getElementById("sa-chart-compo");
+  if (cvC && window.Chart) {
+    if (_saCharts.compo) _saCharts.compo.destroy();
+    const defs = [
+      { id: "graisse",         label: "Graisse %", color: "#e0713f" },
+      { id: "taux_musculaire", label: "Muscle %",  color: "#3f8fe0" },
+      { id: "eau",             label: "Eau %",     color: "#3fb6c9" },
+    ];
+    _saCharts.compo = new Chart(cvC, {
+      type: "line",
+      data: { labels, datasets: defs.map(d => ({
+        label: d.label,
+        data: serie.map(m => (m[d.id] ?? null)),
+        borderColor: d.color, backgroundColor: "transparent",
+        borderWidth: 2, tension: .3,
+        pointRadius: serie.length > 40 ? 0 : 3, spanGaps: true,
+      })) },
+      options: Object.assign({}, commun, {
+        scales: Object.assign({}, commun.scales, {
+          y: Object.assign({}, commun.scales.y, { beginAtZero: false }),
+        }),
+      }),
+    });
+  }
+}
+
+/* ── Suivi : grille de la dernière pesée ───────────────────────────────── */
+
+function saRenderGrid() {
+  const box = document.getElementById("sa-grid");
+  const when = document.getElementById("sa-grid-when");
+  if (!box) return;
+  const last = saLast(), prev = saPrev();
+  if (!last) { box.innerHTML = `<div class="m-empty">—</div>`; if (when) when.textContent = ""; return; }
+  if (when) {
+    const d = new Date(last.date + "T00:00:00");
+    when.textContent = (isNaN(d) ? last.date
+      : d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }))
+      + (last.time ? " à " + last.time : "");
+  }
+  box.innerHTML = SA_METRICS.map(m => {
+    const v = last[m.id];
+    const d = saDelta(m.id, v, prev ? prev[m.id] : null);
+    const cls = saDeltaClass(m.id, v, prev ? prev[m.id] : null);
+    return `<div class="sa-cell">
+      <span class="sa-cell-lbl">${escHtml(m.label)}</span>
+      <span class="sa-cell-val">${saFmt(m.id, v)}</span>
+      <span class="sa-cell-dlt ${cls}">${d ? escHtml(d) : "&nbsp;"}</span>
+    </div>`;
+  }).join("");
+}
+
+/* ── Historique ────────────────────────────────────────────────────────── */
+
+function saRenderHist() {
+  const head = document.getElementById("sa-hist-head");
+  const body = document.getElementById("sa-hist-body");
+  const cnt  = document.getElementById("sa-hist-count");
+  if (!body || !head) return;
+  const list = saSorted().reverse();
+  if (cnt) cnt.textContent = list.length ? `${list.length} pesée${list.length > 1 ? "s" : ""}` : "";
+  head.innerHTML = `<tr><th>Date</th>` +
+    SA_METRICS.map(m => `<th title="${escHtml(m.label)}">${escHtml(m.label)}</th>`).join("") +
+    `<th></th></tr>`;
+  if (!list.length) {
+    body.innerHTML = `<tr><td colspan="${SA_METRICS.length + 2}" class="m-empty">
+      Aucune pesée enregistrée.</td></tr>`;
+    return;
+  }
+  body.innerHTML = list.map(m => {
+    const d = new Date(m.date + "T00:00:00");
+    const jour = isNaN(d) ? m.date
+      : d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+    return `<tr>
+      <td><b>${escHtml(jour)}</b>${m.time ? ` <span style="color:var(--txt3)">${escHtml(m.time)}</span>` : ""}
+        ${m.source === "ocr" ? ` <span class="m-tag" title="Lu depuis une capture FitDays">📷</span>` : ""}</td>
+      ${SA_METRICS.map(x => `<td>${saFmt(x.id, m[x.id])}</td>`).join("")}
+      <td><button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 7px"
+                  onclick="saOpenMesure('${escHtml(m.id)}')">✎</button></td>
+    </tr>`;
+  }).join("");
+}
+
+/* ── Import des captures FitDays ───────────────────────────────────────── */
+
+async function saImportScreens() {
+  _saImport = { paths: [], values: {}, missing: [], date: "", time: "" };
+  document.getElementById("sa-imp-step1").style.display = "";
+  document.getElementById("sa-imp-step2").style.display = "none";
+  document.getElementById("sa-imp-step3").style.display = "none";
+  document.getElementById("sa-imp-save").style.display = "none";
+  document.getElementById("sa-imp-files").innerHTML = "";
+  document.getElementById("ov-sa-import").classList.add("open");
+
+  // Prévient tout de suite si l'OCR n'est pas disponible sur ce poste
+  if (window.pywebview && pywebview.api) {
+    try {
+      const chk = await pywebview.api.sante_ocr_available();
+      if (chk && !chk.ok) {
+        document.getElementById("sa-imp-files").innerHTML =
+          `<div class="sa-file" style="color:var(--r)">⚠ ${escHtml(chk.error || "OCR indisponible")}
+           — la saisie manuelle reste possible.</div>`;
+      }
+    } catch (e) {}
+  }
+}
+
+async function saPickFiles() {
+  if (!window.pywebview || !pywebview.api) return;
+  let r;
+  try { r = await pywebview.api.sante_pick_screenshots(); }
+  catch (e) { showToastModern("Erreur : " + e, "err"); return; }
+  if (!r || r.cancelled) return;
+  if (!r.ok) { showToastModern(r.error || "Sélection impossible", "err"); return; }
+  _saImport.paths = r.paths || [];
+  const box = document.getElementById("sa-imp-files");
+  box.innerHTML = _saImport.paths.map(p =>
+    `<div class="sa-file">📄 ${escHtml(p.split(/[\\/]/).pop())}</div>`).join("");
+  if (_saImport.paths.length) saRunOcr();
+}
+
+async function saRunOcr() {
+  document.getElementById("sa-imp-step1").style.display = "none";
+  document.getElementById("sa-imp-step2").style.display = "";
+  const prog = document.getElementById("sa-imp-progress");
+  if (prog) prog.textContent = `Lecture de ${_saImport.paths.length} capture${_saImport.paths.length > 1 ? "s" : ""}…`;
+
+  let res;
+  try { res = await pywebview.api.sante_read_screenshots(_saImport.paths); }
+  catch (e) { res = { ok: false, error: String(e) }; }
+
+  document.getElementById("sa-imp-step2").style.display = "none";
+
+  if (!res || !res.ok) {
+    document.getElementById("sa-imp-step1").style.display = "";
+    showToastModern((res && res.error) || "Aucune valeur reconnue", "err");
+    return;
+  }
+
+  _saImport.values  = res.values  || {};
+  _saImport.missing = res.missing || [];
+  _saImport.date    = res.date || new Date().toISOString().slice(0, 10);
+  _saImport.time    = res.time || "";
+
+  const lus = Object.keys(_saImport.values).length;
+  const total = SA_METRICS.length;
+  const sum = document.getElementById("sa-imp-summary");
+  if (sum) {
+    let html = `<b>${lus} valeur${lus > 1 ? "s" : ""} sur ${total}</b> lue${lus > 1 ? "s" : ""} automatiquement.`;
+    if (_saImport.missing.length) {
+      html += ` Non reconnue${_saImport.missing.length > 1 ? "s" : ""} : `
+            + _saImport.missing.map(id => escHtml(saMetric(id).label || id)).join(", ") + ".";
+    }
+    if (res.conflicts && Object.keys(res.conflicts).length) {
+      html += `<br><span style="color:var(--r)">⚠ Deux captures donnent des valeurs différentes pour : `
+            + Object.keys(res.conflicts).map(id => escHtml(saMetric(id).label || id)).join(", ")
+            + `. Vérifie ces champs.</span>`;
+    }
+    sum.innerHTML = html;
+  }
+  document.getElementById("sa-imp-date").value = _saImport.date;
+  document.getElementById("sa-imp-time").value = _saImport.time;
+  saFillFields("sa-imp-fields", _saImport.values, _saImport.missing);
+  document.getElementById("sa-imp-step3").style.display = "";
+  document.getElementById("sa-imp-save").style.display = "";
+}
+
+/** Grille de saisie des 14 mesures, partagée par l'import et la saisie manuelle. */
+function saFillFields(boxId, values, missing) {
+  const box = document.getElementById(boxId);
+  if (!box) return;
+  const abs = missing || [];
+  box.innerHTML = SA_METRICS.map(m => {
+    const v = values[m.id];
+    const vide = (v === undefined || v === null || v === "");
+    return `<div class="sa-field${(vide && abs.includes(m.id)) ? " missing" : ""}">
+      <label>${escHtml(m.label)}</label>
+      <div class="sa-inwrap">
+        <input type="number" step="any" id="${boxId}-${m.id}"
+               value="${vide ? "" : v}" placeholder="—">
+        ${m.unit ? `<span class="sa-unit">${escHtml(m.unit)}</span>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function saReadFields(boxId) {
+  const out = {};
+  SA_METRICS.forEach(m => {
+    const el = document.getElementById(`${boxId}-${m.id}`);
+    if (!el) return;
+    const raw = (el.value || "").trim();
+    if (raw === "") return;
+    const n = parseFloat(raw.replace(",", "."));
+    if (!isNaN(n)) out[m.id] = n;
+  });
+  return out;
+}
+
+async function saSaveImport() {
+  const date = document.getElementById("sa-imp-date").value;
+  if (!date) { showToastModern("Indique la date de la pesée", "warn"); return; }
+  const vals = saReadFields("sa-imp-fields");
+  if (!Object.keys(vals).length) { showToastModern("Aucune valeur à enregistrer", "warn"); return; }
+
+  const doublon = saMesures().find(m => m.date === date);
+  if (doublon && !confirm("Une pesée existe déjà au " + date
+      + ".\n\nEnregistrer quand même une seconde pesée ce jour-là ?")) return;
+
+  const mesure = Object.assign({
+    id: saNextId("mesure"),
+    date,
+    time: document.getElementById("sa-imp-time").value || "",
+    source: "ocr",
+    note: "",
+  }, vals);
+  SA.mesures.push(mesure);
+  if (await saSave()) {
+    closeOv("ov-sa-import");
+    showToastModern("Pesée enregistrée", "ok");
+    saRenderAll();
+    if (typeof homeRender === "function") homeRender();
+  }
+}
+
+/* ── Pesée manuelle / édition ──────────────────────────────────────────── */
+
+function saOpenMesure(id) {
+  if (!SA) return;
+  _saEditId = id;
+  const m = id ? saMesures().find(x => x.id === id) : null;
+  document.getElementById("sa-mes-title").textContent = m ? "Modifier la pesée" : "Nouvelle pesée";
+  document.getElementById("sa-mes-date").value = m ? m.date : new Date().toISOString().slice(0, 10);
+  document.getElementById("sa-mes-time").value = m ? (m.time || "") : "";
+  document.getElementById("sa-mes-note").value = m ? (m.note || "") : "";
+  document.getElementById("sa-mes-del").style.display = m ? "" : "none";
+  saFillFields("sa-mes-fields", m || {}, []);
+  document.getElementById("ov-sa-mesure").classList.add("open");
+}
+
+async function saSaveMesure() {
+  const date = document.getElementById("sa-mes-date").value;
+  if (!date) { showToastModern("Indique la date", "warn"); return; }
+  const vals = saReadFields("sa-mes-fields");
+  if (!Object.keys(vals).length) { showToastModern("Renseigne au moins une mesure", "warn"); return; }
+  const base = {
+    date,
+    time: document.getElementById("sa-mes-time").value || "",
+    note: document.getElementById("sa-mes-note").value || "",
+  };
+  if (_saEditId) {
+    const i = SA.mesures.findIndex(x => x.id === _saEditId);
+    if (i >= 0) {
+      const src = SA.mesures[i].source || "manuel";
+      SA.mesures[i] = Object.assign({ id: _saEditId, source: src }, base, vals);
+    }
+  } else {
+    SA.mesures.push(Object.assign({ id: saNextId("mesure"), source: "manuel" }, base, vals));
+  }
+  if (await saSave()) {
+    closeOv("ov-sa-mesure");
+    showToastModern("Pesée enregistrée", "ok");
+    saRenderAll();
+    if (typeof homeRender === "function") homeRender();
+  }
+}
+
+async function saDeleteMesure() {
+  if (!_saEditId) return;
+  if (!confirm("Supprimer cette pesée ?")) return;
+  SA.mesures = SA.mesures.filter(x => x.id !== _saEditId);
+  if (await saSave()) {
+    closeOv("ov-sa-mesure");
+    showToastModern("Pesée supprimée", "ok");
+    saRenderAll();
+  }
+}
+
+/* ── Objectifs ─────────────────────────────────────────────────────────── */
+
+/**
+ * Avancement : distance parcourue / distance totale.
+ * Perte et gain se calculent pareil, le signe de l'écart s'en charge.
+ */
+function saGoalProgress(g) {
+  const serie = saSorted().filter(m => m[g.metric] !== undefined && m[g.metric] !== null);
+  const current = serie.length ? serie[serie.length - 1][g.metric] : null;
+  let start = (g.start === undefined || g.start === null || g.start === "") ? null : Number(g.start);
+  if (start === null) {
+    const avant = g.createdAt ? serie.filter(m => m.date <= g.createdAt.slice(0, 10)) : [];
+    start = avant.length ? avant[avant.length - 1][g.metric]
+          : (serie.length ? serie[0][g.metric] : null);
+  }
+  if (current === null || start === null) return { pct: 0, current, start, done: false };
+  const total = Number(g.target) - start;
+  if (Math.abs(total) < 1e-9) return { pct: 100, current, start, done: true };
+  const fait = current - start;
+  const pct = Math.max(0, Math.min(100, (fait / total) * 100));
+  const done = total < 0 ? (current <= g.target) : (current >= g.target);
+  return { pct, current, start, done };
+}
+
+function saRenderGoals() {
+  const box = document.getElementById("sa-goals-body");
+  if (!box) return;
+  const gs = saGoals();
+  if (!gs.length) {
+    box.innerHTML = `<div class="m-empty">Aucun objectif.
+      Par exemple : atteindre 75 kg, ou descendre à 18 % de masse grasse.</div>`;
+    return;
+  }
+  box.innerHTML = gs.map(g => {
+    const m = saMetric(g.metric);
+    const p = saGoalProgress(g);
+    const reste = (p.current !== null) ? Math.abs(Number(g.target) - p.current) : null;
+    let ech = "";
+    if (g.date) {
+      const j = Math.round((new Date(g.date + "T00:00:00") - new Date()) / 86400000);
+      ech = j >= 0 ? `J−${j}` : `échéance dépassée de ${Math.abs(j)} j`;
+    }
+    return `<div class="sa-goal${p.done ? " done" : ""}">
+      <div class="sa-goal-top">
+        <span class="sa-goal-name">${escHtml(m.label || g.metric)} → ${escHtml(saFmt(g.metric, g.target))}</span>
+        <span class="sa-goal-num">${p.done ? "✓ atteint" : saFmt(g.metric, p.current)}</span>
+        <div style="flex:1"></div>
+        <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 7px"
+                onclick="saOpenGoal('${escHtml(g.id)}')">✎</button>
+      </div>
+      <div class="sa-goal-bar"><div class="sa-goal-fill" style="width:${p.pct.toFixed(1)}%"></div></div>
+      <div class="sa-goal-foot">
+        <span>${p.start !== null ? "départ " + escHtml(saFmt(g.metric, p.start)) : "—"}
+              · ${p.pct.toFixed(0)} % du chemin</span>
+        <span>${p.done ? "objectif atteint"
+                 : (reste !== null ? "reste " + escHtml(saFmt(g.metric, reste)) : "")}
+              ${ech ? " · " + escHtml(ech) : ""}</span>
+      </div>
+      ${g.note ? `<div class="m-note" style="margin:8px 0 0">${escHtml(g.note)}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+
+function saOpenGoal(id) {
+  if (!SA) return;
+  _saGoalId = id;
+  const g = id ? saGoals().find(x => x.id === id) : null;
+  const sel = document.getElementById("sa-goal-metric");
+  sel.innerHTML = SA_METRICS.map(m =>
+    `<option value="${escHtml(m.id)}">${escHtml(m.label)}${m.unit ? " (" + escHtml(m.unit) + ")" : ""}</option>`).join("");
+  sel.value = g ? g.metric : "poids";
+  document.getElementById("sa-goal-title").textContent = g ? "Modifier l'objectif" : "Nouvel objectif";
+  document.getElementById("sa-goal-target").value = g ? g.target : "";
+  document.getElementById("sa-goal-start").value  = (g && g.start !== null && g.start !== undefined) ? g.start : "";
+  document.getElementById("sa-goal-date").value   = g ? (g.date || "") : "";
+  document.getElementById("sa-goal-note").value   = g ? (g.note || "") : "";
+  document.getElementById("sa-goal-del").style.display = g ? "" : "none";
+  saGoalMetricChanged();
+  document.getElementById("ov-sa-goal").classList.add("open");
+}
+
+/** Pré-remplit le départ avec la dernière valeur connue de la mesure choisie. */
+function saGoalMetricChanged() {
+  const mid = document.getElementById("sa-goal-metric").value;
+  const inp = document.getElementById("sa-goal-start");
+  if (!inp || inp.value !== "") return;
+  const last = saLast();
+  if (last && last[mid] !== undefined && last[mid] !== null) inp.placeholder = String(last[mid]);
+}
+
+async function saSaveGoal() {
+  const metric = document.getElementById("sa-goal-metric").value;
+  const target = parseFloat((document.getElementById("sa-goal-target").value || "").replace(",", "."));
+  if (isNaN(target)) { showToastModern("Indique la valeur à atteindre", "warn"); return; }
+  const startRaw = (document.getElementById("sa-goal-start").value || "").trim();
+  const start = startRaw === "" ? null : parseFloat(startRaw.replace(",", "."));
+  const base = {
+    metric, target,
+    start: (start === null || isNaN(start)) ? null : start,
+    date: document.getElementById("sa-goal-date").value || "",
+    note: document.getElementById("sa-goal-note").value || "",
+  };
+  if (_saGoalId) {
+    const i = SA.goals.findIndex(x => x.id === _saGoalId);
+    if (i >= 0) SA.goals[i] = Object.assign({}, SA.goals[i], base);
+  } else {
+    SA.goals.push(Object.assign({
+      id: saNextId("goal"), status: "active",
+      createdAt: new Date().toISOString().slice(0, 10),
+    }, base));
+  }
+  if (await saSave()) {
+    closeOv("ov-sa-goal");
+    showToastModern("Objectif enregistré", "ok");
+    saRenderGoals();
+  }
+}
+
+async function saDeleteGoal() {
+  if (!_saGoalId) return;
+  if (!confirm("Supprimer cet objectif ?")) return;
+  SA.goals = SA.goals.filter(x => x.id !== _saGoalId);
+  if (await saSave()) {
+    closeOv("ov-sa-goal");
+    showToastModern("Objectif supprimé", "ok");
+    saRenderGoals();
+  }
+}
+
+/* ── Navigation ────────────────────────────────────────────────────────── */
+
+(function patchGoTabSante() {
+  const _prev = window.goTab;
+  if (typeof _prev !== "function") return;
+  window.goTab = function(n) {
+    _prev.call(this, n);
+    if (n !== "sa-suivi" && n !== "sa-mesures" && n !== "sa-goals") return;
+    if (!_saBootstrapped) { saBootstrap(); return; }
+    if (n === "sa-suivi")   { saRenderKpis(); saRenderCharts(); saRenderGrid(); }
+    if (n === "sa-mesures") saRenderHist();
+    if (n === "sa-goals")   saRenderGoals();
+  };
+})();
+
+/* ══════════ Téléversement vers clé USB (bouton de l'accueil) ══════════ */
+
+async function svPushToUsb(root) {
+  if (!window.pywebview || !pywebview.api) return;
+  const btn = document.getElementById("home-usb-btn");
+  const st  = document.getElementById("home-usb-state");
+  const label0 = btn ? btn.textContent : "";
+  if (btn) { btn.disabled = true; btn.textContent = "⏳ Copie en cours…"; }
+  let res;
+  try { res = await pywebview.api.sauvegarde_push_usb(root || null); }
+  catch (e) { res = { ok: false, error: String(e) }; }
+  if (btn) { btn.disabled = false; btn.textContent = label0; }
+
+  if (res && res.ok) {
+    showToastModern(`Copié sur ${res.drive} · ${res.files} fichiers`, "ok");
+    if (res.failedCount) {
+      showToastModern(`${res.failedCount} fichier(s) non copié(s)`, "warn");
+    }
+    svRenderUsbState();
+    return;
+  }
+
+  // Plusieurs clés branchées : on demande laquelle
+  if (res && res.reason === "choose" && (res.drives || []).length) {
+    const choix = res.drives.map((d, i) => `${i + 1}. ${d.letter} ${d.label}`).join("\n");
+    const rep = prompt("Plusieurs clés USB sont branchées.\n\n" + choix
+                     + "\n\nLaquelle ? (numéro)", "1");
+    if (rep === null) return;
+    const idx = parseInt(rep, 10) - 1;
+    if (idx >= 0 && idx < res.drives.length) svPushToUsb(res.drives[idx].root);
+    return;
+  }
+  showToastModern((res && res.error) || "Téléversement impossible", "err");
+  if (st) st.textContent = (res && res.error) || "";
+}
+
+async function svRenderUsbState() {
+  const st = document.getElementById("home-usb-state");
+  if (!st || !window.pywebview || !pywebview.api) return;
+  let s;
+  try { s = await pywebview.api.sauvegarde_usb_state(); }
+  catch (e) { return; }
+  if (!s || !s.ok) return;
+  const parts = [];
+  if (s.count === 0)      parts.push("Aucune clé USB branchée");
+  else if (s.count === 1) parts.push(`Clé détectée : ${s.drives[0].letter} ${s.drives[0].label}`);
+  else                    parts.push(`${s.count} clés branchées`);
+  if (s.lastPushAt) {
+    const d = new Date(s.lastPushAt);
+    if (!isNaN(d)) parts.push("dernier envoi " + d.toLocaleDateString("fr-FR",
+      { day: "2-digit", month: "short" }) + " à " + d.toLocaleTimeString("fr-FR",
+      { hour: "2-digit", minute: "2-digit" }));
+  }
+  st.textContent = parts.join(" · ");
+}
+
+(function patchGoTabUsb() {
+  const _prev = window.goTab;
+  if (typeof _prev !== "function") return;
+  window.goTab = function(n) {
+    _prev.call(this, n);
+    if (n === "home") svRenderUsbState();
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MODULE PATRIMOINE
+   Données : <app_dir>/users/<slug>/patrimoine.json (load_patrimoine / save_patrimoine)
+
+   Saisie manuelle une fois par mois — il n'existe pas d'agrégation bancaire
+   accessible à une app locale. Le PEA et le prêt, eux, sont déjà dans l'app :
+   leurs lignes sont pré-remplies, jamais saisies deux fois.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+let PA = null;
+let PA_TYPES = [];
+let _paBootstrapped = false;
+let _paCharts = {};
+let _paNet = null;
+let _paSerie = [];
+let _paMois = "";
+let _paEditCpt = null;
+
+function paType(id) { return PA_TYPES.find(t => t.id === id) || PA_TYPES[PA_TYPES.length - 1] || {}; }
+function paComptes() { return (PA && PA.comptes) ? PA.comptes.filter(c => !c.archived) : []; }
+function paReleves() { return (PA && PA.releves) ? PA.releves : []; }
+
+function paEur(v) {
+  if (v === null || v === undefined || isNaN(v)) return "—";
+  return Math.round(v).toLocaleString("fr-FR") + " €";
+}
+
+function paNextId(kind) {
+  if (!PA._nid) PA._nid = {};
+  const n = PA._nid[kind] || 1;
+  PA._nid[kind] = n + 1;
+  return `${kind}${n}`;
+}
+
+/** Premier jour du mois, format ISO — l'ancrage de tous les relevés. */
+function paMoisIso(d) {
+  const x = d ? new Date(d) : new Date();
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
+function paMoisLabel(iso) {
+  const d = new Date(iso + "T00:00:00");
+  if (isNaN(d)) return iso;
+  const s = d.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** Dernier relevé connu d'un compte, à une date donnée ou avant. */
+function paDernier(compteId, dateIso) {
+  const rs = paReleves()
+    .filter(r => r.compteId === compteId && (!dateIso || r.date <= dateIso))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  return rs.length ? rs[rs.length - 1] : null;
+}
+
+/* ── Chargement ────────────────────────────────────────────────────────── */
+
+async function paLoad() {
+  if (!window.pywebview || !pywebview.api) return false;
+  try {
+    const r = await pywebview.api.load_patrimoine();
+    if (!r || !r.ok) return false;
+    PA = r.data || {};
+    PA_TYPES = r.types || [];
+    _paNet = r.net || null;
+    _paSerie = r.serie || [];
+    _paMois = r.moisCourant || paMoisIso();
+    if (!Array.isArray(PA.comptes)) PA.comptes = [];
+    if (!Array.isArray(PA.releves)) PA.releves = [];
+    return true;
+  } catch (e) { return false; }
+}
+
+async function paSave() {
+  if (!PA || !window.pywebview || !pywebview.api) return false;
+  try {
+    const r = await pywebview.api.save_patrimoine(PA);
+    if (!r || !r.ok) { showToastModern((r && r.error) || "Enregistrement impossible", "err"); return false; }
+    _paNet = r.net || _paNet;
+    _paSerie = r.serie || _paSerie;
+    return true;
+  } catch (e) { showToastModern("Erreur : " + e, "err"); return false; }
+}
+
+async function paBootstrap() {
+  if (_paBootstrapped) return;
+  const ok = await paLoad();
+  if (!ok || !PA) return;
+  _paBootstrapped = true;
+  paRenderAll();
+}
+
+function paRenderAll() {
+  paRenderRappel();
+  paRenderKpis();
+  paRenderChart();
+  paRenderRepartition();
+  paRenderComptes();
+  paRenderReleves();
+  if (typeof homeRender === "function") homeRender();
+}
+
+/* ── Vue d'ensemble ────────────────────────────────────────────────────── */
+
+function paMoisSaisi(iso) {
+  return paReleves().some(r => r.date === (iso || _paMois));
+}
+
+function paRenderRappel() {
+  const box = document.getElementById("pa-rappel");
+  if (!box) return;
+  if (paMoisSaisi()) { box.innerHTML = ""; return; }
+  box.innerHTML = `<div class="pa-rappel">
+    <span style="font-size:18px">📝</span>
+    <div style="flex:1">
+      <b>Relevé de ${escHtml(paMoisLabel(_paMois))} pas encore fait.</b>
+      <div class="m-note" style="margin:2px 0 0">Quelques chiffres suffisent, les lignes sont pré-remplies.</div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="paOpenSaisie()">Le faire maintenant</button>
+  </div>`;
+}
+
+function paRenderKpis() {
+  const box = document.getElementById("pa-kpis");
+  if (!box) return;
+  if (!_paNet || !paReleves().length) {
+    box.innerHTML = `<div class="m-empty" style="grid-column:1/-1">
+      Aucun relevé. Commence par « Relevé du mois » : tu ne le feras qu'une fois par mois.</div>`;
+    return;
+  }
+  // Variation depuis le mois précédent
+  let sub = "premier relevé";
+  if (_paSerie.length > 1) {
+    const cur = _paSerie[_paSerie.length - 1].net;
+    const prv = _paSerie[_paSerie.length - 2].net;
+    const d = cur - prv;
+    sub = (d >= 0 ? "+" : "−") + paEur(Math.abs(d)) + " vs " + paMoisLabel(_paSerie[_paSerie.length - 2].date);
+  }
+  box.innerHTML = `
+    <div class="mkpi accent"><span class="mkpi-lbl">Patrimoine net</span>
+      <span class="mkpi-val">${paEur(_paNet.net)}</span>
+      <span class="mkpi-sub">${escHtml(sub)}</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Actifs</span>
+      <span class="mkpi-val">${paEur(_paNet.actifs)}</span>
+      <span class="mkpi-sub">${_paNet.detail.filter(d => d.type !== "dette").length} compte(s)</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Dettes</span>
+      <span class="mkpi-val" style="color:var(--r)">${paEur(_paNet.dettes)}</span>
+      <span class="mkpi-sub">déduites du net</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Dernier relevé</span>
+      <span class="mkpi-val">${escHtml(paMoisLabel(_paNet.date))}</span>
+      <span class="mkpi-sub">${paMoisSaisi() ? "à jour" : "à faire"}</span></div>`;
+}
+
+function paRenderChart() {
+  const cv = document.getElementById("pa-chart");
+  if (!cv || !window.Chart) return;
+  if (_paCharts.net) _paCharts.net.destroy();
+  const grid = saCssVar("--brd", "rgba(128,128,128,.2)");
+  const txt  = saCssVar("--txt2", "#888");
+  const acc  = saCssVar("--accent", "#e07a2f");
+  _paCharts.net = new Chart(cv, {
+    type: "line",
+    data: {
+      labels: _paSerie.map(p => paMoisLabel(p.date)),
+      datasets: [
+        { label: "Net", data: _paSerie.map(p => p.net), borderColor: acc,
+          backgroundColor: acc + "22", borderWidth: 2.5, tension: .25, fill: true, pointRadius: 3 },
+        { label: "Actifs", data: _paSerie.map(p => p.actifs), borderColor: "#16a34a",
+          backgroundColor: "transparent", borderWidth: 1.5, tension: .25, pointRadius: 0, borderDash: [5, 4] },
+        { label: "Dettes", data: _paSerie.map(p => p.dettes), borderColor: "#dc2626",
+          backgroundColor: "transparent", borderWidth: 1.5, tension: .25, pointRadius: 0, borderDash: [5, 4] },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { labels: { color: txt, boxWidth: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: c => c.dataset.label + " : " + paEur(c.parsed.y) } },
+      },
+      scales: {
+        x: { grid: { color: grid }, ticks: { color: txt, font: { size: 10 } } },
+        y: { grid: { color: grid },
+             ticks: { color: txt, font: { size: 10 },
+                      callback: v => Math.round(v / 1000) + "k" } },
+      },
+    },
+  });
+}
+
+function paRenderRepartition() {
+  const when = document.getElementById("pa-repart-when");
+  const leg  = document.getElementById("pa-legend");
+  const cv   = document.getElementById("pa-chart-pie");
+  if (!leg || !cv) return;
+  if (when) when.textContent = _paNet ? "au " + paMoisLabel(_paNet.date) : "";
+
+  const actifs = (_paNet ? _paNet.detail : []).filter(d => d.type !== "dette" && d.montant > 0);
+  if (!actifs.length) {
+    leg.innerHTML = `<div class="m-empty">—</div>`;
+    if (_paCharts.pie) { _paCharts.pie.destroy(); _paCharts.pie = null; }
+    return;
+  }
+  const total = actifs.reduce((s, d) => s + d.montant, 0);
+  const cols = actifs.map(d => paType(d.type).color || "#888");
+
+  if (_paCharts.pie) _paCharts.pie.destroy();
+  _paCharts.pie = new Chart(cv, {
+    type: "doughnut",
+    data: { labels: actifs.map(d => d.label),
+            datasets: [{ data: actifs.map(d => d.montant), backgroundColor: cols, borderWidth: 0 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: "58%",
+      plugins: { legend: { display: false },
+                 tooltip: { callbacks: { label: c => c.label + " : " + paEur(c.parsed) } } },
+    },
+  });
+
+  leg.innerHTML = actifs.sort((a, b) => b.montant - a.montant).map(d => `
+    <div class="pa-leg">
+      <span class="pa-leg-dot" style="background:${paType(d.type).color || "#888"}"></span>
+      <span>${escHtml(paType(d.type).icon || "")} ${escHtml(d.label)}</span>
+      <span class="pa-leg-val">${paEur(d.montant)}</span>
+      <span class="pa-leg-pct">${(d.montant / total * 100).toFixed(0)} %</span>
+    </div>`).join("");
+}
+
+/* ── Comptes ───────────────────────────────────────────────────────────── */
+
+function paRenderComptes() {
+  const box = document.getElementById("pa-comptes-list");
+  if (!box) return;
+  const cs = paComptes();
+  if (!cs.length) { box.innerHTML = `<div class="m-empty">Aucun compte.</div>`; return; }
+  box.innerHTML = cs.map(c => {
+    const t = paType(c.type);
+    const last = paDernier(c.id);
+    return `<div class="pa-cpt${t.dette ? " dette" : ""}">
+      <span class="pa-cpt-ico">${escHtml(c.icon || t.icon || "📦")}</span>
+      <span>
+        <span class="pa-cpt-name">${escHtml(c.label)}</span>
+        ${c.auto ? `<span class="pa-cpt-auto">auto</span>` : ""}
+        <div class="pa-cpt-type">${escHtml(t.label)}${last ? " · relevé " + escHtml(paMoisLabel(last.date)) : " · jamais relevé"}</div>
+      </span>
+      <span class="pa-cpt-val">${last ? (t.dette ? "− " : "") + paEur(Math.abs(last.montant)) : "—"}</span>
+      <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 7px"
+              onclick="paOpenCompte('${escHtml(c.id)}')">✎</button>
+    </div>`;
+  }).join("");
+}
+
+function paRenderReleves() {
+  const head = document.getElementById("pa-rel-head");
+  const body = document.getElementById("pa-rel-body");
+  if (!head || !body) return;
+  const cs = paComptes();
+  const mois = [...new Set(paReleves().map(r => r.date))].sort().reverse();
+  head.innerHTML = `<tr><th>Mois</th>${cs.map(c => `<th>${escHtml(c.label)}</th>`).join("")}<th>Net</th></tr>`;
+  if (!mois.length) {
+    body.innerHTML = `<tr><td colspan="${cs.length + 2}" class="m-empty">Aucun relevé.</td></tr>`;
+    return;
+  }
+  body.innerHTML = mois.map(m => {
+    const pt = _paSerie.find(p => p.date === m);
+    return `<tr>
+      <td><b>${escHtml(paMoisLabel(m))}</b></td>
+      ${cs.map(c => {
+        const r = paReleves().find(x => x.compteId === c.id && x.date === m);
+        return `<td>${r ? paEur(r.montant) : `<span style="color:var(--txt3)">—</span>`}</td>`;
+      }).join("")}
+      <td><b>${pt ? paEur(pt.net) : "—"}</b></td>
+    </tr>`;
+  }).join("");
+}
+
+function paOpenCompte(id) {
+  if (!PA) return;
+  _paEditCpt = id;
+  const c = id ? paComptes().find(x => x.id === id) : null;
+  const sel = document.getElementById("pa-cpt-type");
+  sel.innerHTML = PA_TYPES.map(t =>
+    `<option value="${escHtml(t.id)}">${escHtml(t.icon)} ${escHtml(t.label)}</option>`).join("");
+  sel.value = c ? c.type : "livret";
+  document.getElementById("pa-cpt-title").textContent = c ? "Modifier le compte" : "Nouveau compte";
+  document.getElementById("pa-cpt-label").value = c ? c.label : "";
+  document.getElementById("pa-cpt-note").value  = c ? (c.note || "") : "";
+  document.getElementById("pa-cpt-auto").style.display = (c && c.auto) ? "" : "none";
+  // Un compte auto ne se supprime pas : il serait recréé au prochain chargement
+  document.getElementById("pa-cpt-del").style.display = (c && !c.auto) ? "" : "none";
+  document.getElementById("ov-pa-compte").classList.add("open");
+}
+
+async function paSaveCompte() {
+  const label = (document.getElementById("pa-cpt-label").value || "").trim();
+  if (!label) { showToastModern("Donne un nom au compte", "warn"); return; }
+  const type = document.getElementById("pa-cpt-type").value;
+  const note = document.getElementById("pa-cpt-note").value || "";
+  if (_paEditCpt) {
+    const i = PA.comptes.findIndex(x => x.id === _paEditCpt);
+    if (i >= 0) PA.comptes[i] = Object.assign({}, PA.comptes[i], { label, type, note });
+  } else {
+    PA.comptes.push({ id: paNextId("compte"), label, type, note,
+                      auto: "", icon: paType(type).icon || "📦",
+                      color: paType(type).color || "#888", archived: false });
+  }
+  if (await paSave()) {
+    closeOv("ov-pa-compte");
+    showToastModern("Compte enregistré", "ok");
+    paRenderAll();
+  }
+}
+
+async function paDeleteCompte() {
+  if (!_paEditCpt) return;
+  const n = paReleves().filter(r => r.compteId === _paEditCpt).length;
+  if (!confirm(`Supprimer ce compte ?${n ? `\n\nSes ${n} relevé(s) seront également supprimés.` : ""}`)) return;
+  PA.comptes = PA.comptes.filter(x => x.id !== _paEditCpt);
+  PA.releves = PA.releves.filter(r => r.compteId !== _paEditCpt);
+  if (await paSave()) {
+    closeOv("ov-pa-compte");
+    showToastModern("Compte supprimé", "ok");
+    paRenderAll();
+  }
+}
+
+/* ── Relevé du mois ────────────────────────────────────────────────────── */
+
+/**
+ * Valeur proposée pour un compte auto : on va la chercher dans le module
+ * concerné plutôt que de demander à Arthur de la recopier.
+ */
+function paValeurAuto(compte) {
+  if (compte.auto === "pea") {
+    // Valorisation courante du PEA, celle qu'affiche la vue d'ensemble
+    const pv = window._peaPv || {};
+    if (pv.total != null) return pv.total;
+    if (typeof S !== "undefined" && S && typeof computeTotalValue === "function") {
+      try { const v = computeTotalValue(); if (v != null) return v; } catch (e) {}
+    }
+    return null;
+  }
+  if (compte.auto === "pret") {
+    // Capital restant dû : montant emprunté moins ce qui a été remboursé
+    if (typeof PR !== "undefined" && PR && PR.pret) {
+      const p = PR.pret;
+      const m = Number(p.montant) || 0;
+      const mens = Number(p.mensualite) || 0;
+      if (!m) return null;
+      const debut = p.date_premier_remboursement;
+      if (!debut || !mens) return m;
+      const d0 = new Date(debut + "T00:00:00"), now = new Date();
+      if (isNaN(d0) || now < d0) return m;
+      const nb = (now.getFullYear() - d0.getFullYear()) * 12 + (now.getMonth() - d0.getMonth());
+      return Math.max(0, m - nb * mens);
+    }
+    return null;
+  }
+  return null;
+}
+
+function paOpenSaisie() {
+  if (!PA) return;
+  const iso = _paMois || paMoisIso();
+  document.getElementById("pa-sai-date").value = iso;
+  paBuildSaisie(iso);
+  document.getElementById("ov-pa-saisie").classList.add("open");
+  const inp = document.getElementById("pa-sai-date");
+  inp.onchange = () => paBuildSaisie(inp.value);
+}
+
+function paBuildSaisie(iso) {
+  const box = document.getElementById("pa-sai-lines");
+  if (!box) return;
+  const cs = paComptes();
+  if (!cs.length) {
+    box.innerHTML = `<div class="m-empty">Crée d'abord un compte.</div>`;
+    return;
+  }
+  box.innerHTML = cs.map(c => {
+    const t = paType(c.type);
+    // Priorité : relevé déjà saisi ce mois > valeur auto > dernier connu
+    const dejaCeMois = paReleves().find(r => r.compteId === c.id && r.date === iso);
+    let val = dejaCeMois ? dejaCeMois.montant : null;
+    if (val === null && c.auto) val = paValeurAuto(c);
+    if (val === null) { const d = paDernier(c.id, iso); val = d ? d.montant : null; }
+    return `<div class="pa-sai-line">
+      <span class="pa-sai-lbl">
+        <span>${escHtml(c.icon || t.icon || "📦")}</span>
+        <span>${escHtml(c.label)}${t.dette ? ` <span style="color:var(--r);font-size:10px">(dette)</span>` : ""}</span>
+        ${c.auto ? `<span class="pa-cpt-auto">auto</span>` : ""}
+      </span>
+      <input type="number" step="0.01" id="pa-sai-${escHtml(c.id)}"
+             value="${val === null ? "" : Math.abs(val)}" placeholder="—"
+             oninput="paSaisieTotal()">
+    </div>`;
+  }).join("");
+  paSaisieTotal();
+}
+
+function paSaisieTotal() {
+  const el = document.getElementById("pa-sai-total");
+  if (!el) return;
+  let actifs = 0, dettes = 0;
+  paComptes().forEach(c => {
+    const inp = document.getElementById("pa-sai-" + c.id);
+    if (!inp || inp.value === "") return;
+    const v = Math.abs(parseFloat(inp.value.replace(",", ".")) || 0);
+    if (paType(c.type).dette) dettes += v; else actifs += v;
+  });
+  el.innerHTML = `<span>Patrimoine net</span>
+    <span>${paEur(actifs - dettes)}
+      <span style="font-weight:400;color:var(--txt3);font-size:11px">
+        (${paEur(actifs)} − ${paEur(dettes)})</span></span>`;
+}
+
+async function paSaveSaisie() {
+  const iso0 = document.getElementById("pa-sai-date").value;
+  if (!iso0) { showToastModern("Indique le mois", "warn"); return; }
+  // Tous les relevés sont ancrés au 1er : c'est ce qui rend la série mensuelle
+  // comparable d'un mois à l'autre.
+  const iso = paMoisIso(iso0 + "T00:00:00");
+
+  let n = 0;
+  paComptes().forEach(c => {
+    const inp = document.getElementById("pa-sai-" + c.id);
+    if (!inp) return;
+    const raw = (inp.value || "").trim();
+    const i = PA.releves.findIndex(r => r.compteId === c.id && r.date === iso);
+    if (raw === "") { if (i >= 0) PA.releves.splice(i, 1); return; }
+    const v = Math.abs(parseFloat(raw.replace(",", ".")));
+    if (isNaN(v)) return;
+    if (i >= 0) PA.releves[i].montant = v;
+    else PA.releves.push({ id: paNextId("releve"), compteId: c.id, date: iso, montant: v });
+    n++;
+  });
+  if (!n) { showToastModern("Aucune valeur saisie", "warn"); return; }
+  if (await paSave()) {
+    closeOv("ov-pa-saisie");
+    showToastModern(`Relevé de ${paMoisLabel(iso)} enregistré`, "ok");
+    _paMois = paMoisIso();
+    paRenderAll();
+  }
+}
+
+(function patchGoTabPatri() {
+  const _prev = window.goTab;
+  if (typeof _prev !== "function") return;
+  window.goTab = function(n) {
+    _prev.call(this, n);
+    if (n !== "pa-vue" && n !== "pa-comptes") return;
+    if (!_paBootstrapped) { paBootstrap(); return; }
+    if (n === "pa-vue") { paRenderRappel(); paRenderKpis(); paRenderChart(); paRenderRepartition(); }
+    if (n === "pa-comptes") { paRenderComptes(); paRenderReleves(); }
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ACCUEIL : TABLEAU DE BORD MODULAIRE
+   Chaque tuile est un widget déclaré dans DASH_WIDGETS. L'utilisateur choisit
+   lesquels afficher et dans quel ordre (Paramètres → Accueil, glisser-déposer).
+   Ordre et activation vivent dans S.uiPrefs.dash.
+
+   Un widget renvoie null quand son module n'a rien à dire : il disparaît alors
+   de l'accueil au lieu d'afficher un tiret, ce qui garde le tableau de bord
+   utile plutôt que décoratif.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const DASH_WIDGETS = [
+  {
+    id: "pea", label: "Rendement du PEA", module: "PEA", tab: "perf",
+    render() {
+      const pv = window._peaPv || {};
+      if (pv.eur == null) return { lbl: "Rendement total du PEA", val: "—",
+                                   sub: "En attente des cours", go: "Voir la performance" };
+      return { lbl: "Rendement total du PEA", val: eur(pv.eur, true),
+               cls: pv.eur >= 0 ? "c-g" : "c-r",
+               sub: pv.pct != null ? pct(pv.pct) : "", go: "Voir la performance" };
+    },
+  },
+  {
+    id: "pea-valeur", label: "Valeur du PEA", module: "PEA", tab: "dash",
+    render() {
+      const pv = window._peaPv || {};
+      if (pv.total == null) return null;
+      return { lbl: "Valeur du PEA", val: eur(pv.total),
+               sub: "lignes + espèces", go: "Vue d'ensemble" };
+    },
+  },
+  {
+    id: "patrimoine", label: "Patrimoine net", module: "Patrimoine", tab: "pa-vue",
+    render() {
+      if (typeof _paNet === "undefined" || !_paNet) return null;
+      if (!(PA && PA.releves && PA.releves.length)) return null;
+      let sub = "au " + paMoisLabel(_paNet.date);
+      if (typeof _paSerie !== "undefined" && _paSerie.length > 1) {
+        const d = _paSerie[_paSerie.length - 1].net - _paSerie[_paSerie.length - 2].net;
+        sub = (d >= 0 ? "+" : "−") + paEur(Math.abs(d)) + " ce mois-ci";
+      }
+      return { lbl: "Patrimoine net", val: paEur(_paNet.net),
+               cls: _paNet.net >= 0 ? "" : "c-r", sub, go: "Voir le patrimoine" };
+    },
+  },
+  {
+    id: "patri-rappel", label: "Rappel du relevé mensuel", module: "Patrimoine", tab: "pa-vue",
+    render() {
+      if (typeof PA === "undefined" || !PA) return null;
+      if (paMoisSaisi()) return null;   // rien à rappeler : le widget s'efface
+      return { lbl: "Relevé de patrimoine", val: "À faire",
+               sub: paMoisLabel(_paMois) + " n'est pas saisi", go: "Le faire maintenant" };
+    },
+  },
+  {
+    id: "sport", label: "Sport du mois", module: "Sports", tab: "sp-agenda",
+    render() {
+      if (typeof SP === "undefined" || !SP) return null;
+      const now = new Date();
+      const t = spTotals(spMonthSessions(now.getFullYear(), now.getMonth()));
+      return { lbl: "Sport ce mois-ci", val: spFmtDur(t.min),
+               sub: t.n ? t.n + " séance" + (t.n > 1 ? "s" : "") + " en " + SP_MONTHS[now.getMonth()]
+                        : "Aucune séance ce mois-ci",
+               go: "Ouvrir l'agenda" };
+    },
+  },
+  {
+    id: "sport-goal", label: "Prochain objectif sportif", module: "Sports", tab: "sp-goals",
+    render() {
+      if (typeof SP === "undefined" || !SP) return null;
+      const g = homeNextGoal();
+      if (!g) return null;
+      if (g.kind === "event" && g.date) {
+        const days = Math.round((spParseISO(g.date) - spParseISO(spDateISO(new Date()))) / 86400000);
+        return { lbl: "Prochain objectif", val: days === 0 ? "Aujourd'hui" : "J−" + days,
+                 sub: g.title, go: "Voir les objectifs" };
+      }
+      return { lbl: "Prochain objectif", val: "◎", sub: g.title, go: "Voir les objectifs" };
+    },
+  },
+  {
+    id: "poids", label: "Poids actuel", module: "Santé", tab: "sa-suivi",
+    render() {
+      if (typeof SA === "undefined" || !SA) return null;
+      const last = saLast(); if (!last || last.poids == null) return null;
+      const prev = saPrev();
+      const d = saDelta("poids", last.poids, prev ? prev.poids : null);
+      return { lbl: "Poids", val: saFmt("poids", last.poids),
+               cls: saDeltaClass("poids", last.poids, prev ? prev.poids : null) === "down" ? "c-g" : "",
+               sub: d ? d + " vs pesée précédente" : "première pesée", go: "Voir le suivi" };
+    },
+  },
+  {
+    id: "sante-goal", label: "Objectif de poids", module: "Santé", tab: "sa-goals",
+    render() {
+      if (typeof SA === "undefined" || !SA) return null;
+      const g = saGoals()[0]; if (!g) return null;
+      const p = saGoalProgress(g);
+      if (p.current === null) return null;
+      const m = saMetric(g.metric);
+      return { lbl: (m.label || g.metric) + " → " + saFmt(g.metric, g.target),
+               val: p.pct.toFixed(0) + " %",
+               sub: p.done ? "objectif atteint"
+                           : "reste " + saFmt(g.metric, Math.abs(g.target - p.current)),
+               go: "Voir les objectifs" };
+    },
+  },
+  {
+    id: "pret", label: "Prêt étudiant", module: "Prêt", tab: "pr-overview",
+    render() {
+      if (typeof PR === "undefined" || !PR || !PR.pret || !PR.pret.montant) return null;
+      const reste = paValeurAuto({ auto: "pret" });
+      if (reste === null) return null;
+      return { lbl: "Prêt étudiant", val: paEur(reste),
+               sub: "capital restant dû", go: "Voir le prêt" };
+    },
+  },
+  {
+    id: "usb", label: "Sauvegarde USB", module: "Sauvegarde", tab: null,
+    render() {
+      const s = window._dashUsb;
+      if (!s) return null;
+      if (!s.lastPushAt && !s.count) return null;
+      let sub = s.count ? `${s.count} clé${s.count > 1 ? "s" : ""} branchée${s.count > 1 ? "s" : ""}`
+                        : "aucune clé branchée";
+      let val = "—";
+      if (s.lastPushAt) {
+        const d = new Date(s.lastPushAt);
+        if (!isNaN(d)) {
+          const j = Math.floor((new Date() - d) / 86400000);
+          val = j === 0 ? "Aujourd'hui" : (j === 1 ? "Hier" : "Il y a " + j + " j");
+        }
+      } else { val = "Jamais"; }
+      return { lbl: "Dernière sauvegarde USB", val, sub, go: null };
+    },
+  },
+];
+
+const DASH_DEFAUT = ["pea", "sport", "sport-goal"];   // l'accueil historique
+
+function dashConfig() {
+  const p = (typeof S !== "undefined" && S && S.uiPrefs) ? S.uiPrefs : {};
+  let cfg = Array.isArray(p.dash) ? p.dash.slice() : null;
+  if (!cfg) cfg = DASH_WIDGETS.map(w => ({ id: w.id, on: DASH_DEFAUT.includes(w.id) }));
+  // Un widget ajouté par une mise à jour apparaît, éteint, en fin de liste
+  DASH_WIDGETS.forEach(w => {
+    if (!cfg.some(c => c.id === w.id)) cfg.push({ id: w.id, on: false });
+  });
+  return cfg.filter(c => DASH_WIDGETS.some(w => w.id === c.id));
+}
+
+async function dashSaveConfig(cfg) {
+  if (typeof S === "undefined" || !S) return;
+  if (!S.uiPrefs) S.uiPrefs = {};
+  S.uiPrefs.dash = cfg;
+  try {
+    if (window.pywebview && pywebview.api) await pywebview.api.save_ui_prefs(S.uiPrefs);
+  } catch (e) {}
+}
+
+function dashRender() {
+  const box = document.getElementById("home-cards");
+  if (!box) return;
+  const cfg = dashConfig();
+  const html = [];
+  cfg.filter(c => c.on).forEach(c => {
+    const w = DASH_WIDGETS.find(x => x.id === c.id);
+    if (!w) return;
+    let d = null;
+    try { d = w.render(); } catch (e) { d = null; }
+    if (!d) return;
+    const click = (d.go !== null && w.tab)
+      ? ` onclick="goTab('${w.tab}');_setActiveSidebar('${w.tab}')" style="cursor:pointer"`
+      : ` style="cursor:default"`;
+    html.push(`<div class="home-card"${click}>
+      <span class="home-card-lbl">${escHtml(d.lbl)}</span>
+      <span class="home-card-val ${d.cls || ""}">${d.val}</span>
+      <span class="home-card-sub">${escHtml(d.sub || "")}</span>
+      ${(d.go && w.tab) ? `<span class="home-card-go">${escHtml(d.go)} →</span>` : ""}
+    </div>`);
+  });
+  box.innerHTML = html.length ? html.join("")
+    : `<div class="dash-empty" style="grid-column:1/-1">
+         Aucune tuile active. Choisis ce que tu veux voir dans
+         <b>Paramètres → Accueil</b>.</div>`;
+}
+
+/* ── Configuration (Paramètres → Accueil) ──────────────────────────────── */
+
+function dashRenderConfig() {
+  const box = document.getElementById("dash-cfg");
+  if (!box) return;
+  const cfg = dashConfig();
+  box.innerHTML = cfg.map((c, i) => {
+    const w = DASH_WIDGETS.find(x => x.id === c.id);
+    return `<div class="dash-cfg-row" draggable="true" data-i="${i}" data-id="${escHtml(c.id)}">
+      <span class="dash-cfg-grip">⠿</span>
+      <input type="checkbox" ${c.on ? "checked" : ""} onchange="dashToggle('${escHtml(c.id)}', this.checked)">
+      <span>${escHtml(w.label)}</span>
+      <span class="dash-cfg-mod">${escHtml(w.module)}</span>
+    </div>`;
+  }).join("");
+  dashWireDnd(box);
+}
+
+async function dashToggle(id, on) {
+  const cfg = dashConfig();
+  const c = cfg.find(x => x.id === id);
+  if (c) c.on = !!on;
+  await dashSaveConfig(cfg);
+  dashRender();
+}
+
+/** Glisser-déposer pour réordonner les tuiles. */
+function dashWireDnd(box) {
+  let src = null;
+  box.querySelectorAll(".dash-cfg-row").forEach(row => {
+    row.addEventListener("dragstart", e => {
+      src = row; row.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      try { e.dataTransfer.setData("text/plain", row.dataset.id); } catch (err) {}
+    });
+    row.addEventListener("dragend", () => {
+      row.classList.remove("dragging");
+      box.querySelectorAll(".dash-cfg-row").forEach(r => r.classList.remove("over"));
+    });
+    row.addEventListener("dragover", e => {
+      e.preventDefault();
+      if (row !== src) row.classList.add("over");
+    });
+    row.addEventListener("dragleave", () => row.classList.remove("over"));
+    row.addEventListener("drop", async e => {
+      e.preventDefault();
+      row.classList.remove("over");
+      if (!src || src === row) return;
+      const cfg = dashConfig();
+      const from = cfg.findIndex(c => c.id === src.dataset.id);
+      const to   = cfg.findIndex(c => c.id === row.dataset.id);
+      if (from < 0 || to < 0) return;
+      cfg.splice(to, 0, cfg.splice(from, 1)[0]);
+      await dashSaveConfig(cfg);
+      dashRenderConfig();
+      dashRender();
+    });
+  });
+}
 
 (async function boot() {
   try {
