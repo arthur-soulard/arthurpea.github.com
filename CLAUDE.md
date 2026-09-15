@@ -1,7 +1,8 @@
 # Pilote
 
-Application desktop Windows de suivi personnel : bourse (PEA), budget, prêt étudiant
-et sport réunis dans une seule app 100 % locale, multi-utilisateurs.
+Application desktop Windows de suivi personnel : bourse (PEA), budget, prêt étudiant,
+sport, santé et patrimoine réunis dans une seule app 100 % locale, multi-utilisateurs.
+Aucune donnée ne sort du PC — pas de compte, pas de serveur distant, pas de télémétrie.
 
 Stack : Python + pywebview (fenêtre native avec UI HTML/CSS/JS), PyInstaller pour
 compiler en .exe, Inno Setup pour le Setup.exe, GitHub Actions pour build + release.
@@ -24,13 +25,16 @@ Pilote/
 │   ├── finances.py     # Module « Mes comptes »   (finances.json)
 │   ├── sports.py       # Module « Sports »        (sports.json) + catalogue + champs
 │   ├── pret.py         # Module « Prêt étudiant » (pret.json)
+│   ├── sante.py        # Module « Santé »         (sante.json) + lecture OCR FitDays
+│   ├── ocr_win.ps1     # OCR via Windows.Media.Ocr — appelé par sante.py
+│   ├── patrimoine.py   # Module « Patrimoine »    (patrimoine.json)
 │   ├── jsonstore.py    # Socle commun : écriture atomique + backup quotidien 7 j
-│   ├── sauvegarde.py   # Sauvegarde externe sur clé USB (zip de tout Donnees/)
+│   ├── sauvegarde.py   # Sauvegarde externe sur clé USB (miroir + archives zip)
 │   ├── appicon.py      # Icône recolorée selon la couleur d'accent
 │   ├── updater.py      # Auto-updater (check + download + install)
 │   ├── notifications.py
 │   └── ui/
-│       └── index.html  # TOUTE l'UI (HTML + CSS + JS dans un seul fichier, ~13 200 lignes)
+│       └── index.html  # TOUTE l'UI (HTML + CSS + JS dans un seul fichier, ~15 300 lignes)
 ├── build/
 │   ├── installer.iss   # Script Inno Setup utilisé par la CI (AppVersion à bumper)
 │   ├── pilote.spec     # Spec PyInstaller → dist/Pilote.exe
@@ -57,6 +61,8 @@ Donnees/
 │   ├── finances.json         # Mes comptes      (+ backups_finances/)
 │   ├── sports.json           # Sports           (+ backups_sports/)
 │   ├── pret.json             # Prêt étudiant    (+ backups_pret/)
+│   ├── sante.json            # Santé            (+ backups_sante/)
+│   ├── patrimoine.json       # Patrimoine       (+ backups_patrimoine/)
 │   └── pin.hash              # code PIN de CET utilisateur (si configuré)
 ├── icones/                   # .ico générés à la couleur d'accent
 └── crash.log
@@ -75,7 +81,7 @@ les onglets masqués sont propres à chacun (ils vivent dans `pea_data.json`).
 * `storage.migrate_legacy_pin()` — le PIN, global jusqu'à la 4.1.3, est attribué au
   **premier** utilisateur. Appelée au démarrage de `main()` et en fin de `ensure_migrated()`.
 
-## ⚠ Trois choses à ne JAMAIS casser
+## ⚠ Quatre choses à ne JAMAIS casser
 
 1. **`_PIN_SALT`** dans `src/server.py` → sert au hash des codes PIN déjà enregistrés.
 2. **L'`AppId` GUID** dans `build/installer.iss` → c'est l'identité de l'installation.
@@ -88,6 +94,12 @@ les onglets masqués sont propres à chacun (ils vivent dans `pea_data.json`).
    volume de données : un utilisateur qui vient d'être créé a un PEA vide et doit
    pouvoir enregistrer. Côté Python, un `pea_data.json` absent n'est **pas** une erreur
    de lecture (`storage.load_data()` laisse `error` à `None`).
+4. **`ocr_win.ps1` dans les `datas` de `build/pilote.spec`** → sans cette ligne, l'OCR
+   du module Santé fonctionne parfaitement en dev et **échoue silencieusement dans
+   l'exe compilé** : le script est introuvable, `ocr_available()` répond « Script OCR
+   introuvable » et l'import de captures ne marche plus. Une panne invisible tant
+   qu'on ne teste pas le binaire. Vérification : `ocr_win.ps1` doit apparaître comme
+   chaîne dans `Pilote.exe`.
 
 ## Sauvegarde externe sur clé USB (`sauvegarde.py`)
 
@@ -106,6 +118,10 @@ Sa config vit donc dans `Donnees/sauvegarde.json`, à côté de `users.json`.
   (`_volume_info()` via `GetVolumeInformationW`). Si la clé mémorisée est absente,
   on ne se rabat **pas** sur le chemin brut — il pointerait sur une autre clé ayant
   hérité de la lettre.
+* **Un numéro de série nul (`00000000`) est traité comme absent.** Constaté sur une
+  vraie clé FAT32 bas de gamme : elle n'en a pas. Le garder reviendrait à « reconnaître »
+  n'importe quelle autre clé sans numéro. Repli alors sur le **nom de volume**, puis
+  sur le chemin brut. Ne pas « simplifier » en refaisant confiance au numéro.
 * Rotation : les `keep` archives les plus récentes (10 par défaut).
 * Auto au démarrage dans un thread (`main()`), silencieuse si la clé est absente.
 * `restore_from()` : valide l'archive, écrit une archive de sécurité de l'état
@@ -116,7 +132,8 @@ Sa config vit donc dans `Donnees/sauvegarde.json`, à côté de `users.json`.
   Protection zip-slip sur chaque membre.
 * API : `sauvegarde_status`, `sauvegarde_set_config`, `sauvegarde_pick_folder`,
   `sauvegarde_use_drive`, `sauvegarde_run`, `sauvegarde_list`,
-  `sauvegarde_restore`, `sauvegarde_open_folder`.
+  `sauvegarde_restore`, `sauvegarde_open_folder`, `sauvegarde_push_usb`,
+  `sauvegarde_usb_state`.
 * UI : Paramètres → **Sauvegarde USB** (`data-sec="sauvegarde"`), fonctions `sv*`.
   `setGoSection()` déclenche `svRefresh()` seulement à l'ouverture de cette
   section — elle interroge le disque.
@@ -242,19 +259,19 @@ Ouverte au démarrage. `homeGreeting()` renvoie « Bonjour » avant 18 h, « Bon
 
 Mise en page centrée : grande salutation (`clamp(38px, 5.2vw, 62px)`), date, rang des
 utilisateurs (`#home-users`, cliquable pour basculer + « Nouvel utilisateur »), boutons
-⚙ Paramètres / ↓ Exporter / ↑ Importer, puis les trois cartes décalées vers le bas.
+⚙ Paramètres / ↓ Exporter / ↑ Importer / 🔑 Téléverser vers clé USB, l'état de la clé
+(`#home-usb-state`), puis les tuiles décalées vers le bas.
 
-Les trois cartes, rendues par `homeRender()` :
-1. Rendement total du PEA — lit `window._peaPv`, alimenté par `renderMetrics()` pour
-   afficher exactement le même chiffre que la vue d'ensemble (pas de recalcul parallèle)
-2. Heures de sport du mois en cours
-3. Prochain objectif sportif (événement daté le plus proche en J−n, sinon dernière perf)
+Depuis la 4.1.4, `homeRender()` ne fait plus que la salutation et la date : **les tuiles
+sont déléguées à `dashRender()`** (voir « Accueil : tableau de bord modulaire »). Il n'y
+a plus de carte codée en dur.
 
-`homeRender()` est rappelée par `renderMetrics()`, par `spBootstrap()` et à chaque
-`goTab("home")`.
+`homeRender()` est rappelée par `renderMetrics()`, `spBootstrap()`, `saRenderAll()`,
+`paRenderAll()` et à chaque `goTab("home")` — ce dernier rafraîchit aussi l'état de la
+clé USB (`svRenderUsbState()`).
 
 **Écran de bienvenue** (`_showWelcomeIfFirstRun()`) : s'affiche quand le PEA est vide,
-donc aussi pour chaque utilisateur nouvellement créé. Il présente les quatre suivis,
+donc aussi pour chaque utilisateur nouvellement créé. Il présente les suivis,
 rappelle de quel espace il s'agit, et ne propose en récupération que des installations
 **extérieures** (voir `scan_orphan_data`).
 
@@ -498,23 +515,38 @@ Points critiques :
 
 ## Conventions de code
 
-* Tout l'UI vit dans `index.html`. Les modules annexes sont des blocs JS autonomes
-  en fin de fichier, préfixés (`fin*`, `sp*`, `pr*`, `home*`), avec leur propre patch
-  de `goTab`.
+* Tout l'UI vit dans `index.html` (~15 300 lignes). Les modules annexes sont des blocs
+  JS autonomes en fin de fichier, préfixés (`fin*`, `sp*`, `pr*`, `sa*`, `pa*`, `dash*`,
+  `sv*`, `home*`), avec leur propre patch de `goTab`. **Ordre d'insertion : Sports →
+  Prêt → Santé → Patrimoine → Tableau de bord → `boot()`.** Les patches de `goTab`
+  s'enchaînent, ne pas casser l'ordre.
 * Primitives de DA à réutiliser : `.card/.card-h/.card-t/.card-b`, `.btn/.btn-primary/
   .btn-ghost/.btn-sm`, `table + .tw`, `.ov/.modal/.fg/.fg-row/.mact` + `closeOv(id)`,
   `.mkpis/.mkpi` (KPIs), `.m-tag`, `.m-empty`, `.m-note`, `.m-acts/.m-iconbtn`,
   `.set-layout/.set-nav/.set-sec` (paramètres), `.home-user/.home-user-av` (utilisateurs),
   `.sp-fields/.sp-field` (choix de champs), `.fin-ico` (emoji catégories),
+  `.sa-grid/.sa-cell` + `.sa-fields/.sa-field` (santé), `.pa-cpt/.pa-leg` (patrimoine),
+  `.dash-cfg-row` (tuiles), `.sv-drive/.sv-row` (clés USB),
   `showToastModern(msg, "ok"|"warn"|"err")`, `escHtml()`.
+* Une `.ov` s'ouvre avec `classList.add("open")` — la règle CSS est `.ov.open
+  { display: flex }`. Il n'y a pas de classe `show` pour les modales.
 * Les `.ov` sont en `z-index: 9500` (au-dessus de la sidebar 9000, sous la titlebar
   10000). Une modale ouverte **depuis** une autre doit passer par `openOvTop(id)`,
   sinon l'ordre du DOM décide qui est devant.
+* Attention à la spécificité : `.fg label` (0-1-1) impose MAJUSCULES + interlettrage.
+  Un libellé de texte courant dans un `.fg` doit être ciblé en `label.ma-classe`,
+  sinon la règle générale gagne.
 * Couleurs uniquement via les variables CSS (`--bg2`, `--brd`, `--accent`, `--g`, `--r`,
   `--mono`…) : thème clair ET sombre, plus une couleur d'accent au choix.
 * Un nouveau module de données = un fichier `src/<nom>.py` basé sur
   `jsonstore.JsonStore` + deux méthodes `load_`/`save_` dans la classe `Api` de `app.py`.
-  Il sera automatiquement propre à chaque utilisateur.
+  Il sera automatiquement propre à chaque utilisateur. Penser à l'ajouter aussi
+  à `DASH_WIDGETS` s'il a un chiffre à montrer sur l'accueil.
+* Le JS garde l'état en mémoire (`S`, `SP`, `PR`, `SA`, `PA`) et Python ne fait que
+  persister. Exception : `load_patrimoine` / `save_patrimoine` renvoient `net`, `serie`
+  et `moisSaisi` déjà calculés — l'UI ne refait pas ces calculs.
+* Ne jamais recalculer en parallèle un chiffre qu'un autre module produit déjà
+  (`window._peaPv` pour le PEA). Deux calculs = deux résultats divergents un jour.
 
 ## Déploiement
 
@@ -524,10 +556,34 @@ Points critiques :
 
 ## Pistes en attente (proposées, non décidées)
 
+**Les trois qui manquent le plus** — sans elles, Pilote n'est pas « l'app où je fais
+tout ». Recommandées dans cet ordre :
+
+- **Module Tâches** (`taches.json`) : échéance, priorité, projet, récurrence
+- **Module Agenda** (`agenda.json`) : mois + semaine, fusionnant séances de sport,
+  échéances de prêt, relevé de patrimoine, pesée du 1er
+- **Écran « Aujourd'hui »** : tâches du jour + événements + séance prévue + échéances.
+  Le premier écran à ouvrir le matin.
+
+Autres pistes :
+
 - Objectif d'heures hebdomadaire, avec jauge en haut de l'agenda sport
 - Courbe d'heures cumulées année N vs N−1 dans les statistiques sport
 - Échéancier prévisionnel du prêt, mois par mois jusqu'à la dernière mensualité
 - Simulateur de sortie : « si je vends tout et solde le prêt, il me reste X € »
-- Export / import de **tout** l'espace d'un utilisateur (aujourd'hui l'import ne
-  couvre que `pea_data.json`, pas les comptes / sport / prêt)
+- Recherche globale (Ctrl+K) sur transactions, séances, pesées, comptes
 - Emoji par défaut pour les catégories créées par l'utilisateur (aujourd'hui 🏷️)
+- Import CSV du relevé bancaire pour « Mes comptes »
+
+**Écartées, ne pas y revenir sans raison nouvelle :**
+
+- **Version mobile / PWA** : écartée par Arthur en 4.1.4 pour la sécurité des données.
+  Les JSON sont en clair et le PIN ne chiffre rien ; exposer le serveur local, même
+  derrière un VPN, sortait les données du PC. Si la question revient, le prérequis
+  serait le chiffrement au repos, pas le réseau.
+- **Agrégation bancaire automatique** : contrat pro + validation réglementaire,
+  hors de portée d'une app locale. D'où la saisie mensuelle du patrimoine.
+
+**Traité depuis** : l'export de tout l'espace utilisateur, longtemps en attente, est
+couvert par la sauvegarde USB (archive zip de tout `Donnees/`). L'import par fichier,
+lui, ne couvre toujours que `pea_data.json`.
