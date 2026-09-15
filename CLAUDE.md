@@ -7,7 +7,7 @@ Aucune donnée ne sort du PC — pas de compte, pas de serveur distant, pas de t
 Stack : Python + pywebview (fenêtre native avec UI HTML/CSS/JS), PyInstaller pour
 compiler en .exe, Inno Setup pour le Setup.exe, GitHub Actions pour build + release.
 
-**Version actuelle : 4.2.0**
+**Version actuelle : 4.2.1**
 (l'app s'appelait « Suivi PEA » jusqu'à la 4.1.0, le dossier du dépôt jusqu'à la 4.1.1)
 
 Dépôt : `C:\Users\Arthur\Desktop\Pilote` — branche `main`, remote
@@ -284,8 +284,9 @@ sont déléguées à `dashRender()`** (voir « Accueil : tableau de bord modulai
 a plus de carte codée en dur.
 
 `homeRender()` est rappelée par `renderMetrics()`, `spBootstrap()`, `saRenderAll()`,
-`paRenderAll()` et à chaque `goTab("home")` — ce dernier rafraîchit aussi l'état de la
-clé USB (`svRenderUsbState()`).
+`paRenderAll()`, la fin de `boot()` et à chaque `goTab("home")` — ce dernier
+rafraîchit aussi l'état de la clé USB (`svRenderUsbState()`) et sort du mode
+édition des tuiles quand on quitte l'accueil.
 
 **Écran de bienvenue** (`_showWelcomeIfFirstRun()`) : s'affiche quand le PEA est vide,
 donc aussi pour chaque utilisateur nouvellement créé. Il présente les suivis,
@@ -305,7 +306,7 @@ Modale unique à colonne de sections (`setGoSection(id)`), plus « paramètres d
 | comptes    | catégories & emoji, sources, récurrents                             |
 | pret       | renvoi vers l'onglet `pr-params`                                    |
 | sport      | mes sports, types de séance, routines                               |
-| accueil    | tuiles du tableau de bord (activation + ordre, glisser-déposer)     |
+| accueil    | tuiles du tableau de bord (idem bouton ✎ de l'accueil)             |
 | sauvegarde | destination USB, sauvegarde auto, rotation, restauration            |
 | donnees    | dossier, export/import, mise à jour, réinitialisation, version      |
 
@@ -447,6 +448,40 @@ supprimé : il serait recréé au chargement suivant.
   une installation existante ne change pas d'aspect après mise à jour.
 * Un widget ajouté par une version ultérieure apparaît **éteint** en fin de
   liste, jamais activé d'office.
+
+### Le crayon : on change les tuiles depuis l'accueil
+
+Bouton **✎ Modifier les tuiles** (`.dash-bar`, au-dessus de la grille) →
+`dashToggleEdit()` bascule `_dashEdit` et pose `.dash-editing` sur `#home-cards`.
+En mode édition :
+
+* chaque tuile devient cliquable → `dashOpenPick(id)` : la modale `ov-dash-pick`
+  liste les widgets et celui qu'on choisit prend **exactement la place** de
+  l'ancien (`dashPickApply`) ;
+* ✕ retire la tuile, la carte pointillée « + Ajouter une tuile » en ajoute une
+  à la fin, le glisser-déposer réordonne (`dashWireHomeDnd` / `dashMove`) ;
+* une tuile activée mais sans donnée reste visible en grisé : hors édition elle
+  disparaît, mais si elle disparaissait aussi ici on ne pourrait plus la changer.
+
+Paramètres → Accueil reste là et lit la même config : les deux écrans se
+resynchronisent (`dashRender()` + `dashRenderConfig()` après chaque écriture).
+
+### Pourquoi les tuiles n'attendent plus
+
+`dashModuleReady(module)` dit si le module a fini de charger. Tant que non, la
+tuile affiche un **squelette** au lieu de rien : une tuile absente deux secondes
+donnait l'impression que l'accueil ne marchait pas.
+
+Et surtout, `boot()` charge **les six modules en parallèle**
+(`Promise.all`), Santé et Patrimoine compris. Avant la 4.2.1 ils n'étaient
+bootstrapés qu'à la première visite de leur onglet : leurs quatre tuiles
+restaient vides à vie tant qu'on n'y était jamais allé, et cocher la case dans
+les paramètres ne faisait visiblement rien. `saBootstrap(discret)` et
+`paBootstrap(discret)` chargent alors les **données seules** : le patch de
+`goTab` dessine le panneau à la première visite, inutile de le faire au démarrage.
+
+De même, `svRenderUsbState()` publie désormais `window._dashUsb` — la tuile
+« Sauvegarde USB » lisait cette variable que personne n'écrivait.
 
 ## Module Santé (sante.json)
 
