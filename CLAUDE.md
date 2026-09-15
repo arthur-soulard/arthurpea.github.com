@@ -34,7 +34,8 @@ Pilote/
 │   ├── updater.py      # Auto-updater (check + download + install)
 │   ├── notifications.py
 │   └── ui/
-│       └── index.html  # TOUTE l'UI (HTML + CSS + JS dans un seul fichier, ~15 300 lignes)
+│       ├── index.html  # TOUTE l'UI (HTML + CSS + JS dans un seul fichier, ~15 100 lignes)
+│       └── vendor/     # Chart.js + polices woff2, servis en local (aucun CDN)
 ├── build/
 │   ├── installer.iss   # Script Inno Setup utilisé par la CI (AppVersion à bumper)
 │   ├── pilote.spec     # Spec PyInstaller → dist/Pilote.exe
@@ -73,6 +74,18 @@ les onglets masqués sont propres à chacun (ils vivent dans `pea_data.json`).
 
 `storage.get_user_dir()` est la racine que `jsonstore.py` et `finances.py` utilisent.
 
+### `_cache` : dans le fichier courant, jamais dans les backups
+
+`pea_data.json` contient une clé `_cache` (cours et historiques Yahoo) qui pèse à
+elle seule plus que toutes les données réunies : ~200 Ko contre ~6 Ko. Elle est
+volontairement persistée — c'est ce qui fait vivre l'app **hors ligne**
+(`Api.load_data` la repasse au serveur via `server.hydrate_cache`).
+
+Mais `storage._daily_backup()` l'**exclut** : un backup ne doit contenir que
+l'irremplaçable. Sans ça, 200 Ko de cache régénérable étaient recopiés sept fois
+par utilisateur, puis embarqués dans chaque archive de sauvegarde USB. Backup du
+jour : 10 Ko au lieu de 418 Ko. Ne pas « simplifier » en resérialisant `data` tel quel.
+
 ### Migrations automatiques (idempotentes, ne jamais les supprimer)
 
 * `storage.ensure_migrated()` — une installation antérieure à la 4.1.2
@@ -81,7 +94,7 @@ les onglets masqués sont propres à chacun (ils vivent dans `pea_data.json`).
 * `storage.migrate_legacy_pin()` — le PIN, global jusqu'à la 4.1.3, est attribué au
   **premier** utilisateur. Appelée au démarrage de `main()` et en fin de `ensure_migrated()`.
 
-## ⚠ Quatre choses à ne JAMAIS casser
+## ⚠ Cinq choses à ne JAMAIS casser
 
 1. **`_PIN_SALT`** dans `src/server.py` → sert au hash des codes PIN déjà enregistrés.
 2. **L'`AppId` GUID** dans `build/installer.iss` → c'est l'identité de l'installation.
@@ -94,6 +107,10 @@ les onglets masqués sont propres à chacun (ils vivent dans `pea_data.json`).
    volume de données : un utilisateur qui vient d'être créé a un PEA vide et doit
    pouvoir enregistrer. Côté Python, un `pea_data.json` absent n'est **pas** une erreur
    de lecture (`storage.load_data()` laisse `error` à `None`).
+5. **`src/ui/vendor/` dans les `datas` de `build/pilote.spec`** → même piège que
+   `ocr_win.ps1` : sans cette ligne, Chart.js et les polices sont introuvables dans
+   l'exe compilé. Les graphiques disparaissent et la typo retombe sur celle du
+   système, alors que tout marche parfaitement en dev.
 4. **`ocr_win.ps1` dans les `datas` de `build/pilote.spec`** → sans cette ligne, l'OCR
    du module Santé fonctionne parfaitement en dev et **échoue silencieusement dans
    l'exe compilé** : le script est introuvable, `ocr_available()` répond « Script OCR
@@ -305,11 +322,49 @@ leur section.
 * `GET /sparkline`, `/keystats`, `/analysts`, `/search`, `/ping`
 * `GET /users` → liste des utilisateurs (+ `hasPin`)
 * `GET /pin/required`, `/pin/set`, `/pin/check` — tous avec `?user=<slug>` optionnel
-* `GET /scan-orphan-data`, `/recover-data?from=…` → récupération d'une installation
-  extérieure uniquement
+* `GET /scan-orphan-data` → candidats de récupération (installations extérieures)
+* `GET /recover-data?from=…` → **le chemin doit figurer dans le scan**, sinon 403 :
+  cet endpoint écrase le `pea_data.json` actif, il ne prend pas un chemin libre
+* `GET /vendor/<fichier>` → Chart.js et polices, liste blanche d'extensions
+  (`.js`, `.css`, `.woff2`), confiné sous `ui/vendor/`
 * Cache serveur : 1 h pour l'historique, 60 s pour les cours
 * Tickers : `EPA:XXX` → `XXX.PA` (`AMS:`→`.AS`, `ETR:`→`.DE`, `LON:`→`.L`) ; un ticker
   déjà au format Yahoo (`WPEA.PA`) passe tel quel
+
+### ⚠ Le serveur local n'est PAS un endroit privé
+
+Il écoute sur `127.0.0.1`, mais **tout site ouvert dans n'importe quel navigateur du
+PC peut lui parler** pendant que Pilote tourne. Avant la 4.1.5, un simple
+`fetch("http://127.0.0.1:7438/data")` depuis une page web suffisait à lire le PEA,
+les comptes, le patrimoine et la santé — le serveur répondait avec
+`Access-Control-Allow-Origin: *`.
+
+Trois verrous, chacun couvrant ce que les autres ne couvrent pas. **Ne pas en
+retirer un en pensant que les deux autres suffisent :**
+
+1. **Jeton de session** (`_SESSION_TOKEN`) — régénéré à chaque lancement, injecté
+   dans la page au moment de la servir par `_inject_session_token()`, exigé sur tous
+   les endpoints de données. Le bloc injecté enveloppe `window.fetch` une fois pour
+   toutes : les appels existants n'ont rien à savoir du jeton. → contre le scan de port.
+2. **Refus de tout `Origin` étranger** — notre page n'en envoie pas sur un GET
+   same-origin, une page tierce en envoie toujours un. → contre le navigateur complice.
+3. **Vérification du `Host`** — un domaine attaquant pointé sur `127.0.0.1` arrive
+   avec son propre Host. → contre le DNS rebinding.
+
+Corollaires à ne pas défaire :
+
+* **Aucun en-tête CORS.** Tout est same-origin ; il n'y a rien à autoriser.
+* **CSP stricte** (`_CSP`) + `X-Frame-Options: DENY` + `nosniff` + `no-referrer`.
+  C'est elle qui interdit les CDN : d'où `ui/vendor/`. Ne pas rajouter de
+  `<script src="https://…>` dans index.html, il sera silencieusement bloqué.
+* `/vendor/` est joignable **sans** jeton : le navigateur charge `<script src>` et
+  `<link href>` lui-même, ces requêtes ne passent pas par le wrapper `fetch`. Ces
+  fichiers ne contiennent aucune donnée utilisateur, et les verrous Host et Origin
+  s'appliquent toujours.
+* `/pin/set` exige l'**ancien** code dès qu'un PIN existe. Poser un premier PIN
+  reste libre : il n'y a rien à prouver.
+* `/pin/check` est ralenti (0,25 s) et bloqué 60 s après 10 échecs, **côté serveur**.
+  Le compteur de l'écran de verrouillage est purement cosmétique et ne protège rien.
 
 ## Module Sports (sports.json)
 
@@ -452,7 +507,8 @@ Données :
 * mesures : `{id, date, time, source:"ocr"|"manuel", note, + les 14 métriques}`
 * goals   : `{id, metric, target, start, date, status, createdAt, note}`
   → avancement = distance parcourue / distance totale ; perte et gain se
-    calculent pareil (`saGoalProgress`, `sante.goal_progress`)
+    calculent pareil (`saGoalProgress`, côté JS uniquement — il n'y a
+    volontairement pas de second calcul en Python)
 
 UI : `sa*` dans index.html. Les métriques où **baisser est bon** (poids, IMC,
 graisses, âge corporel) sont listées dans `saDeltaClass` — c'est ce qui décide
