@@ -14,6 +14,7 @@ import tempfile
 import threading
 import traceback
 import urllib.request
+import urllib.parse
 from datetime import datetime
 from pathlib import Path
 
@@ -61,6 +62,24 @@ def _parse_ver(v: str) -> tuple:
         return (0, 0, 0)
 
 
+# Hotes autorises pour le telechargement de l'installeur.
+_ALLOWED_HOSTS = ("github.com", "githubusercontent.com")
+
+
+def _is_github_https(url: str) -> bool:
+    """L'URL est-elle une https:// servie par GitHub ?"""
+    if not url:
+        return False
+    try:
+        u = urllib.parse.urlparse(url)
+    except Exception:
+        return False
+    if u.scheme != "https" or not u.hostname:
+        return False
+    host = u.hostname.lower()
+    return any(host == h or host.endswith("." + h) for h in _ALLOWED_HOSTS)
+
+
 def _set_progress(step: str, pct: int, error: str | None = None) -> None:
     with _lock:
         _progress.update({"step": step, "pct": pct, "error": error})
@@ -87,7 +106,15 @@ def _fetch(current: str) -> None:
         download_url = None
         for asset in data.get("assets", []):
             if asset.get("name", "").endswith("Setup.exe"):
-                download_url = asset.get("browser_download_url")
+                url = asset.get("browser_download_url")
+                # Ce fichier sera EXECUTE avec les droits de l'utilisateur.
+                # On n'accepte qu'une URL https servie par GitHub : une reponse
+                # d'API alteree ne doit pas pouvoir rediriger l'auto-update
+                # vers un binaire quelconque.
+                if _is_github_https(url):
+                    download_url = url
+                else:
+                    _log(f"CHECK: asset ignore, URL non GitHub : {url}")
                 break
 
         with _lock:
@@ -138,6 +165,12 @@ def _do_install() -> None:
 
         if not download_url:
             _set_progress("error", 0, "URL de téléchargement introuvable (recheck nécessaire)")
+            return
+
+        # Revalidation au moment d'executer : _state est partage entre threads
+        if not _is_github_https(download_url):
+            _log(f"INSTALL: URL refusee : {download_url}")
+            _set_progress("error", 0, "URL de téléchargement refusée (hors GitHub)")
             return
 
         exe_path = sys.executable

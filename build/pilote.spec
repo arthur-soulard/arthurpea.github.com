@@ -26,6 +26,11 @@ a = Analysis(
     datas=[
         # Embarque l'UI HTML et l'icone dans l'exe
         (str(SRC / "ui" / "index.html"), "ui"),
+        # Chart.js + polices, servis par server.py sur /vendor/. Sans cette
+        # ligne les graphiques disparaissent et la typo retombe sur celle du
+        # systeme dans l'exe compile, alors que tout marche en dev : la meme
+        # panne invisible que ocr_win.ps1 ci-dessous.
+        (str(SRC / "ui" / "vendor"),      "ui/vendor"),
         # Script OCR (module Sante) : lu a l'execution via sys._MEIPASS
         (str(SRC / "ocr_win.ps1"),      "."),
         (str(ICON),                       "."),

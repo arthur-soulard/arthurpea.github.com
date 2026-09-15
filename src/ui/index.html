@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pilote</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<!-- Polices et Chart.js servis par le serveur local (/vendor/).
+     Rien n'est charge depuis Internet : l'app doit s'afficher a l'identique
+     hors ligne, et ne doit signaler son demarrage a aucun CDN. -->
+<link href="/vendor/fonts.css" rel="stylesheet">
+<script src="/vendor/chart.umd.js"></script>
 <style>
 /* ── Design tokens ───────────────────────────────── */
 :root {
@@ -8013,7 +8016,9 @@ function clearPinDigits() {
 
 async function disablePinNow() {
   if (!confirm("Désactiver le code PIN ? Il ne sera plus demandé à l'ouverture.")) return;
-  const ok = await _setPinServer("");
+  const cur = await _askCurrentPin();
+  if (cur === null) return;
+  const ok = await _setPinServer("", null, cur);
   if (ok) {
     showToastModern("✓ PIN désactivé", "ok");
     clearPinDigits();
@@ -8039,22 +8044,44 @@ async function _isPinRequired(slug) {
   } catch (e) { return false; }
 }
 
+/* Le serveur ralentit chaque essai et bloque apres 10 echecs : on remonte
+   le compte a rebours plutot que de laisser croire a un mauvais code. */
+let _pinLockedFor = 0;
+
 async function _verifyPin(pin, slug) {
   try {
     const r = await fetch(`http://127.0.0.1:${_PEA_PORT}/pin/check?pin=` + encodeURIComponent(pin) + "&t=" + Date.now() + _pinUserQS(slug), {cache: "no-store"});
+    const d = await r.json().catch(() => ({}));
+    _pinLockedFor = d.lockedFor || 0;
     if (!r.ok) return false;
-    const d = await r.json();
     return !!d.match;
   } catch (e) { return false; }
 }
 
-async function _setPinServer(pin, slug) {
+/* Changer ou retirer un PIN existant demande l'ancien : le serveur refuse
+   sinon (403 + needOld). Poser un premier PIN reste libre. */
+async function _setPinServer(pin, slug, oldPin) {
   try {
-    const r = await fetch(`http://127.0.0.1:${_PEA_PORT}/pin/set?pin=` + encodeURIComponent(pin) + "&t=" + Date.now() + _pinUserQS(slug), {cache: "no-store"});
-    if (!r.ok) return false;
-    const d = await r.json();
+    const qs = `http://127.0.0.1:${_PEA_PORT}/pin/set?pin=` + encodeURIComponent(pin)
+             + "&old=" + encodeURIComponent(oldPin || "")
+             + "&t=" + Date.now() + _pinUserQS(slug);
+    const r = await fetch(qs, {cache: "no-store"});
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      if (d.needOld) showToastModern("⚠ Code actuel incorrect", "err");
+      return false;
+    }
     return !!d.ok;
   } catch (e) { return false; }
+}
+
+/* Demande le code actuel quand il y en a un. Retourne "" si pas de PIN,
+   null si l'utilisateur annule. */
+async function _askCurrentPin(slug) {
+  if (!(await _isPinRequired(slug))) return "";
+  const v = prompt("Code PIN actuel (4 chiffres) :");
+  if (v === null) return null;
+  return (v || "").trim();
 }
 
 async function _checkPinLock() {
@@ -8119,7 +8146,11 @@ async function _checkPinLock() {
       const ok = await _verifyPin(v);
       if (ok) { ov.remove(); resolve(true); return; }
       attempts++;
-      err.textContent = "Code incorrect" + (attempts >= 3 ? " — patientez 5 sec" : "");
+      // Le vrai frein est cote serveur (_pinLockedFor) : ce compteur local
+      // n'est qu'un confort d'affichage, il ne protege rien a lui seul.
+      err.textContent = _pinLockedFor > 0
+        ? `Trop d'essais — réessayez dans ${_pinLockedFor} s`
+        : "Code incorrect" + (attempts >= 3 ? " — patientez 5 sec" : "");
       reset();
       if (attempts >= 3) {
         boxes.forEach(b => b.disabled = true);
@@ -8792,8 +8823,12 @@ async function saveConfig() {
   const pinVal = getPinDigits();
   let pinSaved = false;
   if (/^\d{4}$/.test(pinVal)) {
-    const ok = await _setPinServer(pinVal);
-    if (ok) pinSaved = true;
+    // Changer un PIN existant demande l'ancien (le serveur refuse sinon)
+    const cur = await _askCurrentPin();
+    if (cur !== null) {
+      const ok = await _setPinServer(pinVal, null, cur);
+      if (ok) pinSaved = true;
+    }
   } else if (pinVal.length > 0 && pinVal.length < 4) {
     showToastModern("⚠ PIN incomplet (4 chiffres requis)", "warn");
   }

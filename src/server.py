@@ -17,7 +17,9 @@ import os
 import http.server
 import http.cookiejar
 import hashlib
+import hmac
 import json
+import secrets
 import socket
 import threading
 import time
@@ -57,6 +59,81 @@ _server_instance = None  # type: ignore  # http.server.ThreadingHTTPServer
 _server_thread   = None  # type: ignore  # threading.Thread
 _server_port     = DEFAULT_PORT
 _html_file_path  = None  # type: ignore  # str: chemin absolu vers index.html
+
+
+# ─── Jeton de session ─────────────────────────────────────────────────────────
+#
+# Le serveur ecoute sur 127.0.0.1, mais "local" ne veut pas dire "prive" : tout
+# site web ouvert dans n'importe quel navigateur du PC peut lancer un
+# fetch("http://127.0.0.1:7438/data") pendant que Pilote tourne. Sans garde-fou,
+# ca suffit a lire le PEA, les comptes, le patrimoine et la sante — ou a
+# ecraser le code PIN via /pin/set.
+#
+# Trois verrous, volontairement redondants :
+#   1. le jeton ci-dessous, regenere a chaque lancement, injecte dans la page
+#      au moment de la servir et exige sur tous les endpoints de donnees ;
+#   2. le refus de toute requete portant un en-tete Origin etranger (une page
+#      tierce en envoie toujours un, la notre jamais sur un GET same-origin) ;
+#   3. la verification de l'en-tete Host, qui casse le DNS rebinding (un nom
+#      de domaine attaquant pointe sur 127.0.0.1 arrive avec son propre Host).
+#
+# Ne pas retirer l'un en pensant que les autres suffisent : le 1 protege du
+# scan de port, le 2 du navigateur complice, le 3 du DNS.
+
+_SESSION_TOKEN = secrets.token_urlsafe(32)
+TOKEN_HEADER   = "X-Pilote-Token"
+
+# Seuls chemins accessibles sans jeton : la page elle-meme (c'est elle qui
+# recoit le jeton) et le health check, qui ne divulgue rien.
+_PUBLIC_PATHS = {"/", "/index.html", "/ping"}
+
+# Un GET same-origin n'envoie pas d'Origin ; WebView2 en ajoute parfois un
+# pointant sur notre propre origine. Les deux sont acceptes, rien d'autre.
+def _own_origins() -> set:
+    return {
+        f"http://127.0.0.1:{_server_port}",
+        f"http://localhost:{_server_port}",
+    }
+
+
+def get_session_token() -> str:
+    return _SESSION_TOKEN
+
+
+# ─── Limitation des tentatives de PIN ─────────────────────────────────────────
+#
+# Un PIN a 4 chiffres, c'est 10 000 combinaisons : sans frein, une boucle les
+# epuise en quelques secondes. On ralentit chaque essai et on bloque apres
+# PIN_MAX_TRIES echecs consecutifs.
+
+PIN_MAX_TRIES   = 10
+PIN_LOCKOUT_SEC = 60
+PIN_DELAY_SEC   = 0.25   # invisible pour un humain, fatal pour une boucle
+
+_pin_fails = {}          # {slug_ou_"": {"n": int, "until": float}}
+_pin_lock  = threading.Lock()
+
+
+def pin_attempt_state(slug) -> dict:
+    """Combien d'essais restent, et jusqu'a quand c'est bloque."""
+    key = slug or ""
+    with _pin_lock:
+        rec = _pin_fails.get(key) or {"n": 0, "until": 0.0}
+        remaining = max(0.0, rec["until"] - time.time())
+        return {"fails": rec["n"], "lockedFor": int(remaining + 0.5)}
+
+
+def _pin_register(slug, success: bool) -> None:
+    key = slug or ""
+    with _pin_lock:
+        if success:
+            _pin_fails.pop(key, None)
+            return
+        rec = _pin_fails.setdefault(key, {"n": 0, "until": 0.0})
+        rec["n"] += 1
+        if rec["n"] >= PIN_MAX_TRIES:
+            rec["until"] = time.time() + PIN_LOCKOUT_SEC
+            rec["n"] = 0
 
 
 def to_yahoo(ticker: str) -> str:
@@ -303,8 +380,19 @@ def pin_required(slug=None) -> bool:
     return p.exists() and p.stat().st_size > 0
 
 
-def pin_set(pin_str: str, slug=None) -> None:
+def pin_set(pin_str: str, slug=None, old_pin: str = "") -> None:
+    """
+    Pose, change ou retire le PIN d'un utilisateur.
+
+    Changer ou retirer un PIN existant exige de connaitre l'ancien. Sans ca,
+    n'importe quoi qui atteint le serveur peut verrouiller un espace ou
+    deverrouiller celui d'un autre utilisateur de la meme installation.
+    Poser un PIN la ou il n'y en avait pas reste libre : il n'y a rien a
+    prouver.
+    """
     p = _pin_path(slug)
+    if pin_required(slug) and not pin_check(old_pin, slug):
+        raise PermissionError("Code actuel incorrect.")
     p.parent.mkdir(parents=True, exist_ok=True)
     if not pin_str:
         # Suppression du PIN
@@ -332,7 +420,8 @@ def pin_check(pin_str: str, slug=None) -> bool:
     try:
         with open(p, "r", encoding="utf-8") as f:
             stored = f.read().strip()
-        return stored == _pin_hash(pin_str)
+        # compare_digest : temps constant, pas de fuite par la duree
+        return hmac.compare_digest(stored, _pin_hash(pin_str))
     except Exception:
         return False
 
@@ -843,17 +932,105 @@ def dump_cache() -> dict:
 
 # ─── Handler HTTP ─────────────────────────────────────────────────────────────
 
+# ─── Injection du jeton dans la page ──────────────────────────────────────────
+#
+# Le jeton n'est PAS ecrit dans index.html : il est pose a la volee au moment
+# de servir la page, et change a chaque lancement. Le bloc injecte enveloppe
+# window.fetch une fois pour toutes, de sorte que les appels existants n'ont
+# rien a savoir du jeton.
+
+_CSP = (
+    "default-src 'self'; "
+    "script-src 'self' 'unsafe-inline'; "
+    "style-src 'self' 'unsafe-inline'; "
+    "img-src 'self' data: blob:; "
+    "font-src 'self'; "
+    "connect-src 'self'; "
+    "object-src 'none'; "
+    "base-uri 'none'; "
+    "form-action 'none'; "
+    "frame-ancestors 'none'"
+)
+
+_TOKEN_SNIPPET = """<script>
+(function () {
+  var T = "%TOKEN%";
+  var raw = window.fetch.bind(window);
+  var here = "http://127.0.0.1:" + location.port + "/";
+  window.fetch = function (input, init) {
+    var url = (typeof input === "string") ? input : (input && input.url) || "";
+    var mine = url.charAt(0) === "/" ||
+               url.indexOf(location.origin + "/") === 0 ||
+               url.indexOf(here) === 0;
+    if (mine) {
+      init = Object.assign({}, init || {});
+      var h = new Headers(init.headers ||
+        (typeof input === "object" && input && input.headers) || {});
+      h.set("X-Pilote-Token", T);
+      init.headers = h;
+    }
+    return raw(input, init);
+  };
+})();
+</script>
+"""
+
+
+def _inject_session_token(body: bytes) -> bytes:
+    """Pose le bloc jeton juste apres <head>, avant tout autre script."""
+    snippet = _TOKEN_SNIPPET.replace("%TOKEN%", _SESSION_TOKEN).encode("utf-8")
+    marker = b"<head>"
+    idx = body.find(marker)
+    if idx < 0:
+        # Pas de <head> : on prefixe, la page reste fonctionnelle
+        return snippet + body
+    cut = idx + len(marker)
+    return body[:cut] + snippet + body[cut:]
+
+
 class _Handler(http.server.BaseHTTPRequestHandler):
 
     def log_message(self, fmt, *args):
         pass  # silence
 
     def do_OPTIONS(self):
-        self.send_response(200); self._cors(); self.end_headers()
+        # Rien n'est expose en cross-origin : pas de preflight a accorder.
+        self.send_response(405); self._sec_headers(); self.end_headers()
+
+    # ─── Controle d'acces ─────────────────────────────────────────────────
+    #
+    # Voir le commentaire de _SESSION_TOKEN : trois verrous independants.
+
+    def _guard(self, path: str) -> bool:
+        # 1. Host : un nom de domaine attaquant qui pointe sur 127.0.0.1
+        #    (DNS rebinding) arrive ici avec son propre Host.
+        host = (self.headers.get("Host") or "").rsplit(":", 1)[0].strip("[]").lower()
+        if host not in ("127.0.0.1", "localhost", "::1"):
+            return False
+
+        # 2. Origin : notre page n'en envoie pas sur un GET same-origin ;
+        #    une page tierce en envoie toujours un.
+        origin = self.headers.get("Origin")
+        if origin and origin not in _own_origins():
+            return False
+
+        # 3. Jeton de session pour tout ce qui touche aux donnees.
+        if path in _PUBLIC_PATHS or path.startswith("/vendor/"):
+            # Le navigateur charge <script src> et <link href> lui-meme : ces
+            # requetes ne passent pas par le wrapper fetch et n'ont donc pas
+            # le jeton. Ces fichiers sont publics et ne contiennent aucune
+            # donnee utilisateur ; les verrous Host et Origin s'appliquent
+            # toujours.
+            return True
+        return hmac.compare_digest(self.headers.get(TOKEN_HEADER) or "",
+                                   _SESSION_TOKEN)
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         params = urllib.parse.parse_qs(parsed.query)
+
+        if not self._guard(parsed.path):
+            return self._json(403, {"ok": False, "error": "Requete refusee"})
 
         if parsed.path == "/ping":
             return self._json(200, {"ok": True, "time": int(time.time())})
@@ -922,17 +1099,30 @@ class _Handler(http.server.BaseHTTPRequestHandler):
 
         if parsed.path == "/pin/set":
             pin = (params.get("pin", [""])[0] or "").strip()
+            old = (params.get("old", [""])[0] or "").strip()
             who = (params.get("user", [""])[0] or "").strip() or None
             try:
-                pin_set(pin, who)
+                pin_set(pin, who, old)
                 return self._json(200, {"ok": True, "required": pin_required(who)})
+            except PermissionError as e:
+                return self._json(403, {"ok": False, "error": str(e),
+                                        "needOld": True})
             except Exception as e:
                 return self._json(500, {"ok": False, "error": str(e)})
 
         if parsed.path == "/pin/check":
             pin = (params.get("pin", [""])[0] or "").strip()
             who = (params.get("user", [""])[0] or "").strip() or None
-            return self._json(200, {"ok": True, "match": pin_check(pin, who)})
+            st = pin_attempt_state(who)
+            if st["lockedFor"] > 0:
+                return self._json(429, {"ok": False, "match": False,
+                                        "lockedFor": st["lockedFor"]})
+            time.sleep(PIN_DELAY_SEC)
+            match = pin_check(pin, who)
+            _pin_register(who, match)
+            st = pin_attempt_state(who)
+            return self._json(200, {"ok": True, "match": match,
+                                    "lockedFor": st["lockedFor"]})
 
         if parsed.path == "/scan-orphan-data":
             try:
@@ -947,6 +1137,15 @@ class _Handler(http.server.BaseHTTPRequestHandler):
                 src = (params.get("from", [""])[0] or "").strip()
                 if not src:
                     return self._json(400, {"ok": False, "error": "from manquant"})
+                # `from` ecrase le pea_data.json de l'utilisateur actif : on
+                # n'accepte que les chemins que scan_orphan_data vient de
+                # proposer, jamais un chemin arbitraire. Sinon l'endpoint
+                # devient un moyen de detruire les donnees avec n'importe
+                # quel JSON du disque.
+                allowed = {c.get("path") for c in _storage.scan_orphan_data()}
+                if src not in allowed:
+                    return self._json(403, {"ok": False,
+                                            "error": "Source non proposee par le scan."})
                 stats = _storage.recover_from(src)
                 return self._json(200, {"ok": True, "stats": stats})
             except Exception as e:
@@ -971,13 +1170,21 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             except Exception as e:
                 return self._json(500, {"ok": False, "error": str(e)})
 
+        # Ressources locales (Chart.js, polices) : liste blanche d'extensions,
+        # chemin resolu et confine sous ui/vendor. Rien d'autre du disque
+        # n'est servi — ce serveur ne doit jamais devenir un explorateur de
+        # fichiers pour une page qui aurait obtenu le jeton.
+        if parsed.path.startswith("/vendor/"):
+            return self._serve_vendor(parsed.path[len("/vendor/"):])
+
         # Sert l'UI HTML embarquee (sans cache pour eviter les vieilles versions)
         if parsed.path in ("/", "/index.html") and _html_file_path:
             try:
                 with open(_html_file_path, "rb") as f:
-                    body = f.read()
+                    body = _inject_session_token(f.read())
                 self.send_response(200)
-                self._cors()
+                self._sec_headers()
+                self.send_header("Content-Security-Policy", _CSP)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.send_header("Content-Length", str(len(body)))
                 self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
@@ -991,10 +1198,46 @@ class _Handler(http.server.BaseHTTPRequestHandler):
 
         self._json(404, {"error": "Not found"})
 
+    _VENDOR_TYPES = {
+        ".js":    "application/javascript; charset=utf-8",
+        ".css":   "text/css; charset=utf-8",
+        ".woff2": "font/woff2",
+    }
+
+    def _serve_vendor(self, rel: str):
+        import pathlib
+        root = pathlib.Path(_html_file_path).parent / "vendor" if _html_file_path else None
+        if root is None:
+            return self._json(404, {"error": "Not found"})
+        ext = pathlib.PurePosixPath(rel).suffix.lower()
+        ctype = self._VENDOR_TYPES.get(ext)
+        if not ctype:
+            return self._json(404, {"error": "Not found"})
+        try:
+            root_r = root.resolve()
+            target = (root / rel).resolve()
+            # Comparaison par ancetres, pas par prefixe de chaine : un
+            # "vendorX" voisin ne doit pas passer pour "vendor" (meme piege
+            # que dans sauvegarde.restore_from), et is_relative_to n'existe
+            # qu'a partir de Python 3.9 alors que le dev tourne en 3.8.
+            if root_r not in target.parents or not target.is_file():
+                return self._json(404, {"error": "Not found"})
+            body = target.read_bytes()
+        except Exception:
+            return self._json(404, {"error": "Not found"})
+        self.send_response(200)
+        self._sec_headers()
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(body)))
+        # Fige pour la duree de la session : ces fichiers ne bougent qu'au build
+        self.send_header("Cache-Control", "public, max-age=86400")
+        self.end_headers()
+        self.wfile.write(body)
+
     def _json(self, code, obj):
         body = json.dumps(obj, ensure_ascii=False).encode()
         self.send_response(code)
-        self._cors()
+        self._sec_headers()
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
@@ -1003,10 +1246,15 @@ class _Handler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _cors(self):
-        self.send_header("Access-Control-Allow-Origin",  "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+    def _sec_headers(self):
+        """
+        Aucun en-tete CORS : tout est same-origin, et un
+        Access-Control-Allow-Origin: * rendrait ces reponses lisibles par
+        n'importe quel site ouvert dans un navigateur du PC.
+        """
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options",        "DENY")
+        self.send_header("Referrer-Policy",        "no-referrer")
 
 
 # ─── Demarrage / arret ────────────────────────────────────────────────────────

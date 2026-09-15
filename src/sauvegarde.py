@@ -615,9 +615,13 @@ def restore_from(zip_path: str) -> dict:
                 # cle qu'on n'utilise peut-etre plus).
                 if not rel or rel in ("_sauvegarde.txt", CONFIG_FILE):
                     continue
-                # Refuse toute sortie du dossier (zip slip)
+                # Refuse toute sortie du dossier (zip slip). Comparaison par
+                # ancetres et non par prefixe de chaine : un dossier voisin
+                # nomme "DonneesX" passait le test startswith et laissait une
+                # archive piegee ecrire en dehors de Donnees/.
+                app_r  = app_dir.resolve()
                 target = (app_dir / rel).resolve()
-                if not str(target).startswith(str(app_dir.resolve())):
+                if app_r not in target.parents:
                     continue
                 target.parent.mkdir(parents=True, exist_ok=True)
                 with z.open(member) as fsrc, open(target, "wb") as fdst:
