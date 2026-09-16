@@ -30,12 +30,13 @@ import sports
 import pret
 import patrimoine
 import sante
+import formation
 import sauvegarde
 import notifications
 
 
 APP_NAME    = "Pilote"
-APP_VERSION = "4.2.1"
+APP_VERSION = "4.3.0"
 SINGLE_INSTANCE_PORT = 50317          # port arbitraire pour le verrou single-instance
 WINDOW_DEFAULT_SIZE  = (1280, 800)
 WINDOW_MIN_SIZE      = (960, 640)
@@ -389,6 +390,82 @@ class Api:
     def get_history(self, tickers: list) -> dict:
         try:
             return {"ok": True, "history": server.get_history(tickers)}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # -- Formation (propre a l'utilisateur actif) --------------------------
+
+    def load_formation(self) -> dict:
+        try:
+            data = formation.load_data()
+            return {"ok": True, "data": data,
+                    "statuts":    formation.STATUTS,
+                    "formats":    formation.FORMATS,
+                    "preuves":    formation.PREUVES,
+                    "priorites":  formation.PRIORITES,
+                    "niveaux":    formation.NIVEAUX,
+                    "categories": formation.CATEGORIES_COMPETENCE,
+                    "certificats": formation.certificats_state(data)}
+        except Exception as e:
+            return {"ok": False, "error": str(e), "trace": traceback.format_exc()}
+
+    def save_formation(self, data: dict) -> dict:
+        try:
+            formation.save_data(data or {})
+            return {"ok": True}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def formation_add_certificat(self, formation_id: str) -> dict:
+        """Choisit un fichier et le COPIE dans certificats/ (voir formation.py)."""
+        try:
+            win = webview.windows[0]
+            result = win.create_file_dialog(
+                webview.OPEN_DIALOG,
+                allow_multiple=False,
+                file_types=("Certificat (*.pdf;*.png;*.jpg;*.jpeg;*.webp)",
+                            "All files (*.*)"),
+            )
+            if not result:
+                return {"ok": False, "cancelled": True}
+            path = result[0] if isinstance(result, (list, tuple)) else result
+            return formation.add_certificat(path, formation_id)
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def formation_open_certificat(self, fichier: str) -> dict:
+        try:
+            return formation.open_certificat(fichier)
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def formation_remove_certificat(self, fichier: str) -> dict:
+        try:
+            return formation.remove_certificat(fichier)
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def formation_certificats_state(self) -> dict:
+        try:
+            return formation.certificats_state(formation.load_data())
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def formation_clean_orphans(self) -> dict:
+        try:
+            return formation.clean_orphans(formation.load_data())
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def formation_open_certificats_folder(self) -> dict:
+        try:
+            path = str(formation.certificats_dir())
+            if sys.platform == "win32":
+                os.startfile(path)
+            else:
+                import subprocess
+                subprocess.Popen(["xdg-open", path])
+            return {"ok": True, "path": path}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 

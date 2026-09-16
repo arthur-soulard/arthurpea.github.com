@@ -1681,6 +1681,117 @@ label.sv-check, label.sv-inline {
 }
 .home-user-add:hover { color: var(--accent); border-color: var(--accent); }
 
+/* ══════════ Formation ══════════ */
+.fo-list { display: flex; flex-direction: column; }
+.fo-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 13px 2px; border-bottom: 1px solid var(--brd);
+}
+.fo-item:last-child { border-bottom: none; }
+.fo-ico {
+  width: 34px; height: 34px; border-radius: 9px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center; font-size: 17px;
+}
+.fo-main { flex: 1; min-width: 0; }
+.fo-title {
+  font-size: 13px; font-weight: 700; letter-spacing: -.2px;
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+}
+.fo-title a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--txt3); }
+.fo-title a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+.fo-orga { font-size: 11px; color: var(--txt3); font-weight: 600; }
+.fo-desc { font-size: 11.5px; color: var(--txt2); line-height: 1.5; margin-top: 4px; }
+.fo-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 7px; }
+.fo-tag {
+  font-size: 9.5px; font-weight: 700; letter-spacing: .03em;
+  padding: 2px 7px; border-radius: 999px;
+  background: var(--bg3); color: var(--txt2); border: 1px solid var(--brd);
+}
+.fo-tag.hot  { color: var(--r); border-color: var(--r); background: var(--r2); }
+.fo-tag.good { color: var(--g); border-color: var(--g); background: var(--g2); }
+.fo-tag.acc  { color: var(--accent); border-color: var(--accent); background: var(--a2); }
+.fo-acts { display: flex; gap: 2px; flex: 0 0 auto; }
+/* Le PDF déposé : une ligne cliquable qui ouvre le fichier. */
+.fo-cert {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: 8px;
+  background: var(--g2); border: 1px solid var(--g); color: var(--g);
+  border-radius: var(--rad); padding: 5px 10px; font-size: 11px;
+  font-weight: 700; cursor: pointer; font-family: var(--font);
+}
+.fo-cert:hover { filter: brightness(1.08); }
+.fo-cert.missing { background: var(--r2); border-color: var(--r); color: var(--r); }
+.fo-cert-add {
+  background: transparent; border: 1px dashed var(--brd2); color: var(--txt3);
+}
+.fo-cert-add:hover { border-color: var(--accent); color: var(--accent); filter: none; }
+/* Entrées du CV : expériences, projets, compétences */
+.fo-cv-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px 2px; border-bottom: 1px solid var(--brd);
+}
+.fo-cv-item:last-child { border-bottom: none; }
+.fo-when {
+  font-family: var(--mono); font-size: 10.5px; color: var(--txt3);
+  flex: 0 0 118px; padding-top: 2px;
+}
+@media (max-width: 720px) { .fo-when { flex-basis: 84px; } }
+.fo-miss { margin: 6px 0 0; padding-left: 17px; font-size: 11.5px; color: var(--txt2); line-height: 1.55; }
+.fo-comp-grp { margin-bottom: 14px; }
+.fo-comp-grp:last-child { margin-bottom: 0; }
+.fo-comp-grp-t {
+  font-size: 9px; font-weight: 700; color: var(--txt2);
+  text-transform: uppercase; letter-spacing: .09em; margin-bottom: 7px;
+}
+.fo-comps { display: flex; flex-wrap: wrap; gap: 6px; }
+.fo-comp {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--bg3); border: 1px solid var(--brd); border-radius: 999px;
+  padding: 4px 6px 4px 12px; font-size: 11.5px; color: var(--txt);
+}
+.fo-dots { display: inline-flex; gap: 2.5px; }
+.fo-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--brd2); }
+.fo-dot.on { background: var(--accent); }
+.fo-charts { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 20px; }
+@media (max-width: 860px) { .fo-charts { grid-template-columns: 1fr; } }
+.fo-chart { position: relative; height: 260px; }
+/* Export CV : un bloc de texte brut, prêt à copier */
+.fo-cv-out {
+  width: 100%; min-height: 340px; font-family: var(--mono); font-size: 11.5px;
+  line-height: 1.6; background: var(--bg3); border: 1px solid var(--brd2);
+  border-radius: var(--rad); padding: 14px; color: var(--txt); resize: vertical;
+}
+.fo-cv-out:focus { outline: none; border-color: var(--accent); }
+/* Ces libellés sont du texte courant : on annule le style "titre de champ"
+   que `.fg label` impose (majuscules + interlettrage). */
+label.fo-check {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11.5px; font-weight: 500; color: var(--txt2);
+  text-transform: none; letter-spacing: normal; margin-bottom: 0; cursor: pointer;
+}
+.fo-check input { width: auto; margin: 0; }
+.fo-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .fo-row2 { grid-template-columns: 1fr; } }
+/* Réglage des domaines */
+.fo-dom-row {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 0; border-bottom: 1px solid var(--brd);
+}
+.fo-dom-row:last-child { border-bottom: none; }
+.fo-dom-ico {
+  width: 32px; height: 32px; flex: 0 0 auto; border-radius: 9px;
+  border: 1px solid var(--brd); cursor: pointer; font-size: 16px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+.fo-dom-ico:hover { border-color: var(--accent); }
+.fo-dom-name { flex: 1; min-width: 0; }
+.fo-dom-col {
+  width: 34px; height: 30px; flex: 0 0 auto; padding: 2px;
+  background: var(--bg3); border: 1px solid var(--brd2);
+  border-radius: var(--rad); cursor: pointer;
+}
+.m-iconbtn:disabled { opacity: .28; cursor: default; }
+.m-iconbtn:disabled:hover { background: transparent; color: var(--txt3); }
+
 </style>
 </head>
 <body>
@@ -2534,6 +2645,95 @@ label.sv-check, label.sv-inline {
   <div id="sa-goals-body"></div>
 </div>
 
+<!-- ═══════════════════ FORMATION ═══════════════════ -->
+<div class="pane" id="pane-fo-todo">
+  <div class="m-head">
+    <span class="m-nav-lbl">À faire</span>
+    <div class="m-spacer"></div>
+    <button class="btn btn-primary" onclick="foOpenForm(null)">+ Formation</button>
+    <button class="btn btn-ghost" onclick="openSettings('formation')">⚙ Domaines</button>
+  </div>
+  <div class="mkpis" id="fo-todo-kpis"></div>
+
+  <div class="card" id="card-fo-encours">
+    <div class="card-h"><span class="card-t">En cours</span></div>
+    <div class="card-b"><div class="fo-list" id="fo-list-encours"></div></div>
+  </div>
+
+  <div class="card" id="card-fo-todo">
+    <div class="card-h"><span class="card-t">Repérées</span>
+      <span class="m-note" style="margin:0">Les plus prioritaires d'abord</span></div>
+    <div class="card-b"><div class="fo-list" id="fo-list-todo"></div></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-fo-done">
+  <div class="m-head">
+    <span class="m-nav-lbl">Terminées</span>
+    <div class="m-spacer"></div>
+    <button class="btn btn-primary" onclick="foOpenCv()">📋 Générer mon CV</button>
+    <button class="btn btn-ghost" onclick="foOpenCertFolder()">📁 Certificats</button>
+  </div>
+  <div class="mkpis" id="fo-done-kpis"></div>
+
+  <div class="card" id="card-fo-done">
+    <div class="card-h"><span class="card-t">Ce que j'ai validé</span>
+      <span class="m-note" style="margin:0">Les certificats partent dans la sauvegarde USB</span></div>
+    <div class="card-b"><div class="fo-list" id="fo-list-done"></div></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-fo-cv">
+  <div class="m-head">
+    <span class="m-nav-lbl">Mon CV</span>
+    <div class="m-spacer"></div>
+    <button class="btn btn-primary" onclick="foOpenCv()">📋 Générer mon CV</button>
+  </div>
+
+  <div class="card" id="card-fo-exp">
+    <div class="card-h"><span class="card-t">Expériences</span>
+      <button class="btn btn-ghost btn-sm" onclick="foOpenExp(null)">+ Expérience</button></div>
+    <div class="card-b"><div id="fo-list-exp"></div></div>
+  </div>
+
+  <div class="card" id="card-fo-proj">
+    <div class="card-h"><span class="card-t">Projets</span>
+      <button class="btn btn-ghost btn-sm" onclick="foOpenProj(null)">+ Projet</button></div>
+    <div class="card-b"><div id="fo-list-proj"></div></div>
+  </div>
+
+  <div class="card" id="card-fo-comp">
+    <div class="card-h"><span class="card-t">Compétences</span>
+      <button class="btn btn-ghost btn-sm" onclick="foOpenComp(null)">+ Compétence</button></div>
+    <div class="card-b"><div id="fo-list-comp"></div></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-fo-stats">
+  <div class="m-head">
+    <span class="m-nav-lbl">Statistiques</span>
+    <div class="m-spacer"></div>
+  </div>
+  <div class="mkpis" id="fo-stats-kpis"></div>
+
+  <div class="card" id="card-fo-graphs">
+    <div class="card-h"><span class="card-t">Répartition</span>
+      <span class="m-note" style="margin:0">Formations terminées uniquement</span></div>
+    <div class="card-b">
+      <div class="fo-charts">
+        <div class="fo-chart"><canvas id="fo-chart-dom"></canvas></div>
+        <div class="fo-chart"><canvas id="fo-chart-an"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="card-fo-preuves">
+    <div class="card-h"><span class="card-t">Par type de preuve</span>
+      <span class="m-note" style="margin:0">De la plus forte à la plus faible</span></div>
+    <div class="card-b"><div id="fo-preuves-body"></div></div>
+  </div>
+</div>
+
 </div><!-- /wrap -->
 
 <!-- ════════════════════ MODALES SPORTS ════════════════════ -->
@@ -3062,6 +3262,8 @@ label.sv-check, label.sv-inline {
                 onclick="setGoSection('pret')"><span class="set-nav-ico">🎓</span>Prêt étudiant</button>
         <button type="button" class="set-nav-btn" data-set="sport"
                 onclick="setGoSection('sport')"><span class="set-nav-ico">🏃</span>Sports</button>
+        <button type="button" class="set-nav-btn" data-set="formation"
+                onclick="setGoSection('formation')"><span class="set-nav-ico">🎓</span>Formation</button>
         <button type="button" class="set-nav-btn" data-set="sauvegarde"
                 onclick="setGoSection('sauvegarde')"><span class="set-nav-ico">🔑</span>Sauvegarde USB</button>
         <button type="button" class="set-nav-btn" data-set="donnees"
@@ -3204,6 +3406,30 @@ label.sv-check, label.sv-inline {
             <button type="button" class="btn btn-ghost btn-sm" onclick="closeOv('ov-config');spOpenSubtypes()">✎ Types de séance</button>
             <button type="button" class="btn btn-ghost btn-sm" onclick="closeOv('ov-config');spOpenRoutines()">↺ Routines</button>
           </div>
+        </div>
+
+        <div class="set-sec" data-sec="formation">
+          <h3>Formation</h3>
+          <p class="set-lead">Les domaines classent tes formations et colorent les
+            statistiques. Les certificats, eux, sont copiés dans Pilote : ils partent
+            dans la sauvegarde USB, pas dans les backups quotidiens.</p>
+          <div class="set-links">
+            <button type="button" class="btn btn-ghost btn-sm"
+                    onclick="closeOv('ov-config');foOpenDomaines()">🏷️ Domaines</button>
+            <button type="button" class="btn btn-ghost btn-sm"
+                    onclick="foOpenCertFolder()">📁 Ouvrir le dossier</button>
+          </div>
+
+          <h3 style="margin-top:22px">Certificats déposés</h3>
+          <div id="fo-cert-state" class="sv-dest">…</div>
+          <div class="set-links" style="margin-top:10px">
+            <button type="button" class="btn btn-ghost btn-sm"
+                    onclick="foCleanOrphans()">🧹 Nettoyer les orphelins</button>
+          </div>
+          <p class="set-lead" style="margin-top:10px">Supprimer une formation ne
+            supprime pas son certificat — comme pour un utilisateur supprimé, le
+            fichier reste sur le disque. Ce bouton efface ceux qu'aucune formation
+            ne référence plus.</p>
         </div>
 
         <!-- ──── DONNÉES & APP ──── -->
@@ -3354,6 +3580,177 @@ label.sv-check, label.sv-inline {
       <div style="flex:1"></div>
       <button class="btn btn-ghost" onclick="closeOv('ov-pa-compte')">Annuler</button>
       <button class="btn btn-primary" onclick="paSaveCompte()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ MODALES FORMATION ════════════ -->
+
+<div class="ov" id="ov-fo-form" onclick="if(event.target===this)closeOv('ov-fo-form')">
+  <div class="modal" style="max-width:620px">
+    <h2 id="fo-f-title">Nouvelle formation</h2>
+
+    <div class="fg"><label>Intitulé</label>
+      <input id="fo-f-titre" placeholder="ex : Azure AI Fundamentals (AI-900)"></div>
+
+    <div class="fo-row2">
+      <div class="fg"><label>Organisme</label>
+        <input id="fo-f-orga" placeholder="ex : Microsoft, CNAM, Coursera"></div>
+      <div class="fg"><label>Domaine</label><select id="fo-f-dom"></select></div>
+    </div>
+
+    <div class="fg"><label>Lien</label>
+      <input id="fo-f-url" placeholder="https://…"></div>
+
+    <div class="fg"><label>Description</label>
+      <textarea id="fo-f-desc" placeholder="Ce que ça couvre, pourquoi tu l'as repérée"></textarea></div>
+
+    <div class="fo-row2">
+      <div class="fg"><label>Format</label><select id="fo-f-format"></select></div>
+      <div class="fg"><label>Ce que ça délivre</label><select id="fo-f-preuve"></select></div>
+    </div>
+
+    <div class="fo-row2">
+      <div class="fg"><label>Crédits ECTS</label>
+        <input id="fo-f-ects" type="number" min="0" step="1" placeholder="laisser vide si aucun"></div>
+      <div class="fg"><label>Durée estimée (heures)</label>
+        <input id="fo-f-duree" type="number" min="0" step="1" placeholder="optionnel"></div>
+    </div>
+
+    <div class="fg">
+      <label class="fo-check"><input type="checkbox" id="fo-f-cpf">
+        Éligible au CPF</label>
+    </div>
+
+    <div class="fo-row2">
+      <div class="fg"><label>Statut</label><select id="fo-f-statut"
+        onchange="foFormStatutChange()"></select></div>
+      <div class="fg"><label>Priorité</label><select id="fo-f-prio"></select></div>
+    </div>
+
+    <div class="fo-row2">
+      <div class="fg"><label>Commencée le</label><input id="fo-f-debut" type="date"></div>
+      <div class="fg" id="fo-f-fin-wrap"><label>Terminée le</label>
+        <input id="fo-f-fin" type="date"></div>
+    </div>
+
+    <div class="fg" id="fo-f-ech-wrap"><label>Échéance</label>
+      <input id="fo-f-ech" type="date">
+      <p class="m-note" style="margin:8px 0 0">Date limite d'inscription ou date d'examen.
+        Une échéance proche passe en rouge dans la liste.</p></div>
+
+    <div class="fg"><label>Note</label>
+      <input id="fo-f-note" placeholder="optionnel"></div>
+
+    <div class="mact">
+      <button class="btn btn-ghost" id="fo-f-del" style="display:none"
+              onclick="foDeleteFormation()">🗑 Supprimer</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeOv('ov-fo-form')">Annuler</button>
+      <button class="btn btn-primary" onclick="foSaveFormation()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="ov-fo-exp" onclick="if(event.target===this)closeOv('ov-fo-exp')">
+  <div class="modal" style="max-width:560px">
+    <h2 id="fo-e-title">Nouvelle expérience</h2>
+    <div class="fg"><label>Poste</label>
+      <input id="fo-e-poste" placeholder="ex : Alternant data analyst"></div>
+    <div class="fo-row2">
+      <div class="fg"><label>Employeur</label><input id="fo-e-emp"></div>
+      <div class="fg"><label>Lieu</label><input id="fo-e-lieu" placeholder="ex : Paris"></div>
+    </div>
+    <div class="fo-row2">
+      <div class="fg"><label>Début</label><input id="fo-e-debut" type="month"></div>
+      <div class="fg"><label>Fin</label><input id="fo-e-fin" type="month"></div>
+    </div>
+    <div class="fg"><label>Missions</label>
+      <textarea id="fo-e-miss" placeholder="Une mission par ligne"></textarea>
+      <p class="m-note" style="margin:8px 0 0">Une ligne par mission : elles ressortent
+        en puces dans l'export CV.</p></div>
+    <div class="fg"><label>Note</label><input id="fo-e-note" placeholder="optionnel"></div>
+    <div class="mact">
+      <button class="btn btn-ghost" id="fo-e-del" style="display:none"
+              onclick="foDeleteExp()">🗑 Supprimer</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeOv('ov-fo-exp')">Annuler</button>
+      <button class="btn btn-primary" onclick="foSaveExp()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="ov-fo-proj" onclick="if(event.target===this)closeOv('ov-fo-proj')">
+  <div class="modal" style="max-width:560px">
+    <h2 id="fo-p-title">Nouveau projet</h2>
+    <div class="fg"><label>Nom</label>
+      <input id="fo-p-nom" placeholder="ex : Pilote — app de suivi personnel"></div>
+    <div class="fg"><label>Lien</label><input id="fo-p-url" placeholder="https://…"></div>
+    <div class="fg"><label>Description</label>
+      <textarea id="fo-p-desc" placeholder="Ce que fait le projet, ce qu'il prouve"></textarea></div>
+    <div class="fg"><label>Technologies</label>
+      <input id="fo-p-tech" placeholder="Python, JavaScript, SQLite — séparées par des virgules"></div>
+    <div class="fo-row2">
+      <div class="fg"><label>Début</label><input id="fo-p-debut" type="month"></div>
+      <div class="fg"><label>Fin</label><input id="fo-p-fin" type="month"></div>
+    </div>
+    <div class="fg"><label>Note</label><input id="fo-p-note" placeholder="optionnel"></div>
+    <div class="mact">
+      <button class="btn btn-ghost" id="fo-p-del" style="display:none"
+              onclick="foDeleteProj()">🗑 Supprimer</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeOv('ov-fo-proj')">Annuler</button>
+      <button class="btn btn-primary" onclick="foSaveProj()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="ov-fo-comp" onclick="if(event.target===this)closeOv('ov-fo-comp')">
+  <div class="modal" style="max-width:440px">
+    <h2 id="fo-c-title">Nouvelle compétence</h2>
+    <div class="fg"><label>Intitulé</label>
+      <input id="fo-c-label" placeholder="ex : Python, Anglais, Power BI"></div>
+    <div class="fg"><label>Catégorie</label><select id="fo-c-cat"></select></div>
+    <div class="fg"><label>Niveau</label><select id="fo-c-niv"></select></div>
+    <div class="mact">
+      <button class="btn btn-ghost" id="fo-c-del" style="display:none"
+              onclick="foDeleteComp()">🗑 Supprimer</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeOv('ov-fo-comp')">Annuler</button>
+      <button class="btn btn-primary" onclick="foSaveComp()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="ov-fo-dom" onclick="if(event.target===this)closeOv('ov-fo-dom')">
+  <div class="modal" style="max-width:520px">
+    <h2>Domaines</h2>
+    <p class="m-note">Un domaine utilisé par une formation ne peut pas être supprimé —
+      ses formations se retrouveraient sans étiquette.</p>
+    <div id="fo-dom-list"></div>
+    <div class="mact">
+      <button class="btn btn-ghost" onclick="foAddDomaine()">+ Domaine</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-primary" onclick="closeOv('ov-fo-dom')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="ov-fo-cv" onclick="if(event.target===this)closeOv('ov-fo-cv')">
+  <div class="modal" style="max-width:720px">
+    <h2>Mon CV</h2>
+    <p class="m-note">Le texte ci-dessous reprend tes formations <b>terminées</b>,
+      tes expériences, tes projets et tes compétences. Copie-le et colle-le dans
+      ton CV ou sur LinkedIn — tu le retoucheras là-bas.</p>
+    <div class="fg" style="margin-bottom:10px">
+      <label class="fo-check"><input type="checkbox" id="fo-cv-encours"
+        onchange="foRenderCv()"> Inclure aussi les formations en cours</label>
+    </div>
+    <textarea class="fo-cv-out" id="fo-cv-text" spellcheck="false"></textarea>
+    <div class="mact">
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeOv('ov-fo-cv')">Fermer</button>
+      <button class="btn btn-primary" onclick="foCopyCv()">📋 Copier</button>
     </div>
   </div>
 </div>
@@ -8484,6 +8881,8 @@ function setGoSection(id) {
   // l'ouverture de sa section, pas à chaque ouverture des paramètres.
   if (id === "sauvegarde") svRefresh();
   if (id === "accueil" && typeof dashRenderConfig === "function") dashRenderConfig();
+  // Même raison : l'état des certificats se lit sur le disque.
+  if (id === "formation" && typeof foRefreshCerts === "function") foRefreshCerts();
 }
 
 /* ══════════ Sauvegarde externe (clé USB) ══════════ */
@@ -9719,6 +10118,12 @@ const NAV_SECTIONS = [
     { id: "sa-suivi",   label: "Suivi"     },
     { id: "sa-mesures", label: "Mesures"   },
     { id: "sa-goals",   label: "Objectifs" },
+  ]},
+  { id: "sec-formation", label: "Formation", children: [
+    { id: "fo-todo",  label: "À faire"       },
+    { id: "fo-done",  label: "Terminées"     },
+    { id: "fo-cv",    label: "Mon CV"        },
+    { id: "fo-stats", label: "Statistiques"  },
   ]},
 ];
 
@@ -14900,6 +15305,1047 @@ async function paSaveSaisie() {
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════
+   MODULE FORMATION
+   Données : <app_dir>/users/<slug>/formation.json (load_formation / save_formation)
+   Certificats : <app_dir>/users/<slug>/certificats/ — copiés, jamais référencés
+   là où ils se trouvent (voir formation.py).
+
+   Deux natures d'objets sous le même toit : les FORMATIONS, qui progressent
+   (à faire → en cours → terminée), et le reste du CV — expériences, projets,
+   compétences — qui ne progresse pas, existe, et alimente l'export.
+   D'où l'onglet « Mon CV » séparé des deux onglets de formations.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+let FO = null;
+let FO_STATUTS = [], FO_FORMATS = [], FO_PREUVES = [], FO_PRIOS = [];
+let FO_NIVEAUX = [], FO_CATS = [];
+let _foBootstrapped = false;
+let _foCerts  = null;          // état du dossier certificats/, renvoyé par Python
+let _foCharts = {};
+let _foEditId = { f: null, exp: null, proj: null, comp: null };
+
+/* ── Accès et catalogues ───────────────────────────────────────────────── */
+
+function foFormations()  { return (FO && FO.formations)  ? FO.formations  : []; }
+function foExperiences() { return (FO && FO.experiences) ? FO.experiences : []; }
+function foProjets()     { return (FO && FO.projets)     ? FO.projets     : []; }
+function foCompetences() { return (FO && FO.competences) ? FO.competences : []; }
+function foDomaines()    { return (FO && FO.domaines)    ? FO.domaines    : []; }
+
+const FO_DOM_FALLBACK = { id: "dom_autre", label: "Autre", icon: "📦", color: "#71717a" };
+
+/** Repli explicite sur « Autre », jamais sur le dernier élément du tableau :
+    un domaine supprimé ne doit pas rebaptiser les formations au hasard. */
+function foDomaine(id) {
+  return foDomaines().find(d => d.id === id)
+      || foDomaines().find(d => d.id === "dom_autre")
+      || FO_DOM_FALLBACK;
+}
+
+function _foCat(list, id, fb) { return (list || []).find(x => x.id === id) || fb; }
+function foStatut(id) { return _foCat(FO_STATUTS, id, { id: "todo", label: "À faire", icon: "○" }); }
+function foFormat(id) { return _foCat(FO_FORMATS, id, { id: "enligne", label: "En ligne", icon: "💻" }); }
+function foPreuve(id) { return _foCat(FO_PREUVES, id, { id: "attestation", label: "Attestation", icon: "📄", poids: 2 }); }
+function foPrio(id)   { return _foCat(FO_PRIOS,   id, { id: "normale", label: "Normale", color: "#64748b" }); }
+function foNiveau(n)  { return (FO_NIVEAUX.find(x => x.id === n) || { id: 1, label: "Notions" }); }
+
+function foNextId(kind) {
+  if (!FO._nid) FO._nid = {};
+  const n = FO._nid[kind] || 1;
+  FO._nid[kind] = n + 1;
+  return kind + n;
+}
+
+/* ── Dates ─────────────────────────────────────────────────────────────── */
+
+function foToday() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Jours d'ici à une date ISO. Négatif = déjà passée. */
+function foDaysTo(iso) {
+  if (!iso) return null;
+  const a = new Date(iso + "T00:00:00");
+  if (isNaN(a)) return null;
+  return Math.round((a - new Date(foToday() + "T00:00:00")) / 86400000);
+}
+
+function foDateLabel(iso) {
+  if (!iso) return "";
+  const d = new Date(iso + "T00:00:00");
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+}
+
+/** "2026-05" → "mai 2026". Les champs <input type="month"> du CV. */
+function foMonthLabel(ym) {
+  if (!ym) return "";
+  const d = new Date(ym + "-01T00:00:00");
+  if (isNaN(d)) return ym;
+  return d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+}
+
+function foPeriode(debut, fin) {
+  if (!debut && !fin) return "";
+  if (!debut) return "jusqu'à " + foMonthLabel(fin);
+  return foMonthLabel(debut) + " → " + (fin ? foMonthLabel(fin) : "aujourd'hui");
+}
+
+function foEcheanceLabel(days) {
+  if (days === null) return "";
+  if (days < 0)   return "dépassée de " + Math.abs(days) + " j";
+  if (days === 0) return "aujourd'hui";
+  if (days === 1) return "demain";
+  return "J−" + days;
+}
+
+function foAnnee(f) {
+  const iso = f.dateFin || f.dateDebut;
+  return iso ? String(iso).slice(0, 4) : null;
+}
+
+/** Un lien ne part au navigateur que s'il est http(s) : le champ est libre. */
+function foSafeUrl(u) {
+  u = (u || "").trim();
+  return /^https?:\/\//i.test(u) ? u : "";
+}
+
+async function foOpenUrl(u) {
+  const url = foSafeUrl(u);
+  if (!url) { showToastModern("Lien invalide", "warn"); return; }
+  try { await pywebview.api.open_url(url); } catch (e) {}
+}
+
+/* ── Chargement ────────────────────────────────────────────────────────── */
+
+async function foLoad() {
+  if (!window.pywebview || !pywebview.api) return false;
+  try {
+    const r = await pywebview.api.load_formation();
+    if (!r || !r.ok) return false;
+    FO = r.data || {};
+    FO_STATUTS = r.statuts    || [];
+    FO_FORMATS = r.formats    || [];
+    FO_PREUVES = r.preuves    || [];
+    FO_PRIOS   = r.priorites  || [];
+    FO_NIVEAUX = r.niveaux    || [];
+    FO_CATS    = r.categories || [];
+    _foCerts   = r.certificats || null;
+    ["formations", "experiences", "projets", "competences", "domaines"]
+      .forEach(k => { if (!Array.isArray(FO[k])) FO[k] = []; });
+    return true;
+  } catch (e) { return false; }
+}
+
+async function foSave() {
+  if (!FO || !window.pywebview || !pywebview.api) return false;
+  try {
+    const r = await pywebview.api.save_formation(FO);
+    if (!r || !r.ok) {
+      showToastModern((r && r.error) || "Enregistrement impossible", "err");
+      return false;
+    }
+    return true;
+  } catch (e) { showToastModern("Erreur : " + e, "err"); return false; }
+}
+
+/** @param {boolean} [discret] Voir saBootstrap : données seules au démarrage. */
+async function foBootstrap(discret) {
+  if (_foBootstrapped) return;
+  const ok = await foLoad();
+  if (!ok || !FO) return;
+  _foBootstrapped = true;
+  if (!discret) foRenderAll();
+}
+
+function foRenderAll() {
+  foRenderTodo();
+  foRenderDone();
+  foRenderCvTab();
+  foRenderStats();
+  if (typeof homeRender === "function") homeRender();
+}
+
+/* ── Rendu d'une formation ─────────────────────────────────────────────── */
+
+function foItemHtml(f) {
+  const dom = foDomaine(f.domaineId);
+  const pr  = foPreuve(f.preuve);
+  const fmt = foFormat(f.format);
+  const fini = f.statut === "fini";
+
+  const tags = [];
+  if (!fini) {
+    const days = foDaysTo(f.dateEcheance);
+    if (days !== null)
+      tags.push(`<span class="fo-tag ${days <= 14 ? "hot" : ""}">⏳ ${escHtml(foEcheanceLabel(days))}</span>`);
+    if (f.priorite === "haute") tags.push(`<span class="fo-tag hot">Prioritaire</span>`);
+  } else if (f.dateFin) {
+    tags.push(`<span class="fo-tag good">Validée le ${escHtml(foDateLabel(f.dateFin))}</span>`);
+  }
+  tags.push(`<span class="fo-tag">${pr.icon} ${escHtml(pr.label)}</span>`);
+  if (f.ects)  tags.push(`<span class="fo-tag acc">${Number(f.ects)} ECTS</span>`);
+  if (f.cpf)   tags.push(`<span class="fo-tag">CPF</span>`);
+  tags.push(`<span class="fo-tag">${fmt.icon} ${escHtml(fmt.label)}</span>`);
+  if (f.dureeEstimee) tags.push(`<span class="fo-tag">≈ ${Number(f.dureeEstimee)} h</span>`);
+
+  const url = foSafeUrl(f.url);
+  const titre = url
+    ? `<a href="#" onclick="foOpenUrl(${JSON.stringify(url).replace(/"/g, "&quot;")});return false">${escHtml(f.titre || "Sans titre")}</a>`
+    : escHtml(f.titre || "Sans titre");
+
+  // Le bloc certificat n'apparaît que sur une formation terminée : une
+  // attestation de quelque chose qu'on n'a pas fini n'existe pas.
+  let cert = "";
+  if (fini) {
+    const c = f.certificat;
+    if (c && c.fichier) {
+      const manque = _foCerts && (_foCerts.manquants || []).some(m => m.fichier === c.fichier);
+      cert = `<button type="button" class="fo-cert${manque ? " missing" : ""}"
+        onclick="foOpenCert('${f.id}')" title="${escHtml(c.nom || c.fichier)}">
+        ${manque ? "⚠ certificat introuvable" : "📄 " + escHtml(c.nom || c.fichier)}</button>
+        <button type="button" class="m-iconbtn danger" onclick="foRemoveCert('${f.id}')"
+                title="Retirer le certificat">✕</button>`;
+    } else {
+      cert = `<button type="button" class="fo-cert fo-cert-add" onclick="foAddCert('${f.id}')">
+        ＋ Déposer le certificat</button>`;
+    }
+  }
+
+  // Le bouton d'avancement fait passer au statut suivant, sans ouvrir la fiche.
+  const suivant = f.statut === "todo" ? "encours" : (f.statut === "encours" ? "fini" : null);
+  const suivantLbl = f.statut === "todo" ? "Commencer" : "Marquer terminée";
+
+  return `<div class="fo-item">
+    <div class="fo-ico" style="background:${dom.color}1f;color:${dom.color}">${dom.icon || "📦"}</div>
+    <div class="fo-main">
+      <div class="fo-title">${titre}
+        ${f.organisme ? `<span class="fo-orga">${escHtml(f.organisme)}</span>` : ""}</div>
+      ${f.description ? `<div class="fo-desc">${escHtml(f.description)}</div>` : ""}
+      <div class="fo-tags">${tags.join("")}</div>
+      ${cert ? `<div style="display:flex;align-items:center;gap:4px">${cert}</div>` : ""}
+    </div>
+    <div class="fo-acts">
+      ${suivant ? `<button class="m-iconbtn" title="${suivantLbl}"
+          onclick="foSetStatut('${f.id}','${suivant}')">${f.statut === "todo" ? "▶" : "✓"}</button>` : ""}
+      <button class="m-iconbtn" title="Modifier" onclick="foOpenForm('${f.id}')">✎</button>
+    </div>
+  </div>`;
+}
+
+function foSortTodo(a, b) {
+  const rang = { haute: 0, normale: 1, basse: 2 };
+  const pa = rang[a.priorite] ?? 1, pb = rang[b.priorite] ?? 1;
+  if (pa !== pb) return pa - pb;
+  // À priorité égale, une échéance datée passe devant, la plus proche d'abord.
+  const da = foDaysTo(a.dateEcheance), db = foDaysTo(b.dateEcheance);
+  if (da !== null && db !== null) return da - db;
+  if (da !== null) return -1;
+  if (db !== null) return 1;
+  return (a.titre || "").localeCompare(b.titre || "");
+}
+
+/* ── Onglet « À faire » ────────────────────────────────────────────────── */
+
+function foRenderTodo() {
+  const kpis = document.getElementById("fo-todo-kpis");
+  const enc  = document.getElementById("fo-list-encours");
+  const todo = document.getElementById("fo-list-todo");
+  if (!kpis || !enc || !todo) return;
+
+  const lEnc  = foFormations().filter(f => f.statut === "encours").sort(foSortTodo);
+  const lTodo = foFormations().filter(f => f.statut === "todo").sort(foSortTodo);
+
+  const heures = [...lEnc, ...lTodo].reduce((s, f) => s + (Number(f.dureeEstimee) || 0), 0);
+  const proche = [...lEnc, ...lTodo]
+    .filter(f => foDaysTo(f.dateEcheance) !== null)
+    .sort((a, b) => foDaysTo(a.dateEcheance) - foDaysTo(b.dateEcheance))[0];
+
+  kpis.innerHTML = `
+    <div class="mkpi accent"><span class="mkpi-lbl">En cours</span>
+      <span class="mkpi-val">${lEnc.length}</span>
+      <span class="mkpi-sub">${lEnc.length ? escHtml(lEnc[0].titre) : "rien de commencé"}</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Repérées</span>
+      <span class="mkpi-val">${lTodo.length}</span>
+      <span class="mkpi-sub">${lTodo.filter(f => f.priorite === "haute").length} prioritaire(s)</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Charge estimée</span>
+      <span class="mkpi-val">${heures ? heures + " h" : "—"}</span>
+      <span class="mkpi-sub">si tu fais tout</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Prochaine échéance</span>
+      <span class="mkpi-val">${proche ? escHtml(foEcheanceLabel(foDaysTo(proche.dateEcheance))) : "—"}</span>
+      <span class="mkpi-sub">${proche ? escHtml(proche.titre) : "aucune date posée"}</span></div>`;
+
+  enc.innerHTML = lEnc.length ? lEnc.map(foItemHtml).join("")
+    : `<div class="m-empty">Rien en cours. Lance-toi : ▶ sur une formation repérée.</div>`;
+  todo.innerHTML = lTodo.length ? lTodo.map(foItemHtml).join("")
+    : `<div class="m-empty">Aucune formation repérée.
+        Ajoute-en une avec <b>+ Formation</b>.</div>`;
+}
+
+/* ── Onglet « Terminées » ──────────────────────────────────────────────── */
+
+function foRenderDone() {
+  const kpis = document.getElementById("fo-done-kpis");
+  const list = document.getElementById("fo-list-done");
+  if (!kpis || !list) return;
+
+  const l = foFormations().filter(f => f.statut === "fini")
+    .sort((a, b) => (b.dateFin || "").localeCompare(a.dateFin || ""));
+  const an = String(new Date().getFullYear());
+  const ects  = l.reduce((s, f) => s + (Number(f.ects) || 0), 0);
+  const certs = l.filter(f => f.certificat && f.certificat.fichier).length;
+
+  kpis.innerHTML = `
+    <div class="mkpi accent"><span class="mkpi-lbl">Terminées</span>
+      <span class="mkpi-val">${l.length}</span>
+      <span class="mkpi-sub">depuis le début</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">En ${an}</span>
+      <span class="mkpi-val">${l.filter(f => foAnnee(f) === an).length}</span>
+      <span class="mkpi-sub">cette année</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Crédits ECTS</span>
+      <span class="mkpi-val">${ects || "—"}</span>
+      <span class="mkpi-sub">${ects ? "capitalisés" : "aucune formation créditante"}</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Certificats</span>
+      <span class="mkpi-val">${certs} / ${l.length}</span>
+      <span class="mkpi-sub">déposés dans Pilote</span></div>`;
+
+  list.innerHTML = l.length ? l.map(foItemHtml).join("")
+    : `<div class="m-empty">Rien de terminé pour l'instant.
+        Une formation achevée se marque avec ✓ dans l'onglet « À faire ».</div>`;
+}
+
+/* ── Certificats ───────────────────────────────────────────────────────── */
+
+function foById(id) { return foFormations().find(f => f.id === id) || null; }
+
+async function foAddCert(id) {
+  const f = foById(id); if (!f) return;
+  try {
+    const r = await pywebview.api.formation_add_certificat(id);
+    if (!r || r.cancelled) return;
+    if (!r.ok) { showToastModern(r.error || "Dépôt impossible", "err"); return; }
+    f.certificat = r.certificat;
+    if (await foSave()) {
+      await foRefreshCerts();
+      showToastModern("Certificat déposé dans Pilote", "ok");
+      foRenderAll();
+    }
+  } catch (e) { showToastModern("Erreur : " + e, "err"); }
+}
+
+async function foOpenCert(id) {
+  const f = foById(id);
+  if (!f || !f.certificat || !f.certificat.fichier) return;
+  try {
+    const r = await pywebview.api.formation_open_certificat(f.certificat.fichier);
+    if (!r || !r.ok) showToastModern((r && r.error) || "Ouverture impossible", "err");
+  } catch (e) { showToastModern("Erreur : " + e, "err"); }
+}
+
+async function foRemoveCert(id) {
+  const f = foById(id);
+  if (!f || !f.certificat || !f.certificat.fichier) return;
+  if (!confirm(`Retirer le certificat « ${f.certificat.nom || f.certificat.fichier} » ?\n\nLe fichier sera supprimé du dossier de Pilote.`)) return;
+  try {
+    await pywebview.api.formation_remove_certificat(f.certificat.fichier);
+  } catch (e) {}
+  f.certificat = null;
+  if (await foSave()) { await foRefreshCerts(); foRenderAll(); }
+}
+
+async function foRefreshCerts() {
+  try {
+    const r = await pywebview.api.formation_certificats_state();
+    if (r && r.ok) _foCerts = r;
+  } catch (e) {}
+  foRenderCertState();
+}
+
+function foOctets(n) {
+  n = Number(n) || 0;
+  if (n < 1024) return n + " o";
+  if (n < 1024 * 1024) return Math.round(n / 1024) + " Ko";
+  return (n / (1024 * 1024)).toFixed(1).replace(".", ",") + " Mo";
+}
+
+function foRenderCertState() {
+  const box = document.getElementById("fo-cert-state");
+  if (!box) return;
+  if (!_foCerts) { box.innerHTML = `<span class="sv-none">—</span>`; return; }
+  const orph = (_foCerts.orphelins || []).length;
+  const manq = (_foCerts.manquants || []).length;
+  box.innerHTML = `
+    <div><b>${_foCerts.total || 0}</b> certificat(s) rattaché(s) ·
+      ${foOctets(_foCerts.poids)} sur le disque</div>
+    <div style="margin-top:4px">
+      ${orph ? `<span class="sv-warn">${orph} orphelin(s)</span>`
+             : `<span class="sv-ok">aucun orphelin</span>`}
+      ${manq ? ` · <span class="sv-warn">${manq} fichier(s) introuvable(s)</span>` : ""}
+    </div>`;
+}
+
+async function foCleanOrphans() {
+  if (!_foCerts || !(_foCerts.orphelins || []).length) {
+    showToastModern("Rien à nettoyer", "ok"); return;
+  }
+  const n = _foCerts.orphelins.length;
+  if (!confirm(`Supprimer ${n} certificat(s) qu'aucune formation ne référence ?\n\nCette suppression est définitive.`)) return;
+  try {
+    const r = await pywebview.api.formation_clean_orphans();
+    if (!r || !r.ok) { showToastModern((r && r.error) || "Nettoyage impossible", "err"); return; }
+    showToastModern(`${r.supprimes} fichier(s) supprimé(s)`, "ok");
+    await foRefreshCerts();
+  } catch (e) { showToastModern("Erreur : " + e, "err"); }
+}
+
+async function foOpenCertFolder() {
+  try { await pywebview.api.formation_open_certificats_folder(); } catch (e) {}
+}
+
+/* ── Fiche formation ───────────────────────────────────────────────────── */
+
+function _foFillSelect(el, list, value, labelFn) {
+  if (!el) return;
+  el.innerHTML = list.map(o =>
+    `<option value="${escHtml(String(o.id))}"${String(o.id) === String(value) ? " selected" : ""}>${
+      escHtml(labelFn ? labelFn(o) : o.label)}</option>`).join("");
+}
+
+function foFormStatutChange() {
+  const st = document.getElementById("fo-f-statut").value;
+  const fini = st === "fini";
+  document.getElementById("fo-f-fin-wrap").style.display = fini ? "" : "none";
+  document.getElementById("fo-f-ech-wrap").style.display = fini ? "none" : "";
+}
+
+function foOpenForm(id) {
+  if (!FO) return;
+  const f = id ? foById(id) : null;
+  _foEditId.f = id || null;
+  document.getElementById("fo-f-title").textContent = f ? "Modifier la formation" : "Nouvelle formation";
+  document.getElementById("fo-f-del").style.display = f ? "" : "none";
+
+  document.getElementById("fo-f-titre").value = f ? (f.titre || "") : "";
+  document.getElementById("fo-f-orga").value  = f ? (f.organisme || "") : "";
+  document.getElementById("fo-f-url").value   = f ? (f.url || "") : "";
+  document.getElementById("fo-f-desc").value  = f ? (f.description || "") : "";
+  document.getElementById("fo-f-ects").value  = f && f.ects != null ? f.ects : "";
+  document.getElementById("fo-f-duree").value = f && f.dureeEstimee != null ? f.dureeEstimee : "";
+  document.getElementById("fo-f-cpf").checked = f ? !!f.cpf : false;
+  document.getElementById("fo-f-debut").value = f ? (f.dateDebut || "") : "";
+  document.getElementById("fo-f-fin").value   = f ? (f.dateFin || "") : "";
+  document.getElementById("fo-f-ech").value   = f ? (f.dateEcheance || "") : "";
+  document.getElementById("fo-f-note").value  = f ? (f.note || "") : "";
+
+  _foFillSelect(document.getElementById("fo-f-dom"), foDomaines(),
+                f ? f.domaineId : "dom_ia", d => `${d.icon || "📦"}  ${d.label}`);
+  _foFillSelect(document.getElementById("fo-f-format"), FO_FORMATS,
+                f ? f.format : "enligne", o => `${o.icon}  ${o.label}`);
+  _foFillSelect(document.getElementById("fo-f-preuve"), FO_PREUVES,
+                f ? f.preuve : "attestation", o => `${o.icon}  ${o.label}`);
+  _foFillSelect(document.getElementById("fo-f-statut"), FO_STATUTS, f ? f.statut : "todo");
+  _foFillSelect(document.getElementById("fo-f-prio"), FO_PRIOS, f ? f.priorite : "normale");
+
+  foFormStatutChange();
+  document.getElementById("ov-fo-form").classList.add("open");
+  setTimeout(() => document.getElementById("fo-f-titre").focus(), 60);
+}
+
+function _foNum(id) {
+  const v = (document.getElementById(id).value || "").trim();
+  if (v === "") return null;
+  const n = parseFloat(v.replace(",", "."));
+  return isNaN(n) ? null : n;
+}
+
+async function foSaveFormation() {
+  const titre = (document.getElementById("fo-f-titre").value || "").trim();
+  if (!titre) { showToastModern("Donne un intitulé", "warn"); return; }
+
+  const statut = document.getElementById("fo-f-statut").value;
+  const rec = {
+    titre,
+    organisme:    (document.getElementById("fo-f-orga").value || "").trim(),
+    url:          (document.getElementById("fo-f-url").value || "").trim(),
+    description:  (document.getElementById("fo-f-desc").value || "").trim(),
+    domaineId:    document.getElementById("fo-f-dom").value,
+    format:       document.getElementById("fo-f-format").value,
+    preuve:       document.getElementById("fo-f-preuve").value,
+    ects:         _foNum("fo-f-ects"),
+    dureeEstimee: _foNum("fo-f-duree"),
+    cpf:          document.getElementById("fo-f-cpf").checked,
+    statut,
+    dateDebut:    document.getElementById("fo-f-debut").value || "",
+    // Une formation non terminée n'a pas de date de fin, et une formation
+    // terminée n'a plus d'échéance : garder les deux laisserait traîner des
+    // badges « J−12 » sur des choses déjà validées.
+    dateFin:      statut === "fini" ? (document.getElementById("fo-f-fin").value || "") : "",
+    dateEcheance: statut === "fini" ? "" : (document.getElementById("fo-f-ech").value || ""),
+    priorite:     document.getElementById("fo-f-prio").value,
+    note:         (document.getElementById("fo-f-note").value || "").trim(),
+  };
+
+  const cur = _foEditId.f ? foById(_foEditId.f) : null;
+  if (cur) Object.assign(cur, rec);
+  else FO.formations.push(Object.assign({ id: foNextId("f"), certificat: null }, rec));
+
+  if (await foSave()) {
+    closeOv("ov-fo-form");
+    showToastModern(cur ? "Formation mise à jour" : "Formation ajoutée", "ok");
+    foRenderAll();
+  }
+}
+
+async function foDeleteFormation() {
+  const f = _foEditId.f ? foById(_foEditId.f) : null;
+  if (!f) return;
+  const avecCert = f.certificat && f.certificat.fichier;
+  if (!confirm(`Supprimer « ${f.titre} » ?` + (avecCert
+      ? "\n\nSon certificat reste dans le dossier de Pilote — le ménage se fait depuis Paramètres → Formation."
+      : ""))) return;
+  FO.formations = FO.formations.filter(x => x.id !== f.id);
+  if (await foSave()) {
+    closeOv("ov-fo-form");
+    showToastModern("Formation supprimée", "ok");
+    await foRefreshCerts();
+    foRenderAll();
+  }
+}
+
+async function foSetStatut(id, statut) {
+  const f = foById(id); if (!f) return;
+  f.statut = statut;
+  if (statut === "fini") {
+    if (!f.dateFin) f.dateFin = foToday();
+    f.dateEcheance = "";
+  } else if (statut === "encours" && !f.dateDebut) {
+    f.dateDebut = foToday();
+  }
+  if (await foSave()) {
+    showToastModern(statut === "fini" ? "Bravo — formation validée 🎓" : "C'est parti", "ok");
+    foRenderAll();
+  }
+}
+
+/* ── Onglet « Mon CV » ─────────────────────────────────────────────────── */
+
+function foRenderCvTab() {
+  foRenderExps();
+  foRenderProjs();
+  foRenderComps();
+}
+
+function foRenderExps() {
+  const box = document.getElementById("fo-list-exp");
+  if (!box) return;
+  const l = foExperiences().slice()
+    .sort((a, b) => (b.debut || "").localeCompare(a.debut || ""));
+  if (!l.length) {
+    box.innerHTML = `<div class="m-empty">Aucune expérience.
+      Stages, alternances, emplois — tout ce qui se raconte sur un CV.</div>`;
+    return;
+  }
+  box.innerHTML = l.map(e => {
+    const miss = (e.missions || []).filter(m => (m || "").trim());
+    return `<div class="fo-cv-item">
+      <div class="fo-when">${escHtml(foPeriode(e.debut, e.fin) || "—")}</div>
+      <div class="fo-main">
+        <div class="fo-title">${escHtml(e.poste || "Poste")}
+          ${e.employeur ? `<span class="fo-orga">${escHtml(e.employeur)}${
+            e.lieu ? " · " + escHtml(e.lieu) : ""}</span>` : ""}</div>
+        ${miss.length ? `<ul class="fo-miss">${miss.map(m => `<li>${escHtml(m)}</li>`).join("")}</ul>` : ""}
+        ${e.note ? `<div class="fo-desc">${escHtml(e.note)}</div>` : ""}
+      </div>
+      <div class="fo-acts">
+        <button class="m-iconbtn" title="Modifier" onclick="foOpenExp('${e.id}')">✎</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function foRenderProjs() {
+  const box = document.getElementById("fo-list-proj");
+  if (!box) return;
+  const l = foProjets().slice()
+    .sort((a, b) => (b.debut || "").localeCompare(a.debut || ""));
+  if (!l.length) {
+    box.innerHTML = `<div class="m-empty">Aucun projet.
+      C'est souvent ce qui prouve le mieux ce qu'on sait faire.</div>`;
+    return;
+  }
+  box.innerHTML = l.map(p => {
+    const url = foSafeUrl(p.url);
+    const nom = url
+      ? `<a href="#" onclick="foOpenUrl(${JSON.stringify(url).replace(/"/g, "&quot;")});return false">${escHtml(p.nom || "Projet")}</a>`
+      : escHtml(p.nom || "Projet");
+    const tech = (p.techno || []).filter(t => (t || "").trim());
+    return `<div class="fo-cv-item">
+      <div class="fo-when">${escHtml(foPeriode(p.debut, p.fin) || "—")}</div>
+      <div class="fo-main">
+        <div class="fo-title">${nom}</div>
+        ${p.description ? `<div class="fo-desc">${escHtml(p.description)}</div>` : ""}
+        ${tech.length ? `<div class="fo-tags">${tech.map(t =>
+            `<span class="fo-tag">${escHtml(t)}</span>`).join("")}</div>` : ""}
+      </div>
+      <div class="fo-acts">
+        <button class="m-iconbtn" title="Modifier" onclick="foOpenProj('${p.id}')">✎</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function foRenderComps() {
+  const box = document.getElementById("fo-list-comp");
+  if (!box) return;
+  const l = foCompetences();
+  if (!l.length) {
+    box.innerHTML = `<div class="m-empty">Aucune compétence listée.</div>`;
+    return;
+  }
+  // Groupées par catégorie, dans l'ordre du catalogue puis l'ordre d'apparition.
+  const cats = [];
+  FO_CATS.forEach(c => { if (l.some(x => x.categorie === c)) cats.push(c); });
+  l.forEach(x => { if (!cats.includes(x.categorie || "Autre")) cats.push(x.categorie || "Autre"); });
+
+  box.innerHTML = cats.map(cat => {
+    const items = l.filter(x => (x.categorie || "Autre") === cat)
+      .sort((a, b) => (b.niveau || 0) - (a.niveau || 0));
+    if (!items.length) return "";
+    return `<div class="fo-comp-grp">
+      <div class="fo-comp-grp-t">${escHtml(cat)}</div>
+      <div class="fo-comps">${items.map(c => `
+        <span class="fo-comp" title="${escHtml(foNiveau(c.niveau).label)}">
+          ${escHtml(c.label)}
+          <span class="fo-dots">${[1, 2, 3, 4].map(n =>
+            `<span class="fo-dot${n <= (c.niveau || 1) ? " on" : ""}"></span>`).join("")}</span>
+          <button class="m-iconbtn" title="Modifier" onclick="foOpenComp('${c.id}')">✎</button>
+        </span>`).join("")}</div>
+    </div>`;
+  }).join("");
+}
+
+/* ── Fiches expérience / projet / compétence ───────────────────────────── */
+
+function foExpById(id)  { return foExperiences().find(x => x.id === id) || null; }
+function foProjById(id) { return foProjets().find(x => x.id === id) || null; }
+function foCompById(id) { return foCompetences().find(x => x.id === id) || null; }
+
+function foOpenExp(id) {
+  if (!FO) return;
+  const e = id ? foExpById(id) : null;
+  _foEditId.exp = id || null;
+  document.getElementById("fo-e-title").textContent = e ? "Modifier l'expérience" : "Nouvelle expérience";
+  document.getElementById("fo-e-del").style.display = e ? "" : "none";
+  document.getElementById("fo-e-poste").value = e ? (e.poste || "") : "";
+  document.getElementById("fo-e-emp").value   = e ? (e.employeur || "") : "";
+  document.getElementById("fo-e-lieu").value  = e ? (e.lieu || "") : "";
+  document.getElementById("fo-e-debut").value = e ? (e.debut || "") : "";
+  document.getElementById("fo-e-fin").value   = e ? (e.fin || "") : "";
+  document.getElementById("fo-e-miss").value  = e ? (e.missions || []).join("\n") : "";
+  document.getElementById("fo-e-note").value  = e ? (e.note || "") : "";
+  document.getElementById("ov-fo-exp").classList.add("open");
+  setTimeout(() => document.getElementById("fo-e-poste").focus(), 60);
+}
+
+async function foSaveExp() {
+  const poste = (document.getElementById("fo-e-poste").value || "").trim();
+  if (!poste) { showToastModern("Donne un intitulé de poste", "warn"); return; }
+  const rec = {
+    poste,
+    employeur: (document.getElementById("fo-e-emp").value || "").trim(),
+    lieu:      (document.getElementById("fo-e-lieu").value || "").trim(),
+    debut:     document.getElementById("fo-e-debut").value || "",
+    fin:       document.getElementById("fo-e-fin").value || "",
+    missions:  (document.getElementById("fo-e-miss").value || "")
+                 .split("\n").map(s => s.trim()).filter(Boolean),
+    note:      (document.getElementById("fo-e-note").value || "").trim(),
+  };
+  const cur = _foEditId.exp ? foExpById(_foEditId.exp) : null;
+  if (cur) Object.assign(cur, rec);
+  else FO.experiences.push(Object.assign({ id: foNextId("exp") }, rec));
+  if (await foSave()) { closeOv("ov-fo-exp"); showToastModern("Expérience enregistrée", "ok"); foRenderAll(); }
+}
+
+async function foDeleteExp() {
+  const e = _foEditId.exp ? foExpById(_foEditId.exp) : null;
+  if (!e || !confirm(`Supprimer « ${e.poste} » ?`)) return;
+  FO.experiences = FO.experiences.filter(x => x.id !== e.id);
+  if (await foSave()) { closeOv("ov-fo-exp"); foRenderAll(); }
+}
+
+function foOpenProj(id) {
+  if (!FO) return;
+  const p = id ? foProjById(id) : null;
+  _foEditId.proj = id || null;
+  document.getElementById("fo-p-title").textContent = p ? "Modifier le projet" : "Nouveau projet";
+  document.getElementById("fo-p-del").style.display = p ? "" : "none";
+  document.getElementById("fo-p-nom").value   = p ? (p.nom || "") : "";
+  document.getElementById("fo-p-url").value   = p ? (p.url || "") : "";
+  document.getElementById("fo-p-desc").value  = p ? (p.description || "") : "";
+  document.getElementById("fo-p-tech").value  = p ? (p.techno || []).join(", ") : "";
+  document.getElementById("fo-p-debut").value = p ? (p.debut || "") : "";
+  document.getElementById("fo-p-fin").value   = p ? (p.fin || "") : "";
+  document.getElementById("fo-p-note").value  = p ? (p.note || "") : "";
+  document.getElementById("ov-fo-proj").classList.add("open");
+  setTimeout(() => document.getElementById("fo-p-nom").focus(), 60);
+}
+
+async function foSaveProj() {
+  const nom = (document.getElementById("fo-p-nom").value || "").trim();
+  if (!nom) { showToastModern("Donne un nom au projet", "warn"); return; }
+  const rec = {
+    nom,
+    url:         (document.getElementById("fo-p-url").value || "").trim(),
+    description: (document.getElementById("fo-p-desc").value || "").trim(),
+    techno:      (document.getElementById("fo-p-tech").value || "")
+                   .split(",").map(s => s.trim()).filter(Boolean),
+    debut:       document.getElementById("fo-p-debut").value || "",
+    fin:         document.getElementById("fo-p-fin").value || "",
+    note:        (document.getElementById("fo-p-note").value || "").trim(),
+  };
+  const cur = _foEditId.proj ? foProjById(_foEditId.proj) : null;
+  if (cur) Object.assign(cur, rec);
+  else FO.projets.push(Object.assign({ id: foNextId("proj") }, rec));
+  if (await foSave()) { closeOv("ov-fo-proj"); showToastModern("Projet enregistré", "ok"); foRenderAll(); }
+}
+
+async function foDeleteProj() {
+  const p = _foEditId.proj ? foProjById(_foEditId.proj) : null;
+  if (!p || !confirm(`Supprimer « ${p.nom} » ?`)) return;
+  FO.projets = FO.projets.filter(x => x.id !== p.id);
+  if (await foSave()) { closeOv("ov-fo-proj"); foRenderAll(); }
+}
+
+function foOpenComp(id) {
+  if (!FO) return;
+  const c = id ? foCompById(id) : null;
+  _foEditId.comp = id || null;
+  document.getElementById("fo-c-title").textContent = c ? "Modifier la compétence" : "Nouvelle compétence";
+  document.getElementById("fo-c-del").style.display = c ? "" : "none";
+  document.getElementById("fo-c-label").value = c ? (c.label || "") : "";
+  _foFillSelect(document.getElementById("fo-c-cat"),
+                FO_CATS.map(x => ({ id: x, label: x })), c ? c.categorie : FO_CATS[0]);
+  _foFillSelect(document.getElementById("fo-c-niv"),
+                FO_NIVEAUX, c ? c.niveau : 2);
+  document.getElementById("ov-fo-comp").classList.add("open");
+  setTimeout(() => document.getElementById("fo-c-label").focus(), 60);
+}
+
+async function foSaveComp() {
+  const label = (document.getElementById("fo-c-label").value || "").trim();
+  if (!label) { showToastModern("Donne un intitulé", "warn"); return; }
+  const rec = {
+    label,
+    categorie: document.getElementById("fo-c-cat").value,
+    niveau:    parseInt(document.getElementById("fo-c-niv").value, 10) || 1,
+  };
+  const cur = _foEditId.comp ? foCompById(_foEditId.comp) : null;
+  if (cur) Object.assign(cur, rec);
+  else FO.competences.push(Object.assign({ id: foNextId("comp") }, rec));
+  if (await foSave()) { closeOv("ov-fo-comp"); foRenderAll(); }
+}
+
+async function foDeleteComp() {
+  const c = _foEditId.comp ? foCompById(_foEditId.comp) : null;
+  if (!c || !confirm(`Supprimer « ${c.label} » ?`)) return;
+  FO.competences = FO.competences.filter(x => x.id !== c.id);
+  if (await foSave()) { closeOv("ov-fo-comp"); foRenderAll(); }
+}
+
+/* ── Domaines ──────────────────────────────────────────────────────────── */
+
+function foOpenDomaines() {
+  if (!FO) return;
+  foRenderDomaines();
+  document.getElementById("ov-fo-dom").classList.add("open");
+}
+
+function foRenderDomaines() {
+  const box = document.getElementById("fo-dom-list");
+  if (!box) return;
+  box.innerHTML = foDomaines().map(d => {
+    const n = foFormations().filter(f => f.domaineId === d.id).length;
+    return `<div class="fo-dom-row">
+      <button type="button" class="fo-dom-ico" style="background:${d.color}1f;color:${d.color}"
+              onclick="foPickDomIcon('${d.id}')" title="Changer l'emoji">${d.icon || "📦"}</button>
+      <input class="fo-dom-name" value="${escHtml(d.label)}"
+             onchange="foRenameDomaine('${d.id}', this.value)">
+      <input type="color" class="fo-dom-col" value="${escHtml(d.color || "#71717a")}"
+             onchange="foColorDomaine('${d.id}', this.value)" title="Couleur">
+      <span class="m-tag" title="${n} formation(s)">${n}</span>
+      <button class="m-iconbtn danger"${n ? " disabled" : ""}
+              title="${n ? "Utilisé par " + n + " formation(s)" : "Supprimer"}"
+              onclick="foDeleteDomaine('${d.id}')">🗑</button>
+    </div>`;
+  }).join("");
+}
+
+function foPickDomIcon(id) {
+  const d = foDomaines().find(x => x.id === id); if (!d) return;
+  finPickIcon(d.icon, "Emoji du domaine", async (e) => {
+    d.icon = e || "📦";
+    if (await foSave()) { foRenderDomaines(); foRenderAll(); }
+  });
+}
+
+async function foRenameDomaine(id, label) {
+  const d = foDomaines().find(x => x.id === id); if (!d) return;
+  label = (label || "").trim();
+  if (!label) { foRenderDomaines(); return; }
+  d.label = label;
+  if (await foSave()) { foRenderDomaines(); foRenderAll(); }
+}
+
+async function foColorDomaine(id, color) {
+  const d = foDomaines().find(x => x.id === id); if (!d) return;
+  d.color = color || "#71717a";
+  if (await foSave()) { foRenderDomaines(); foRenderAll(); }
+}
+
+async function foAddDomaine() {
+  const label = (prompt("Nom du domaine ?") || "").trim();
+  if (!label) return;
+  FO.domaines.push({ id: foNextId("dom"), label, icon: "📦", color: "#71717a" });
+  if (await foSave()) { foRenderDomaines(); foRenderAll(); }
+}
+
+async function foDeleteDomaine(id) {
+  // Un domaine utilisé laisserait ses formations sans étiquette : on refuse,
+  // comme un sport rattaché à des séances.
+  if (foFormations().some(f => f.domaineId === id)) {
+    showToastModern("Ce domaine est utilisé par des formations", "warn"); return;
+  }
+  FO.domaines = FO.domaines.filter(d => d.id !== id);
+  if (await foSave()) { foRenderDomaines(); foRenderAll(); }
+}
+
+/* ── Statistiques ──────────────────────────────────────────────────────── */
+
+function foRenderStats() {
+  const kpis = document.getElementById("fo-stats-kpis");
+  if (!kpis) return;
+  const finies = foFormations().filter(f => f.statut === "fini");
+  const ects = finies.reduce((s, f) => s + (Number(f.ects) || 0), 0);
+  const fortes = finies.filter(f => foPreuve(f.preuve).poids >= 3).length;
+  const heures = finies.reduce((s, f) => s + (Number(f.dureeEstimee) || 0), 0);
+
+  kpis.innerHTML = `
+    <div class="mkpi accent"><span class="mkpi-lbl">Formations validées</span>
+      <span class="mkpi-val">${finies.length}</span>
+      <span class="mkpi-sub">${foFormations().length} suivies au total</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Crédits ECTS</span>
+      <span class="mkpi-val">${ects || "—"}</span>
+      <span class="mkpi-sub">capitalisés</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Preuves fortes</span>
+      <span class="mkpi-val">${fortes}</span>
+      <span class="mkpi-sub">diplôme, ECTS ou certification</span></div>
+    <div class="mkpi"><span class="mkpi-lbl">Heures cumulées</span>
+      <span class="mkpi-val">${heures ? heures + " h" : "—"}</span>
+      <span class="mkpi-sub">d'après les durées estimées</span></div>`;
+
+  foRenderChartDom(finies);
+  foRenderChartAn(finies);
+  foRenderPreuves(finies);
+}
+
+function foRenderChartDom(finies) {
+  const cv = document.getElementById("fo-chart-dom");
+  if (!cv || !window.Chart) return;
+  if (_foCharts.dom) _foCharts.dom.destroy();
+  // On regroupe par le domaine RÉSOLU, pas par l'id brut : une formation dont
+  // le domaine a disparu s'affiche dans « Autre » plutôt que de s'évaporer du
+  // camembert alors qu'elle compte dans les KPI juste au-dessus.
+  const par = new Map();
+  finies.forEach(f => {
+    const d = foDomaine(f.domaineId);
+    const g = par.get(d.id) || { label: d.label, n: 0, color: d.color || "#71717a" };
+    g.n++;
+    par.set(d.id, g);
+  });
+  const groups = [...par.values()].sort((a, b) => b.n - a.n);
+  if (!groups.length) { cv.getContext("2d").clearRect(0, 0, cv.width, cv.height); return; }
+  _foCharts.dom = new Chart(cv, {
+    type: "doughnut",
+    data: {
+      labels: groups.map(g => g.label),
+      datasets: [{ data: groups.map(g => g.n), backgroundColor: groups.map(g => g.color),
+                   borderWidth: 0 }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: "58%",
+      plugins: { legend: { position: "bottom",
+        labels: { color: saCssVar("--txt2", "#888"), boxWidth: 10, font: { size: 10 } } } },
+    },
+  });
+}
+
+function foRenderChartAn(finies) {
+  const cv = document.getElementById("fo-chart-an");
+  if (!cv || !window.Chart) return;
+  if (_foCharts.an) _foCharts.an.destroy();
+  const par = {};
+  finies.forEach(f => { const a = foAnnee(f); if (a) par[a] = (par[a] || 0) + 1; });
+  const ans = Object.keys(par).sort();
+  if (!ans.length) { cv.getContext("2d").clearRect(0, 0, cv.width, cv.height); return; }
+  const acc  = saCssVar("--accent", "#e07a2f");
+  const grid = saCssVar("--brd", "rgba(128,128,128,.2)");
+  const txt  = saCssVar("--txt2", "#888");
+  _foCharts.an = new Chart(cv, {
+    type: "bar",
+    data: { labels: ans, datasets: [{ label: "Terminées", data: ans.map(a => par[a]),
+            backgroundColor: acc, borderRadius: 5, maxBarThickness: 44 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: txt, font: { size: 10 } } },
+        y: { beginAtZero: true, grid: { color: grid },
+             ticks: { color: txt, precision: 0, font: { size: 10 } } },
+      },
+    },
+  });
+}
+
+function foRenderPreuves(finies) {
+  const box = document.getElementById("fo-preuves-body");
+  if (!box) return;
+  if (!finies.length) {
+    box.innerHTML = `<div class="m-empty">Rien de terminé : il n'y a encore rien à compter.</div>`;
+    return;
+  }
+  const liste = FO_PREUVES.slice().sort((a, b) => (b.poids || 0) - (a.poids || 0));
+  const max = Math.max(...liste.map(p => finies.filter(f => f.preuve === p.id).length), 1);
+  box.innerHTML = liste.map(p => {
+    const n = finies.filter(f => f.preuve === p.id).length;
+    return `<div style="display:flex;align-items:center;gap:11px;padding:7px 0">
+      <span style="width:190px;font-size:11.5px">${p.icon} ${escHtml(p.label)}</span>
+      <span style="flex:1;height:7px;background:var(--bg3);border-radius:99px;overflow:hidden">
+        <span style="display:block;height:100%;width:${(n / max) * 100}%;
+                     background:${n ? "var(--accent)" : "transparent"}"></span></span>
+      <span class="m-tag">${n}</span>
+    </div>`;
+  }).join("");
+}
+
+/* ── Export CV ─────────────────────────────────────────────────────────── */
+
+function foOpenCv() {
+  if (!FO) return;
+  foRenderCv();
+  document.getElementById("ov-fo-cv").classList.add("open");
+}
+
+function foCvText() {
+  const encours = document.getElementById("fo-cv-encours");
+  const avecEnCours = encours ? encours.checked : false;
+  const out = [];
+
+  // Les plus fortes preuves d'abord, puis les plus récentes : c'est l'ordre
+  // dans lequel on veut être lu.
+  const forms = foFormations()
+    .filter(f => f.statut === "fini" || (avecEnCours && f.statut === "encours"))
+    .sort((a, b) => (foPreuve(b.preuve).poids - foPreuve(a.preuve).poids)
+                 || (b.dateFin || "").localeCompare(a.dateFin || ""));
+  if (forms.length) {
+    out.push("FORMATIONS ET CERTIFICATIONS", "");
+    forms.forEach(f => {
+      const bits = [];
+      const an = foAnnee(f);
+      if (an) bits.push(an);
+      bits.push(f.titre || "Sans titre");
+      if (f.organisme) bits.push(f.organisme);
+      let ligne = "- " + bits.join(" — ");
+      const suff = [];
+      if (f.ects) suff.push(f.ects + " ECTS");
+      if (foPreuve(f.preuve).poids >= 3) suff.push(foPreuve(f.preuve).label);
+      if (f.statut === "encours") suff.push("en cours");
+      if (suff.length) ligne += " (" + suff.join(", ") + ")";
+      out.push(ligne);
+    });
+    out.push("");
+  }
+
+  const exps = foExperiences().slice().sort((a, b) => (b.debut || "").localeCompare(a.debut || ""));
+  if (exps.length) {
+    out.push("EXPÉRIENCES", "");
+    exps.forEach(e => {
+      const t = [e.poste || "Poste", e.employeur, e.lieu].filter(Boolean).join(" — ");
+      const p = foPeriode(e.debut, e.fin);
+      out.push("- " + t + (p ? "  (" + p + ")" : ""));
+      (e.missions || []).filter(Boolean).forEach(m => out.push("    • " + m));
+    });
+    out.push("");
+  }
+
+  const projs = foProjets().slice().sort((a, b) => (b.debut || "").localeCompare(a.debut || ""));
+  if (projs.length) {
+    out.push("PROJETS", "");
+    projs.forEach(p => {
+      let l = "- " + (p.nom || "Projet");
+      const tech = (p.techno || []).filter(Boolean);
+      if (tech.length) l += " (" + tech.join(", ") + ")";
+      out.push(l);
+      if (p.description) out.push("    " + p.description);
+      if (foSafeUrl(p.url)) out.push("    " + foSafeUrl(p.url));
+    });
+    out.push("");
+  }
+
+  const comps = foCompetences();
+  if (comps.length) {
+    out.push("COMPÉTENCES", "");
+    const cats = [];
+    FO_CATS.forEach(c => { if (comps.some(x => x.categorie === c)) cats.push(c); });
+    comps.forEach(x => { if (!cats.includes(x.categorie || "Autre")) cats.push(x.categorie || "Autre"); });
+    cats.forEach(cat => {
+      const items = comps.filter(x => (x.categorie || "Autre") === cat)
+        .sort((a, b) => (b.niveau || 0) - (a.niveau || 0));
+      if (!items.length) return;
+      out.push("- " + cat + " : " + items.map(c =>
+        c.label + " (" + foNiveau(c.niveau).label.toLowerCase() + ")").join(", "));
+    });
+    out.push("");
+  }
+
+  if (!out.length) return "Rien à exporter pour l'instant.";
+  return out.join("\n").trimEnd() + "\n";
+}
+
+function foRenderCv() {
+  const ta = document.getElementById("fo-cv-text");
+  if (ta) ta.value = foCvText();
+}
+
+async function foCopyCv() {
+  const ta = document.getElementById("fo-cv-text");
+  if (!ta) return;
+  try {
+    await navigator.clipboard.writeText(ta.value);
+    showToastModern("CV copié dans le presse-papiers", "ok");
+  } catch (e) {
+    // Le presse-papiers peut être refusé selon le moteur : la sélection
+    // manuelle reste possible, on ne laisse pas l'utilisateur sans recours.
+    ta.select();
+    showToastModern("Copie automatique refusée — le texte est sélectionné, fais Ctrl+C", "warn");
+  }
+}
+
+(function patchGoTabFormation() {
+  const _prev = window.goTab;
+  if (typeof _prev !== "function") return;
+  window.goTab = function(n) {
+    _prev.call(this, n);
+    if (n !== "fo-todo" && n !== "fo-done" && n !== "fo-cv" && n !== "fo-stats") return;
+    if (!_foBootstrapped) { foBootstrap(); return; }
+    if (n === "fo-todo")  foRenderTodo();
+    if (n === "fo-done")  foRenderDone();
+    if (n === "fo-cv")    foRenderCvTab();
+    if (n === "fo-stats") foRenderStats();
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════
    ACCUEIL : TABLEAU DE BORD MODULAIRE
    Chaque tuile est un widget déclaré dans DASH_WIDGETS. L'utilisateur choisit
    lesquels afficher et dans quel ordre (Paramètres → Accueil, glisser-déposer).
@@ -15018,6 +16464,41 @@ const DASH_WIDGETS = [
     },
   },
   {
+    id: "formation-encours", label: "Formation en cours", module: "Formation", tab: "fo-todo",
+    render() {
+      if (typeof FO === "undefined" || !FO) return null;
+      const l = foFormations().filter(f => f.statut === "encours").sort(foSortTodo);
+      if (!l.length) return null;
+      return { lbl: "Formation en cours", val: l[0].titre,
+               sub: l.length > 1 ? "et " + (l.length - 1) + " autre" + (l.length > 2 ? "s" : "")
+                                 : (l[0].organisme || ""),
+               go: "Voir les formations" };
+    },
+  },
+  {
+    id: "formation-annee", label: "Formations terminées cette année", module: "Formation", tab: "fo-done",
+    render() {
+      if (typeof FO === "undefined" || !FO) return null;
+      const an = String(new Date().getFullYear());
+      const l = foFormations().filter(f => f.statut === "fini" && foAnnee(f) === an);
+      if (!l.length) return null;
+      const ects = l.reduce((s, f) => s + (Number(f.ects) || 0), 0);
+      return { lbl: "Terminées en " + an, val: String(l.length),
+               sub: ects ? ects + " ECTS validés" : l[0].titre,
+               go: "Voir les formations" };
+    },
+  },
+  {
+    id: "formation-todo", label: "Formations à faire", module: "Formation", tab: "fo-todo",
+    render() {
+      if (typeof FO === "undefined" || !FO) return null;
+      const l = foFormations().filter(f => f.statut === "todo").sort(foSortTodo);
+      if (!l.length) return null;
+      return { lbl: "Formations repérées", val: String(l.length),
+               sub: "à commencer : " + l[0].titre, go: "Voir la liste" };
+    },
+  },
+  {
     id: "usb", label: "Sauvegarde USB", module: "Sauvegarde", tab: null,
     render() {
       const s = window._dashUsb;
@@ -15077,6 +16558,7 @@ function dashModuleReady(mod) {
     case "Prêt":       return _prBootstrapped;
     case "Santé":      return _saBootstrapped;
     case "Patrimoine": return _paBootstrapped;
+    case "Formation":  return _foBootstrapped;
     case "Sauvegarde": return !!window._dashUsb;
   }
   return true;
@@ -15369,6 +16851,7 @@ function dashWireDnd(box) {
         ["pret",       prBootstrap()],
         ["sante",      saBootstrap(true)],
         ["patrimoine", paBootstrap(true)],
+        ["formation",  foBootstrap(true)],
         ["usb",        svRenderUsbState()],
       ];
       await Promise.all(boots.map(([nom, pr]) =>

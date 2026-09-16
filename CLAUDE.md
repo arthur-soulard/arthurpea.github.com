@@ -7,7 +7,7 @@ Aucune donnée ne sort du PC — pas de compte, pas de serveur distant, pas de t
 Stack : Python + pywebview (fenêtre native avec UI HTML/CSS/JS), PyInstaller pour
 compiler en .exe, Inno Setup pour le Setup.exe, GitHub Actions pour build + release.
 
-**Version actuelle : 4.2.1**
+**Version actuelle : 4.3.0**
 (l'app s'appelait « Suivi PEA » jusqu'à la 4.1.0, le dossier du dépôt jusqu'à la 4.1.1)
 
 Dépôt : `C:\Users\Arthur\Desktop\Pilote` — branche `main`, remote
@@ -28,6 +28,7 @@ Pilote/
 │   ├── sante.py        # Module « Santé »         (sante.json) + lecture OCR FitDays
 │   ├── ocr_win.ps1     # OCR via Windows.Media.Ocr — appelé par sante.py
 │   ├── patrimoine.py   # Module « Patrimoine »    (patrimoine.json)
+│   ├── formation.py    # Module « Formation »     (formation.json) + certificats
 │   ├── jsonstore.py    # Socle commun : écriture atomique + backup quotidien 7 j
 │   ├── sauvegarde.py   # Sauvegarde externe sur clé USB (miroir + archives zip)
 │   ├── appicon.py      # Icône recolorée selon la couleur d'accent
@@ -64,6 +65,8 @@ Donnees/
 │   ├── pret.json             # Prêt étudiant    (+ backups_pret/)
 │   ├── sante.json            # Santé            (+ backups_sante/)
 │   ├── patrimoine.json       # Patrimoine       (+ backups_patrimoine/)
+│   ├── formation.json        # Formation        (+ backups_formation/)
+│   ├── certificats/          # PDF et images des formations validées
 │   └── pin.hash              # code PIN de CET utilisateur (si configuré)
 ├── icones/                   # .ico générés à la couleur d'accent
 └── crash.log
@@ -245,7 +248,7 @@ Titlebar custom (fenêtre frameless, 36 px) : logo + « Pilote » + boutons fen�
 Topbar minimale : logo + « Pilote », indicateur « Dernière actualisation HH:MM » avec
 ↻ Actualiser (`.refresh-grp`), et ↩ Retour (undo).
 
-Sidebar : un onglet **Accueil** seul en tête, puis 4 sections en accordéon
+Sidebar : un onglet **Accueil** seul en tête, puis 7 sections en accordéon
 (`NAV_SECTIONS` dans index.html). Une seule section dépliée à la fois, un second clic
 sur l'en-tête la referme, aucune section n'est obligatoirement ouverte. Une pastille
 marque la section contenant l'onglet actif. En bas : pastille utilisateur, thème,
@@ -260,6 +263,7 @@ Paramètres.
 | Sports          | sp-agenda, sp-goals, sp-stats                                      |
 | Patrimoine      | pa-vue, pa-comptes                                                 |
 | Santé           | sa-suivi, sa-mesures, sa-goals                                     |
+| Formation       | fo-todo, fo-done, fo-cv, fo-stats                                  |
 
 Fonctions : `_injectSidebar()`, `_setActiveSidebar(id)`, `_navToggleSection(secId)`,
 `_navSectionOf(tabId)`. Section dépliée persistée dans `S.uiPrefs.navOpen` ("" = tout
@@ -306,6 +310,7 @@ Modale unique à colonne de sections (`setGoSection(id)`), plus « paramètres d
 | comptes    | catégories & emoji, sources, récurrents                             |
 | pret       | renvoi vers l'onglet `pr-params`                                    |
 | sport      | mes sports, types de séance, routines                               |
+| formation  | domaines, dossier des certificats, nettoyage des orphelins          |
 | accueil    | tuiles du tableau de bord (idem bouton ✎ de l'accueil)             |
 | sauvegarde | destination USB, sauvegarde auto, rotation, restauration            |
 | donnees    | dossier, export/import, mise à jour, réinitialisation, version      |
@@ -483,6 +488,76 @@ les paramètres ne faisait visiblement rien. `saBootstrap(discret)` et
 De même, `svRenderUsbState()` publie désormais `window._dashUsb` — la tuile
 « Sauvegarde USB » lisait cette variable que personne n'écrivait.
 
+## Module Formation (formation.json)
+
+Ce qui nourrit le CV. Trois natures d'objets sous le même toit, et c'est ce qui
+dicte le découpage en quatre onglets :
+
+* les **formations**, qui progressent (`todo` → `encours` → `fini`) et portent
+  un certificat une fois terminées — onglets `fo-todo` et `fo-done` ;
+* les **expériences, projets et compétences**, qui ne progressent pas : ils
+  existent, on les décrit, ils alimentent l'export — onglet `fo-cv` ;
+* les **compteurs**, dans `fo-stats`.
+
+API Python : `load_formation()` / `save_formation()` — `load_formation` renvoie
+aussi les catalogues (`STATUTS`, `FORMATS`, `PREUVES`, `PRIORITES`, `NIVEAUX`,
+`CATEGORIES_COMPETENCE`) et l'état du dossier des certificats. Plus
+`formation_add_certificat`, `formation_open_certificat`,
+`formation_remove_certificat`, `formation_certificats_state`,
+`formation_clean_orphans`, `formation_open_certificats_folder`.
+
+Données :
+
+* formations  : `{id, titre, organisme, url, description, domaineId, format,
+                preuve, ects, cpf, dureeEstimee, statut, dateDebut, dateFin,
+                dateEcheance, priorite, note, certificat}`
+* experiences : `{id, poste, employeur, lieu, debut, fin, missions[], note}`
+* projets     : `{id, nom, url, description, techno[], debut, fin, note}`
+* competences : `{id, label, categorie, niveau 1-4}`
+* domaines    : `{id, label, icon, color}` — éditables, emoji via `finPickIcon`
+
+**Quatre décisions à ne pas défaire :**
+
+1. **Les certificats sont COPIÉS**, jamais référencés là où ils se trouvent
+   (`Donnees/users/<slug>/certificats/`). Un chemin vers Téléchargements casse
+   au premier rangement, et surtout la sauvegarde USB ne l'embarquerait pas —
+   or un certificat est précisément ce qu'on ne peut pas régénérer. Extensions
+   en liste blanche, 25 Mo maximum, nom de fichier confiné au dossier
+   (`_resolve()`, même protection que le zip-slip de `sauvegarde.py`).
+   Ils ne sont **pas** dans les backups quotidiens : `JsonStore` ne sauvegarde
+   que le JSON, rien à faire de particulier.
+2. **Pas de champ coût.** L'argent vit dans « Mes comptes » ; un même montant
+   saisi à deux endroits finit toujours par diverger. Reste `cpf`, qui est une
+   info de repérage et pas un montant.
+3. **Pas de compteur d'heures.** Une formation a un statut, pas un chronomètre.
+   `dureeEstimee` sert aux totaux « charge à venir » et « heures cumulées », et
+   personne n'a à la tenir à jour. Un compteur faux vaut moins que pas de compteur.
+4. **Supprimer une formation ne supprime pas son certificat**, comme
+   `delete_user` qui conserve le dossier. Le ménage est explicite :
+   Paramètres → Formation → « Nettoyer les orphelins ».
+
+Détails qui ont une raison :
+
+* `foDomaine()` retombe explicitement sur `dom_autre`, jamais sur le dernier
+  élément du tableau. Et `foRenderChartDom()` regroupe par domaine **résolu**,
+  pas par id brut : sinon une formation dont le domaine a disparu s'évapore du
+  camembert tout en comptant dans le KPI juste au-dessus.
+* `foSaveFormation()` efface `dateEcheance` quand le statut passe à `fini`, et
+  `dateFin` quand il n'y est plus : sans ça un badge « J−12 » survit sur une
+  formation déjà validée.
+* `foSafeUrl()` n'ouvre que du `http(s)` — le champ lien est libre.
+* Le `poids` des `PREUVES` (diplôme 5 → aucune 1) ordonne l'export CV et le
+  graphique : un diplôme se lit avant un badge de MOOC.
+* Un domaine utilisé par des formations ne peut pas être supprimé.
+* L'export CV est un **bloc de texte à copier**, généré en JS (`foCvText()`).
+  Pas de PDF mis en page : il serait retouché ailleurs de toute façon.
+* Le fichier est livré avec huit formations d'exemple (`_seed_formations`) —
+  un point de départ à corriger, pas une recommandation gravée.
+
+Tuiles d'accueil : `formation-encours`, `formation-annee`, `formation-todo`.
+Les échéances restent dans le module (badge dans la liste `fo-todo`) : elles ne
+remontent volontairement pas sur l'accueil.
+
 ## Module Santé (sante.json)
 
 Pesées de la balance connectée, saisies depuis les captures d'écran de l'app
@@ -609,7 +684,7 @@ Points critiques :
 * Tout l'UI vit dans `index.html` (~15 100 lignes). Les modules annexes sont des blocs
   JS autonomes en fin de fichier, préfixés (`fin*`, `sp*`, `pr*`, `sa*`, `pa*`, `dash*`,
   `sv*`, `home*`), avec leur propre patch de `goTab`. **Ordre d'insertion : Sports →
-  Prêt → Santé → Patrimoine → Tableau de bord → `boot()`.** Les patches de `goTab`
+  Prêt → Santé → Patrimoine → Formation → Tableau de bord → `boot()`.** Les patches de `goTab`
   s'enchaînent, ne pas casser l'ordre.
 * Primitives de DA à réutiliser : `.card/.card-h/.card-t/.card-b`, `.btn/.btn-primary/
   .btn-ghost/.btn-sm`, `table + .tw`, `.ov/.modal/.fg/.fg-row/.mact` + `closeOv(id)`,
